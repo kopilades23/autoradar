@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="fr" class="bg-[#08080a]">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Autoradar — Recherche en direct</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, monospace;
+      --color-ink: #08080a;
+      --color-accent: #ff6a2b;
+      --color-accent-soft: #ffb08a;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #08080a; }
+
+    /* ---------- Fond : aurora + grille ---------- */
+    .aurora { position: fixed; inset: -20vmax; z-index: 0; pointer-events: none; opacity: .5; } /* dégradés radiaux déjà flous : pas de filter:blur coûteux */
+    .aurora span { position: absolute; border-radius: 9999px; mix-blend-mode: screen; will-change: transform; animation: drift 28s ease-in-out infinite alternate; }
+    .aurora span:nth-child(1) { width: 42vmax; height: 42vmax; left: 10%; top: 0%;  background: radial-gradient(circle, #ff6a2b 0%, transparent 65%); }
+    .aurora span:nth-child(2) { width: 38vmax; height: 38vmax; right: 5%; top: 10%; background: radial-gradient(circle, #6d4aff 0%, transparent 65%); animation-duration: 34s; animation-delay: -8s; }
+    .aurora span:nth-child(3) { width: 30vmax; height: 30vmax; left: 40%; top: 35%; background: radial-gradient(circle, #1fb6ff 0%, transparent 65%); opacity: .5; animation-duration: 40s; animation-delay: -16s; }
+    @keyframes drift {
+      0%   { transform: translate3d(0,0,0) scale(1); }
+      50%  { transform: translate3d(6vmax,4vmax,0) scale(1.12); }
+      100% { transform: translate3d(-5vmax,2vmax,0) scale(.95); }
+    }
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    }
+    .grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .06;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ---------- Entrées animées ---------- */
+    .reveal { opacity: 0; transform: translateY(18px); filter: blur(8px);
+      animation: reveal .9s var(--ease-out-expo, cubic-bezier(.16,1,.3,1)) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes reveal { to { opacity: 1; transform: none; filter: blur(0); } }
+
+    .word { display: inline-block; opacity: 0; transform: translateY(60%) rotate(4deg); filter: blur(10px);
+      animation: word 1s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes word { to { opacity: 1; transform: none; filter: blur(0); } }
+
+    .shimmer-text {
+      background: linear-gradient(100deg, #fff 20%, var(--color-accent-soft, #ffb08a) 40%, #fff 60%);
+      background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: shimmer 6s linear infinite;
+    }
+    @keyframes shimmer { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+
+    /* ---------- Cartes ---------- */
+    .card { --x: 50%; --y: 50%; --rx: 0deg; --ry: 0deg;
+      transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
+      transition: transform .5s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .5s; }
+    .card:hover { box-shadow: 0 30px 80px -30px rgba(255,106,43,.35), 0 0 0 1px rgba(255,255,255,.08); }
+    .card::before { /* spotlight suivant le curseur */
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+      background: radial-gradient(420px circle at var(--x) var(--y), rgba(255,255,255,.09), transparent 45%);
+      opacity: 0; transition: opacity .4s; }
+    .card:hover::before { opacity: 1; }
+    .card::after { /* bordure lumineuse */
+      content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 3;
+      background: radial-gradient(300px circle at var(--x) var(--y), rgba(255,106,43,.8), transparent 50%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity .4s; }
+    .card:hover::after { opacity: 1; }
+    .card .photo { transition: transform 1.2s cubic-bezier(.16,1,.3,1); }
+    .card:hover .photo { transform: scale(1.07); }
+    .card .cta-arrow { transition: transform .45s cubic-bezier(.16,1,.3,1); }
+    .card:hover .cta-arrow { transform: translateX(4px) rotate(-45deg); }
+
+    /* ---------- Merguez ---------- */
+    .card[data-merguez="1"] { border-color: rgba(239,68,68,.28); }
+    .card[data-merguez="1"] .photo { filter: grayscale(.85) contrast(.95) brightness(.8); transition: transform 1.2s cubic-bezier(.16,1,.3,1), filter .6s; }
+    .card[data-merguez="1"]:hover .photo { filter: grayscale(.2); }
+    .card[data-merguez="1"]:hover { box-shadow: 0 30px 80px -30px rgba(239,68,68,.35), 0 0 0 1px rgba(239,68,68,.2); }
+    .merguez-badge { animation: pulse-red 2.4s ease-in-out infinite; }
+    @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.45); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+
+    /* ---------- Badges options premium : reflet au survol ---------- */
+    .opt { position: relative; overflow: hidden; opacity: 0; transform: translateY(6px) scale(.96);
+      animation: opt-in .6s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--od, 0ms); }
+    @keyframes opt-in { to { opacity: 1; transform: none; } }
+    .opt::after { content: ""; position: absolute; inset: 0; transform: translateX(-120%);
+      background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.35) 50%, transparent 80%); }
+    .card:hover .opt::after { transition: transform .9s cubic-bezier(.16,1,.3,1); transform: translateX(120%); }
+
+    /* ---------- Interrupteur ---------- */
+    .switch { width: 30px; height: 18px; border-radius: 9999px; background: rgba(255,255,255,.12); position: relative; transition: background .35s; flex: none; }
+    .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 9999px; background: #fff;
+      transition: transform .45s cubic-bezier(.16,1,.3,1); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+    [aria-pressed="true"] .switch { background: #ef4444; }
+    [aria-pressed="true"] .switch::after { transform: translateX(12px); }
+
+    /* ---------- Skeleton ---------- */
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 100%);
+      background-size: 200% 100%; animation: sk 1.6s ease-in-out infinite; }
+    @keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+    /* ---------- View Transitions (tri / filtre) ---------- */
+    :root { view-transition-name: none; } /* seules les cartes sont capturées : transition plus légère */
+    ::view-transition-group(*) { animation-duration: .55s; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+
+    .live-dot { box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: ping 2s infinite; }
+    @keyframes ping { 70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .reveal, .word { opacity: 1; transform: none; filter: none; }
+    }
+  </style>
+  <style>
+    .field { width: 100%; border-radius: .9rem; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
+      padding: .7rem .85rem; font-size: .875rem; color: #f4f4f5; outline: none; transition: border-color .3s, background .3s, box-shadow .3s; }
+    .field:focus { border-color: rgba(255,106,43,.55); background: rgba(255,255,255,.06); box-shadow: 0 0 0 4px rgba(255,106,43,.12); }
+    .field:disabled { opacity: .4; cursor: not-allowed; }
+    select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .7rem center; background-size: 1rem; padding-right: 2.2rem; }
+    select.field option, select.field optgroup { background: #111114; color: #f4f4f5; }
+    .lbl { display: block; margin-bottom: .4rem; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #71717a; }
+    .no-anim .opt { animation: none; opacity: 1; transform: none; }
+    .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-go { background: linear-gradient(135deg, #ff6a2b, #ff3d6e); box-shadow: 0 12px 40px -12px rgba(255,106,43,.7); transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s; }
+    .btn-go:hover { transform: translateY(-1px); box-shadow: 0 18px 50px -12px rgba(255,106,43,.85); }
+    .btn-go:active { transform: scale(.97); }
+    .progress { background: linear-gradient(90deg, transparent, rgba(255,106,43,.9), transparent); background-size: 50% 100%; background-repeat: no-repeat;
+      animation: prog 1.1s ease-in-out infinite; } @keyframes prog { from { background-position: -50% 0; } to { background-position: 150% 0; } }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans text-zinc-100 antialiased selection:bg-accent/40">
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-8">
+    <!-- ================= En-tête ================= -->
+    <header class="reveal sticky top-4 z-30 mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-4 py-3 backdrop-blur-xl" style="--d:0ms">
+      <div class="flex items-center gap-3">
+        <div class="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-accent to-[#ff3d6e] shadow-lg shadow-accent/30">
+          <svg viewBox="0 0 24 24" class="size-5 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M21 12h-3"/></svg>
+        </div>
+        <span class="text-[15px] font-semibold tracking-tight">Autoradar</span>
+        <span class="hidden rounded-full border border-white/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-zinc-400 sm:inline">en direct</span>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-4">
+        <div id="srcStatus" class="hidden items-center gap-3 font-mono text-[11px] text-zinc-400 md:flex"></div>
+        <a href="/base.html" id="lienBase" class="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10">Base locale</a>
+      </div>
+    </header>
+
+    <!-- ================= Hero + formulaire ================= -->
+    <section class="pt-14 pb-8 sm:pt-20">
+      <p class="reveal mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-[11px] uppercase tracking-[.2em] text-zinc-400" style="--d:120ms">
+        <span class="size-1 rounded-full bg-accent"></span> Tous les grands sites · Leboncoin et La Centrale inclus
+      </p>
+      <h1 id="headline" class="max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
+      <p class="reveal mt-5 max-w-2xl text-lg text-zinc-400" style="--d:650ms">
+        AutoScout24, LeParking (qui référence Leboncoin, La Centrale…), ParuVendu, L'argus, Auto-Sélection, Autohero, Renew, Spoticar et Autosphere, interrogés en direct avec leurs propres filtres. Rien n'est téléchargé à l'avance.
+      </p>
+
+      <form id="form" class="reveal mt-10 rounded-3xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl sm:p-5" style="--d:800ms" autocomplete="off">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-6">
+          <label class="col-span-2 md:col-span-1"><span class="lbl">Marque</span>
+            <select id="marque" class="field" required><option value="">Chargement…</option></select></label>
+          <label class="col-span-2 md:col-span-1"><span class="lbl">Modèle</span>
+            <select id="modele" class="field" disabled><option value="">Tous les modèles</option></select></label>
+          <label><span class="lbl">Prix max (€)</span><input id="prix_max" class="field" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
+          <label><span class="lbl">Km max</span><input id="km_max" class="field" type="number" min="0" step="5000" placeholder="Illimité" inputmode="numeric"></label>
+          <label><span class="lbl">Année min</span><select id="annee_min" class="field"><option value="">Toutes</option></select></label>
+          <div class="flex items-end"><button id="go" type="submit" class="btn-go inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-[.72rem] text-sm font-semibold text-white">
+            <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher</button></div>
+        </div>
+        <div id="optChips" class="mt-4 grid gap-3 border-t border-white/5 pt-4 lg:grid-cols-[auto_1fr] lg:gap-x-5"></div>
+        <div class="mt-4 flex flex-col gap-3 border-t border-white/5 pt-4 lg:flex-row lg:items-center">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="mr-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">Sites</span>
+            <div id="srcChips" class="flex flex-wrap gap-1.5"></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
+            <button id="effacer" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
+              <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Effacer les filtres</button>
+            <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les annonces HS, pour pièces, accidentées…"
+              class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-red-500/10 aria-pressed:text-red-200">
+              <span class="switch"></span>Masquer les merguez</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- ================= Résultats ================= -->
+    <section id="resultats" class="hidden pb-24">
+      <div class="mb-5 flex flex-col gap-3">
+        <div id="srcBar" class="flex flex-wrap gap-2"></div>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-2xl font-semibold tracking-tight"><span id="nbAff" class="tabular-nums">0</span> annonce<span id="nbAffS">s</span></h2>
+          <div class="flex flex-wrap items-center gap-3">
+            <p id="resume" class="font-mono text-[11px] text-zinc-500"></p>
+            <label class="inline-flex items-center gap-2 text-xs text-zinc-400"><span class="font-mono text-[10px] uppercase tracking-widest text-zinc-500">Trier</span>
+              <select id="tri" class="field !w-auto !py-1.5 text-xs">
+                <option value="pertinence">Pertinence</option><option value="prix">Prix ↑</option><option value="prix_desc">Prix ↓</option>
+                <option value="km">Km ↑</option><option value="annee">Plus récentes (année)</option>
+              </select></label>
+          </div>
+        </div>
+      </div>
+      <main id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></main>
+      <div class="mt-10 flex flex-col items-center gap-3">
+        <button id="plus" class="hidden rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10 active:scale-95">Charger plus d'annonces</button>
+        <p id="plusInfo" class="font-mono text-[11px] text-zinc-600"></p>
+      </div>
+    </section>
+
+    <section id="accueil" class="reveal pb-24" style="--d:950ms">
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5"><p class="font-mono text-[10px] uppercase tracking-widest text-accent">01 · Filtré par les sites</p><p class="mt-2 text-sm text-zinc-400">Modèle, prix, km, année — et un mot-clé d'option — sont filtrés directement par les sites qui le permettent.</p></div>
+        <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5"><p class="font-mono text-[10px] uppercase tracking-widest text-accent">02 · Vérifié à la volée</p><p class="mt-2 text-sm text-zinc-400">Seules les annonces affichées sont ouvertes (en parallèle) pour repérer merguez et options premium.</p></div>
+        <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5"><p class="font-mono text-[10px] uppercase tracking-widest text-accent">03 · Rien de stocké</p><p class="mt-2 text-sm text-zinc-400">Aucune base à remplir : chaque recherche est fraîche. « Charger plus » va chercher la page suivante.</p></div>
+      </div>
+    </section>
+
+    <footer class="border-t border-white/5 py-8 font-mono text-[11px] text-zinc-600">
+      Autoradar · recherche en direct · <span id="navInfo">navigateur en préparation…</span>
+    </footer>
+  </div>
+
+  <template id="cardTpl">
+    <article class="card reveal group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm">
+      <a class="absolute inset-0 z-[4]" target="_blank" rel="noopener noreferrer" data-link aria-label="Voir l'annonce"></a>
+      <div class="relative aspect-[4/3] overflow-hidden bg-zinc-900">
+        <img class="photo size-full object-cover" loading="lazy" referrerpolicy="no-referrer" alt="" data-img />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/0 to-black/25"></div>
+        <div class="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md" data-source></span>
+          <span class="merguez-badge hidden items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-semibold text-white" data-merguez-badge>
+            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+            <span>Merguez</span></span>
+        </div>
+        <span class="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[11px] font-medium text-black" data-year></span>
+        <p class="absolute bottom-3 left-4 text-[28px] font-semibold leading-none tracking-tight tabular-nums text-white drop-shadow" data-price></p>
+      </div>
+      <div class="flex flex-1 flex-col gap-3 p-5">
+        <h3 class="line-clamp-2 text-[15px] font-medium leading-snug text-zinc-100" data-title></h3>
+        <p class="-mt-1 truncate text-xs text-zinc-500 empty:hidden" data-specs></p>
+        <p class="hidden text-xs text-red-300/90" data-merguez-motifs></p>
+        <div class="flex flex-wrap gap-1.5 empty:hidden" data-options></div>
+        <p class="line-clamp-2 text-xs leading-relaxed text-zinc-500 empty:hidden" data-extrait></p>
+        <div class="mt-auto flex flex-wrap gap-2 pt-1 font-mono text-[11px] text-zinc-400">
+          <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1">
+            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 14l4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></svg><span data-km></span></span>
+          <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1 empty:hidden" data-vendeur></span>
+          <span class="hidden items-center gap-1 rounded-lg border border-sky-400/30 px-2 py-1 text-sky-300/80" data-aussi></span>
+          <span class="hidden items-center gap-1 px-1 py-1 text-zinc-500" data-nonverif></span>
+        </div>
+        <div class="flex items-center justify-between border-t border-white/5 pt-3 text-sm">
+          <span class="text-zinc-400 transition group-hover:text-white">Voir l'annonce</span>
+          <span class="grid size-8 place-items-center rounded-full bg-white/5 transition group-hover:bg-accent group-hover:text-black">
+            <svg viewBox="0 0 24 24" class="cta-arrow size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const $ = (s, el = document) => el.querySelector(s);
+    const fmt = new Intl.NumberFormat("fr-FR");
+    const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+                    set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+    const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#131317"/><g fill="none" stroke="#3f3f46" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" transform="translate(130 105)"><path d="M10 60h120M20 60l14-36c3-7 9-12 17-12h38c8 0 14 5 17 12l14 36"/><circle cx="35" cy="66" r="12"/><circle cx="105" cy="66" r="12"/></g></svg>`);
+
+    const SOURCES = {
+      autoscout24:   { nom: "AutoScout24",   dot: "#f5c400" },
+      leparking:     { nom: "LeParking",     dot: "#ff6e14", info: "Leboncoin, La Centrale…" },
+      paruvendu:     { nom: "ParuVendu",     dot: "#e3342f" },
+      largus:        { nom: "L'argus",       dot: "#3b82f6" },
+      zoomcar:       { nom: "Zoomcar (Ouest-France Auto)", court: "Zoomcar", dot: "#f472b6" },
+      autoselection: { nom: "Auto-Sélection", dot: "#fb923c" },
+      autohero:      { nom: "Autohero",      dot: "#34d399" },
+      renew:         { nom: "Renew",         dot: "#facc15" },
+      spoticar:      { nom: "Spoticar",      dot: "#22d3ee" },
+      autosphere:    { nom: "Autosphere",    dot: "#a3e635" },
+    };
+    const ICON = {
+      audio: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+      roof:  '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+      light: '<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
+      tool:  '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+      cam:   '<path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/>',
+      user:  '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    };
+    const STYLE_GROUPE = {
+      "Audio premium":          { icon: "audio", cls: "bg-violet-400/15 text-violet-200 ring-violet-400/40" },
+      "Confort & techno":       { icon: "light", cls: "bg-emerald-400/15 text-emerald-200 ring-emerald-400/40" },
+      "Mécanique & historique": { icon: "tool",  cls: "bg-amber-300/15 text-amber-200 ring-amber-300/40" },
+    };
+    const ICON_OPTION = { "Toit panoramique": "roof", "Caméra 360°": "cam", "Première main": "user" };
+    let GROUPES = {            // remplacé par /api/options au démarrage (source : detection.py)
+      "Audio premium": ["Bose", "Harman Kardon", "Burmester", "Focal", "JBL", "Bang & Olufsen", "Meridian"],
+      "Confort & techno": ["Toit panoramique", "Matrix LED", "Affichage tête haute", "Caméra 360°", "CarPlay / Android Auto", "Régulateur adaptatif", "Sièges chauffants", "Sièges cuir", "Hayon électrique"],
+      "Mécanique & historique": ["Boîte automatique", "4x4 / intégrale", "Attelage", "Première main"],
+    };
+    let OPTIONS = {};
+    const CARBURANTS = ["Essence", "Diesel", "Hybride", "Électrique"];
+    function construireOptions() {
+      OPTIONS = {};
+      for (const [g, liste] of Object.entries(GROUPES)) {
+        const st = STYLE_GROUPE[g] || { icon: "light", cls: "bg-white/10 text-zinc-200 ring-white/20" };
+        for (const o of liste) OPTIONS[o] = { groupe: g, icon: ICON_OPTION[o] || st.icon, cls: st.cls };
+      }
+    }
+    construireOptions();
+    const AUTO_PAGES = 4;       // si des options sont cochées : pages parcourues automatiquement par site
+    const MIN_RESULTATS = 12;   // … tant qu'on n'a pas au moins ce nombre de résultats
+
+    const state = {
+      opts: new Set(), carbus: new Set(), sources: new Set(Object.keys(SOURCES)),
+      hideMerguez: store.get("live.hideMerguez") !== "0", tri: "pertinence",
+      run: 0, annonces: [], vus: new Set(), src: {},
+    };
+
+    /* ---------- Titre animé ---------- */
+    (function headline() {
+      const words = ["Toutes", "les", "occasions,", "<s>une</s>", "<s>recherche.</s>"];
+      $("#headline").innerHTML = words.map((w, i) => {
+        const shine = w.startsWith("<s>"), txt = w.replace(/<\/?s>/g, "");
+        return `<span class="inline-block overflow-hidden pb-2 align-bottom"><span class="word" style="--d:${200 + i * 90}ms">${shine ? `<span class="shimmer-text">${txt}</span>` : txt}</span></span>`;
+      }).join(" ");
+    })();
+
+    /* ---------- Formulaire ---------- */
+    const annees = $("#annee_min");
+    for (let y = new Date().getFullYear(); y >= 1995; y--) annees.insertAdjacentHTML("beforeend", `<option value="${y}">${y}</option>`);
+
+    function renderChips() {
+      $("#optChips").innerHTML = Object.entries(GROUPES).map(([g, liste]) => `
+        <span class="pt-1.5 font-mono text-[10px] uppercase tracking-widest text-zinc-500">${g}</span>
+        <div class="flex flex-wrap items-center gap-1.5">${g.startsWith("Mécanique") ? CARBURANTS.map(cb => {
+          const on = state.carbus.has(cb);
+          return `<button type="button" data-carbu="${cb}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ring-inset transition active:scale-95 ${on ? "bg-sky-400/15 text-sky-200 ring-sky-400/40 shadow-lg" : "bg-white/[0.03] text-zinc-400 ring-white/10 hover:text-zinc-100 hover:ring-white/25"}">
+            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v17M3 22h12M15 10h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3M7 7h4"/></svg>${cb}</button>`;
+        }).join("") + `<span class="mx-1 h-4 w-px bg-white/10"></span>` : ""}${liste.map(l => {
+          const o = OPTIONS[l], on = state.opts.has(l);
+          return `<button type="button" data-opt="${l}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ring-inset transition active:scale-95 ${on ? o.cls + " shadow-lg" : "bg-white/[0.03] text-zinc-400 ring-white/10 hover:text-zinc-100 hover:ring-white/25"}">
+            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[o.icon]}</svg>${l}</button>`;
+        }).join("")}</div>`).join("");
+      $("#srcChips").innerHTML = Object.entries(SOURCES).map(([k, s]) => {
+        const on = state.sources.has(k);
+        return `<button type="button" data-src="${k}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition active:scale-95 ${on ? "bg-white/10 text-white" : "bg-white/[0.03] text-zinc-500 line-through"}">
+          <span class="size-1.5 rounded-full" style="background:${s.dot}"></span>${s.court || s.nom}${s.info ? `<span class="font-normal text-zinc-500">· ${s.info}</span>` : ""}</button>`;
+      }).join("");
+      $("#hideMerguez").setAttribute("aria-pressed", String(state.hideMerguez));
+    }
+    $("#optChips").addEventListener("click", (e) => {
+      const cb = e.target.closest("[data-carbu]");
+      if (cb) { const v = cb.dataset.carbu; state.carbus.has(v) ? state.carbus.delete(v) : state.carbus.add(v); renderChips(); if (state.annonces.length) lancer(); return; }
+      const b = e.target.closest("[data-opt]"); if (!b) return;
+      const o = b.dataset.opt; state.opts.has(o) ? state.opts.delete(o) : state.opts.add(o);
+      renderChips(); if (state.annonces.length) lancer();   // les options changent le filtrage côté site
+    });
+    $("#srcChips").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-src]"); if (!b) return;
+      const k = b.dataset.src;
+      if (state.sources.has(k) && state.sources.size > 1) state.sources.delete(k); else state.sources.add(k);
+      renderChips(); if (state.annonces.length) lancer();
+    });
+    $("#hideMerguez").addEventListener("click", () => {
+      state.hideMerguez = !state.hideMerguez; store.set("live.hideMerguez", state.hideMerguez ? "1" : "0");
+      renderChips(); render(false);
+    });
+    $("#tri").addEventListener("change", (e) => { state.tri = e.target.value; render(false); });
+    $("#effacer").addEventListener("click", () => {
+      state.run++;                                   // annule les recherches en cours
+      $("#form").reset(); $("#modele").innerHTML = `<option value="">Tous les modèles</option>`; $("#modele").disabled = true;
+      state.opts.clear(); state.carbus.clear(); state.sources = new Set(Object.keys(SOURCES)); state.tri = "pertinence"; $("#tri").value = "pertinence";
+      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: null });
+      history.replaceState(null, "", location.pathname);
+      $("#resultats").classList.add("hidden"); $("#accueil").classList.remove("hidden"); $("#grid").innerHTML = "";
+      renderChips(); window.scrollTo({ top: 0, behavior: "smooth" }); $("#marque").focus();
+    });
+
+    async function chargerMarques() {
+      let marques;
+      try { marques = JSON.parse(store.get("live.marques") || "null"); } catch {}
+      if (!marques) {
+        const r = await fetch("/api/marques"); marques = await r.json();
+        if (Array.isArray(marques) && marques.length) store.set("live.marques", JSON.stringify(marques));
+      }
+      if (!Array.isArray(marques)) throw new Error("catalogue");
+      const opt = (m) => `<option value="${m.id}">${m.label}</option>`;
+      $("#marque").innerHTML = `<option value="">Choisir une marque</option>
+        <optgroup label="Populaires">${marques.filter(m => m.top).map(opt).join("")}</optgroup>
+        <optgroup label="Toutes les marques">${marques.map(opt).join("")}</optgroup>`;
+    }
+    async function chargerModeles(id, choisir) {
+      const sel = $("#modele");
+      sel.disabled = true; sel.innerHTML = `<option value="">Chargement…</option>`;
+      if (!id) { sel.innerHTML = `<option value="">Tous les modèles</option>`; return; }
+      const r = await fetch(`/api/modeles?marque=${id}`); const mods = await r.json();
+      const lignes = mods.filter(m => m.cle.startsWith("l:")), simples = mods.filter(m => m.cle.startsWith("m:"));
+      sel.innerHTML = `<option value="">Tous les modèles</option>` +
+        (lignes.length ? `<optgroup label="Gammes">${lignes.map(m => `<option value="${m.cle}">${m.label}</option>`).join("")}</optgroup>` : "") +
+        `<optgroup label="Modèles">${simples.map(m => `<option value="${m.cle}">${m.label}</option>`).join("")}</optgroup>`;
+      sel.disabled = false;
+      if (choisir) sel.value = choisir;
+    }
+    $("#marque").addEventListener("change", (e) => chargerModeles(e.target.value));
+
+    /* ---------- Recherche ---------- */
+    const txt = (sel) => { const o = sel.selectedOptions[0]; return o && o.value ? o.textContent : ""; };
+    function criteres() {
+      return {
+        marque: $("#marque").value, marque_label: txt($("#marque")),
+        modele: $("#modele").value, modele_label: txt($("#modele")),
+        prix_max: $("#prix_max").value, km_max: $("#km_max").value, annee_min: $("#annee_min").value,
+        options: [...state.opts].join(","), carburants: [...state.carbus].join(","),
+      };
+    }
+    const sansAcc = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s*\(tous\)/i, "").trim();
+    const slugify = (s) => sansAcc(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    function lienLeboncoin(c) {
+      const p = new URLSearchParams({ category: "2" });
+      if (c.marque_label) p.set("u_car_brand", sansAcc(c.marque_label).toUpperCase());
+      if (c.modele_label) p.set("text", sansAcc(c.modele_label));
+      if (c.prix_max) p.set("price", `min-${c.prix_max}`);
+      if (c.km_max) p.set("mileage", `min-${c.km_max}`);
+      if (c.annee_min) p.set("regdate", `${c.annee_min}-max`);
+      const fu = { Essence: "1", Diesel: "2", "Électrique": "4", Hybride: "6" };
+      const f = (c.carburants || "").split(",").filter(x => fu[x]).map(x => fu[x]);
+      if (f.length) p.set("fuel", f.join(","));
+      return "https://www.leboncoin.fr/recherche?" + p.toString();
+    }
+    function lienAramis(c) {
+      return `https://www.aramisauto.com/voitures/${slugify(c.marque_label)}/` + (c.modele_label ? `${slugify(c.modele_label)}/` : "");
+    }
+    function lienLaCentrale(c) {
+      const up = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s*\(tous\)/i, "").toUpperCase();
+      const p = new URLSearchParams();
+      if (c.marque_label) p.set("makesModelsCommercialNames", up(c.marque_label) + (c.modele_label ? ":" + up(c.modele_label) : ""));
+      if (c.prix_max) p.set("priceMax", c.prix_max);
+      if (c.km_max) p.set("mileageMax", c.km_max);
+      if (c.annee_min) p.set("yearMin", c.annee_min);
+      return "https://www.lacentrale.fr/listing?" + p.toString();
+    }
+
+    $("#form").addEventListener("submit", (e) => { e.preventDefault(); lancer(); });
+
+    function lancer() {
+      const c = criteres();
+      if (!c.marque) { $("#marque").focus(); return; }
+      const run = ++state.run;
+      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c });
+      const url = new URL(location.href); url.search = new URLSearchParams({ ...c, sources: [...state.sources].join(",") }).toString();
+      history.replaceState(null, "", url);
+      $("#accueil").classList.add("hidden"); $("#resultats").classList.remove("hidden");
+      $("#grid").innerHTML = Array.from({ length: 6 }, (_, i) => `
+        <div class="reveal overflow-hidden rounded-3xl border border-white/[0.06] bg-white/[0.02]" style="--d:${i * 60}ms">
+          <div class="skeleton aspect-[4/3]"></div><div class="space-y-3 p-5"><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-4 w-1/2 rounded"></div></div></div>`).join("");
+      for (const s of state.sources) state.src[s] = { page: 0, suite: true, charge: false, verif: 0, total: null, duree: null, lien: null, erreur: null, repli: false, miroirs: 0 };
+      state.cles = new Map();
+      renderBar();
+      $("#resultats").scrollIntoView({ behavior: "smooth", block: "start" });
+      for (const s of state.sources) chargerSource(s, run);
+    }
+
+    async function chargerSource(s, run) {
+      const st = state.src[s]; if (!st || st.charge || !st.suite) return;
+      st.charge = true; renderBar();
+      const p = new URLSearchParams({ ...state.crit, source: s, page: st.page + 1, tri: state.tri === "prix" ? "prix" : "pertinence", repli: st.repli ? "1" : "0" });
+      let d = null;
+      try {
+        const r = await fetch(`/api/recherche?${p}`); d = await r.json();
+        if (run !== state.run) return;                    // une nouvelle recherche a été lancée entre-temps
+        if (d.erreur) { st.erreur = d.erreur === "bloque" ? "bloque" : (d.message || d.erreur); st.suite = false; }
+        else {
+          st.page = d.page; st.suite = d.suite; st.total = d.total_site; st.duree = d.duree; st.lien = d.lien_site;
+          st.repli = !!d.repli; st.miroirs += d.miroirs || 0;
+          st.verif += d.annonces.length;
+          for (const a of d.annonces) {
+            if (state.vus.has(a.lien)) continue;
+            state.vus.add(a.lien);
+            // même voiture publiée sur plusieurs sites (même prix, km et année) : une seule carte
+            const cle = a.prix && a.kilometrage ? `${a.prix}|${a.kilometrage}|${a.annee || ""}` : null;
+            const dejaVue = cle && state.cles.get(cle);
+            const nomPf = (x) => x.plateforme || x.source;
+            if (dejaVue && dejaVue.source !== a.source) {
+              if (dejaVue.source === "LeParking" && a.source !== "LeParking") {   // la fiche directe est plus riche : elle remplace
+                a.aussi = [...(dejaVue.aussi || []), nomPf(dejaVue)]; a._rang = dejaVue._rang;
+                state.annonces[state.annonces.indexOf(dejaVue)] = a; state.cles.set(cle, a);
+              } else { (dejaVue.aussi ||= []).includes(nomPf(a)) || dejaVue.aussi.push(nomPf(a)); }
+              continue;
+            }
+            if (cle) state.cles.set(cle, a);
+            a._rang = state.annonces.length; state.annonces.push(a);
+          }
+        }
+      } catch (e) { if (run === state.run) { st.erreur = "serveur injoignable"; st.suite = false; } }
+      if (run !== state.run) return;
+      st.charge = false; render(true); renderBar();
+      if (d && d.a_verifier && d.a_verifier.length) lireFiches(s, d.a_verifier, run);
+      // Options cochées : on continue automatiquement quelques pages tant qu'il y a peu de résultats
+      if (state.opts.size && st.suite && st.page < AUTO_PAGES && visibles().length < MIN_RESULTATS) chargerSource(s, run);
+    }
+    // Fiches lues après affichage (sites qui bloquent les rafales, annonces d'origine via LeParking) :
+    // les cartes se mettent à jour au fur et à mesure (description, options, merguez).
+    async function lireFiches(s, liens, run) {
+      const st = state.src[s]; if (!st) return;
+      const parLien = new Map(state.annonces.map(a => [a.lien, a]));
+      liens.forEach(l => { const a = parLien.get(l); if (a) a._enAttente = true; });
+      st.fichesTotal = (st.fichesTotal || 0) + liens.length; st.fichesFaites = st.fichesFaites || 0;
+      render(false); renderBar();
+      const taille = s === "paruvendu" ? 3 : 6;
+      for (let i = 0; i < liens.length; i += taille) {
+        const lot = liens.slice(i, i + taille);
+        let d = null;
+        try { d = await (await fetch("/api/fiches", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: s, liens: lot }) })).json(); } catch {}
+        if (run !== state.run) return;
+        const maj = new Map(((d && d.maj) || []).map(m => [m.lien, m]));
+        for (const l of lot) {
+          const a = state.annonces.find(x => x.lien === l); if (!a) continue;
+          const m = maj.get(l);
+          if (m) Object.assign(a, { merguez: m.merguez, motifs_merguez: m.motifs_merguez, options: m.options, extrait: m.extrait, verifiee: m.verifiee,
+                                    lien_origine: m.lien_origine || a.lien_origine, plateforme: m.plateforme || a.plateforme, image: a.image || m.image });
+          a._enAttente = false;
+        }
+        st.fichesFaites += lot.length; st.freine = !!(d && d.freine);
+        if (st.freine) {   // le site freine : on arrête de lui demander des fiches (pause 15 min)
+          for (const l of liens.slice(i + taille)) { const a = parLien.get(l); if (a) a._enAttente = false; }
+          st.fichesTotal = st.fichesFaites;
+        }
+        render(false); renderBar();
+        if (st.freine) break;
+      }
+    }
+
+    $("#plus").addEventListener("click", () => { for (const s of Object.keys(state.src)) chargerSource(s, state.run); });
+
+    /* ---------- Rendu ---------- */
+    function visibles() {
+      return state.annonces.filter(a => !(state.hideMerguez && a.merguez) && [...state.opts].every(o => (a.options || []).includes(o)));
+    }
+    function trier(list) {
+      const n = (v, d) => (typeof v === "number" ? v : d);
+      const f = {
+        pertinence: (a, b) => a._rang - b._rang,
+        prix: (a, b) => n(a.prix, 1e12) - n(b.prix, 1e12),
+        prix_desc: (a, b) => n(b.prix, -1) - n(a.prix, -1),
+        km: (a, b) => n(a.kilometrage, 1e12) - n(b.kilometrage, 1e12),
+        annee: (a, b) => n(b.annee, 0) - n(a.annee, 0),
+      }[state.tri];
+      if (state.tri === "pertinence") {          // alterne les sites pour un mélange équilibré
+        const par = {}; list.forEach(a => (par[a.source] ||= []).push(a));
+        const out = [], files = Object.values(par); let i = 0;
+        while (out.length < list.length) { for (const fl of files) if (fl[i]) out.push(fl[i]); i++; }
+        return out;
+      }
+      return [...list].sort(f);
+    }
+
+    const optionBadge = (label, i) => {
+      const o = OPTIONS[label] || { icon: "light", cls: "bg-white/10 text-zinc-200 ring-white/20" };
+      return `<span class="opt inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${o.cls}" style="--od:${250 + i * 70}ms">
+        <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[o.icon]}</svg>${label}</span>`;
+    };
+
+    function buildCard(a, i, anim) {
+      const node = $("#cardTpl").content.firstElementChild.cloneNode(true);
+      node.style.setProperty("--d", `${Math.min(i, 10) * 60}ms`);
+      if (!anim) { node.classList.remove("reveal"); node.classList.add("no-anim"); }
+      node.addEventListener("animationend", (e) => { if (e.animationName === "reveal") node.classList.remove("reveal"); });
+      $("[data-link]", node).href = a.lien_origine || a.lien;
+      const img = $("[data-img]", node); img.src = a.image || PLACEHOLDER; img.alt = a.titre;
+      img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
+      const src = Object.values(SOURCES).find(s => s.nom === a.source || s.court === a.source) || { dot: "#aaa" };
+      $("[data-source]", node).innerHTML = `<span class="size-1.5 rounded-full" style="background:${src.dot}"></span>` +
+        (a.plateforme || src.court || a.source);
+      const y = $("[data-year]", node); a.annee ? (y.textContent = a.annee) : y.remove();
+      $("[data-price]", node).textContent = a.prix ? `${fmt.format(a.prix)} €` : "Prix n.c.";
+      $("[data-title]", node).textContent = a.titre;
+      $("[data-specs]", node).textContent = [a.carburant, a.boite && a.boite.replace(/^Boîte\s+/i, ""), a.puissance_ch && `${a.puissance_ch} ch`, a.ville].filter(Boolean).join(" · ");
+      $("[data-km]", node).textContent = a.kilometrage != null ? `${fmt.format(a.kilometrage)} km` : "km n.c.";
+      $("[data-vendeur]", node).textContent = a.type_vendeur || "";
+      $("[data-options]", node).innerHTML = (a.options || []).map(optionBadge).join("");
+      $("[data-extrait]", node).textContent = a.extrait || "";
+      if (!a.verifiee) {
+        const nv = $("[data-nonverif]", node);
+        nv.innerHTML = a._enAttente
+          ? `<svg viewBox="0 0 24 24" class="spin size-3" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>`
+          : `<svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>`;
+        nv.title = a._enAttente ? "Lecture de la fiche en cours…" : a.source === "LeParking"
+          ? "LeParking ne publie pas la description : options et merguez repérés sur le titre et la version"
+          : "Description non lisible : options et merguez repérés sur le titre";
+        nv.classList.replace("hidden", "inline-flex");
+      }
+      if (a.aussi && a.aussi.length) { const x = $("[data-aussi]", node); x.textContent = "aussi sur " + a.aussi.join(", "); x.classList.replace("hidden", "inline-flex"); }
+      if (a.merguez) {
+        node.dataset.merguez = "1";
+        $("[data-merguez-badge]", node).classList.replace("hidden", "inline-flex");
+        const m = $("[data-merguez-motifs]", node); m.textContent = "Détecté : " + (a.motifs_merguez || []).join(" · "); m.classList.remove("hidden");
+      }
+      attachTilt(node);
+      return node;
+    }
+    function attachTilt(card) {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches || matchMedia("(hover: none)").matches) return;
+      card.addEventListener("pointermove", (e) => {
+        const r = card.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+        card.style.setProperty("--x", `${px * 100}%`); card.style.setProperty("--y", `${py * 100}%`);
+        card.style.setProperty("--rx", `${(0.5 - py) * 5}deg`); card.style.setProperty("--ry", `${(px - 0.5) * 7}deg`);
+      });
+      card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
+    }
+
+    let deja = new Set();
+    function majCompteurs(nb, enCours) {
+      const cachees = state.annonces.length - nb, nm = state.annonces.filter(a => a.merguez).length;
+      $("#nbAff").textContent = fmt.format(nb); $("#nbAffS").textContent = nb > 1 ? "s" : "";
+      $("#resume").textContent = `${state.annonces.length} vérifiée(s)` + (cachees ? ` · ${cachees} écartée(s)` : "") + (nm ? ` · ${nm} merguez` : "");
+      const suite = Object.values(state.src).some(s => s.suite && !s.erreur);
+      $("#plus").classList.toggle("hidden", !suite || enCours);
+      $("#plusInfo").textContent = enCours ? "Recherche en cours…" : suite ? "Charge la page suivante de chaque site" : (state.annonces.length ? "Toutes les pages disponibles ont été parcourues" : "");
+    }
+    function render(animNouveaux) {
+      const list = trier(visibles()), grid = $("#grid");
+      const enCours = Object.values(state.src).some(s => s.charge);
+      majCompteurs(list.length, enCours);
+      if (!list.length) {
+        if (enCours && !state.annonces.length) return;        // on garde les squelettes
+        grid.innerHTML = `<div class="reveal col-span-full grid place-items-center rounded-3xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
+          <p class="text-lg font-medium">${enCours ? "Recherche en cours…" : "Aucune annonce ne correspond"}</p>
+          <p class="mt-2 max-w-md text-sm text-zinc-400">${state.annonces.length ? `${state.annonces.length} annonce(s) vérifiée(s) écartée(s) par vos options ou le filtre merguez.${enCours ? " Les pages suivantes sont en cours d'analyse." : " Essayez « Charger plus » ou retirez une option."}` : "Élargissez les critères (prix, km, année) ou changez de modèle."}</p></div>`;
+        deja = new Set();
+        return;
+      }
+      grid.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      list.forEach((a, i) => frag.appendChild(buildCard(a, i, animNouveaux && !deja.has(a.lien))));
+      grid.appendChild(frag);
+      deja = new Set(list.map(a => a.lien));
+    }
+
+    function renderBar() {
+      const c = state.crit || {};
+      const pill = (k) => {
+        const s = state.src[k], S = SOURCES[k];
+        let etat, cls = "border-white/10 bg-white/[0.03]";
+        if (s.erreur === "bloque") { etat = "le site bloque pour l'instant — réessayez plus tard, ou relancez « python server.py --visible » pour valider sa vérification"; cls = "border-red-400/30 bg-red-500/10 text-red-200"; }
+        else if (s.erreur) { etat = "erreur : " + s.erreur; cls = "border-red-400/30 bg-red-500/10 text-red-200"; }
+        else if (s.charge) etat = `<svg viewBox="0 0 24 24" class="spin inline size-3" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg> page ${s.page + 1}…`;
+        else etat = `${fmt.format(s.verif)} vérifiées` + (s.total != null ? ` · ${fmt.format(s.total)} sur le site` : "")
+          + (s.miroirs ? ` · dont ${s.miroirs} Leboncoin` : "") + (s.repli ? " · recherche élargie" : "")
+          + (s.duree != null ? ` · ${String(s.duree).replace(".", ",")} s` : "")
+          + (s.fichesTotal ? (s.fichesFaites < s.fichesTotal ? ` · fiches ${s.fichesFaites}/${s.fichesTotal}…` : " · fiches lues") : "")
+          + (s.freine ? " · le site freine : pause 15 min" : "");
+        const lien = s.lien ? `<a href="${s.lien}" target="_blank" rel="noopener" class="ml-1 text-zinc-500 underline-offset-2 hover:text-white hover:underline">ouvrir ↗</a>` : "";
+        return `<div class="relative inline-flex items-center gap-2 overflow-hidden rounded-xl border px-3 py-2 text-xs ${cls}">
+          ${s.charge ? '<span class="progress absolute inset-x-0 bottom-0 h-px"></span>' : ""}
+          <span class="size-1.5 rounded-full" style="background:${S.dot}"></span><b class="font-medium text-zinc-100">${S.nom}</b>
+          <span class="font-mono text-[11px] text-zinc-400">${etat}</span>${lien}</div>`;
+      };
+      const lien = (href, nom, dot, info) => `<a href="${href}" target="_blank" rel="noopener" title="${info}"
+           class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 transition hover:bg-white/[0.08]">
+           <span class="size-1.5 rounded-full" style="background:${dot}"></span><b class="font-medium text-zinc-100">${nom}</b><span class="text-zinc-500">↗</span></a>`;
+      $("#srcBar").innerHTML = Object.keys(state.src).map(pill).join("") +
+        `<div class="inline-flex flex-wrap items-center gap-1 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-2 py-1 text-xs">
+          <span class="px-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">Ouvrir aussi</span>` +
+        lien(lienLeboncoin(c), "Leboncoin", "#ff6e14", "Recherche pré-remplie sur Leboncoin (non intégrée aux résultats)") +
+        lien(lienLaCentrale(c), "La Centrale", "#e4003a", "La Centrale bloque l'accès automatisé : la recherche s'ouvre sur leur site, avec vos critères") +
+        lien(lienAramis(c), "Aramis Auto", "#0ea5e9", "Aramis Auto filtre dans le navigateur : la recherche s'ouvre sur leur site") + `</div>`;
+    }
+    async function statut() {
+      try {
+        const d = await (await fetch("/api/statut")).json();
+        $("#navInfo").textContent = `moteur : ${d.navigateur}`;
+        if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) $("#lienBase")?.remove();   // base locale : sur PC seulement
+        // sources indisponibles sur ce serveur (ex. site qui refuse les hébergeurs) : retirées de l'interface
+        let retire = false;
+        for (const k of Object.keys(SOURCES)) if (!(k in d.sources)) { delete SOURCES[k]; state.sources.delete(k); retire = true; }
+        if (retire) { if (!state.sources.size) state.sources = new Set(Object.keys(SOURCES)); renderChips(); }
+        const lab = { ok: "prêt", connexion: "connexion…", bloque: "bloqué", inactif: "en attente" };
+        const ok = Object.values(d.sources).filter(v => v === "ok").length, n = Object.keys(d.sources).length;
+        const ko = Object.entries(d.sources).filter(([, v]) => v === "bloque" || v === "erreur").map(([k]) => SOURCES[k]?.nom || k);
+        $("#srcStatus").innerHTML = `<span class="inline-flex items-center gap-1.5" title="${Object.entries(d.sources).map(([k, v]) => `${SOURCES[k]?.nom || k} : ${lab[v] || v}`).join(" · ")}">
+          <span class="size-1.5 rounded-full ${ko.length ? "bg-red-400" : ok === n ? "bg-green-400" : "bg-zinc-500"}"></span>${ok}/${n} sites prêts${ko.length ? " · " + ko.join(", ") + " bloqué(s)" : ""}</span>`;
+      } catch {}
+    }
+
+    /* ---------- Démarrage ---------- */
+    (async function init() {
+      renderChips();
+      statut(); setInterval(statut, 5000);
+      const p = new URLSearchParams(location.search);
+      (p.get("options") || "").split(",").filter(o => OPTIONS[o]).forEach(o => state.opts.add(o));
+      (p.get("carburants") || "").split(",").filter(c => CARBURANTS.includes(c)).forEach(c => state.carbus.add(c));
+      if (p.get("sources")) state.sources = new Set(p.get("sources").split(",").filter(s => SOURCES[s]));
+      if (!state.sources.size) state.sources = new Set(Object.keys(SOURCES));
+      renderChips();
+      try { const g = await (await fetch("/api/options")).json(); if (g && Object.keys(g).length) { GROUPES = g; construireOptions(); } } catch {}
+      state.opts = new Set([...state.opts].filter(o => OPTIONS[o])); renderChips();
+      try { await chargerMarques(); }
+      catch { $("#marque").innerHTML = `<option value="">Catalogue indisponible — le serveur tourne-t-il ?</option>`; return; }
+      if (p.get("marque")) {
+        $("#marque").value = p.get("marque");
+        await chargerModeles(p.get("marque"), p.get("modele"));
+        for (const k of ["prix_max", "km_max", "annee_min"]) if (p.get(k)) $("#" + k).value = p.get(k);
+        lancer();
+      }
+    })();
+  </script>
+</body>
+</html>

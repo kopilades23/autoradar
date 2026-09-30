@@ -1,0 +1,9 @@
+# Sur un serveur à vous :  AUTORADAR_MOT_DE_PASSE='un-mot-de-passe-long' docker compose up -d --build
+services:
+  autoradar:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      AUTORADAR_MOT_DE_PASSE: ${AUTORADAR_MOT_DE_PASSE:?définissez AUTORADAR_MOT_DE_PASSE}

@@ -1,0 +1,18 @@
+# Déploiement gratuit sur Render (render.com) : « New » > « Blueprint » > choisir ce dépôt.
+# Render demandera AUTORADAR_MOT_DE_PASSE (le mot de passe du site) au premier déploiement.
+services:
+  - type: web
+    name: autoradar
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py --no-browser
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: AUTORADAR_HOTE
+        value: 0.0.0.0
+      - key: AUTORADAR_MOT_DE_PASSE
+        sync: false

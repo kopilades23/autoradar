@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="fr" class="bg-[#08080a]">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Autoradar — Base locale</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, monospace;
+      --color-ink: #08080a;
+      --color-accent: #ff6a2b;
+      --color-accent-soft: #ffb08a;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #08080a; }
+
+    /* ---------- Fond : aurora + grille ---------- */
+    .aurora { position: fixed; inset: -20vmax; z-index: 0; pointer-events: none; opacity: .5; } /* dégradés radiaux déjà flous : pas de filter:blur coûteux */
+    .aurora span { position: absolute; border-radius: 9999px; mix-blend-mode: screen; will-change: transform; animation: drift 28s ease-in-out infinite alternate; }
+    .aurora span:nth-child(1) { width: 42vmax; height: 42vmax; left: 10%; top: 0%;  background: radial-gradient(circle, #ff6a2b 0%, transparent 65%); }
+    .aurora span:nth-child(2) { width: 38vmax; height: 38vmax; right: 5%; top: 10%; background: radial-gradient(circle, #6d4aff 0%, transparent 65%); animation-duration: 34s; animation-delay: -8s; }
+    .aurora span:nth-child(3) { width: 30vmax; height: 30vmax; left: 40%; top: 35%; background: radial-gradient(circle, #1fb6ff 0%, transparent 65%); opacity: .5; animation-duration: 40s; animation-delay: -16s; }
+    @keyframes drift {
+      0%   { transform: translate3d(0,0,0) scale(1); }
+      50%  { transform: translate3d(6vmax,4vmax,0) scale(1.12); }
+      100% { transform: translate3d(-5vmax,2vmax,0) scale(.95); }
+    }
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    }
+    .grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .06;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ---------- Entrées animées ---------- */
+    .reveal { opacity: 0; transform: translateY(18px); filter: blur(8px);
+      animation: reveal .9s var(--ease-out-expo, cubic-bezier(.16,1,.3,1)) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes reveal { to { opacity: 1; transform: none; filter: blur(0); } }
+
+    .word { display: inline-block; opacity: 0; transform: translateY(60%) rotate(4deg); filter: blur(10px);
+      animation: word 1s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes word { to { opacity: 1; transform: none; filter: blur(0); } }
+
+    .shimmer-text {
+      background: linear-gradient(100deg, #fff 20%, var(--color-accent-soft, #ffb08a) 40%, #fff 60%);
+      background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: shimmer 6s linear infinite;
+    }
+    @keyframes shimmer { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+
+    /* ---------- Cartes ---------- */
+    .card { --x: 50%; --y: 50%; --rx: 0deg; --ry: 0deg;
+      transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
+      transition: transform .5s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .5s; }
+    .card:hover { box-shadow: 0 30px 80px -30px rgba(255,106,43,.35), 0 0 0 1px rgba(255,255,255,.08); }
+    .card::before { /* spotlight suivant le curseur */
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+      background: radial-gradient(420px circle at var(--x) var(--y), rgba(255,255,255,.09), transparent 45%);
+      opacity: 0; transition: opacity .4s; }
+    .card:hover::before { opacity: 1; }
+    .card::after { /* bordure lumineuse */
+      content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 3;
+      background: radial-gradient(300px circle at var(--x) var(--y), rgba(255,106,43,.8), transparent 50%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity .4s; }
+    .card:hover::after { opacity: 1; }
+    .card .photo { transition: transform 1.2s cubic-bezier(.16,1,.3,1); }
+    .card:hover .photo { transform: scale(1.07); }
+    .card .cta-arrow { transition: transform .45s cubic-bezier(.16,1,.3,1); }
+    .card:hover .cta-arrow { transform: translateX(4px) rotate(-45deg); }
+
+    /* ---------- Merguez ---------- */
+    .card[data-merguez="1"] { border-color: rgba(239,68,68,.28); }
+    .card[data-merguez="1"] .photo { filter: grayscale(.85) contrast(.95) brightness(.8); transition: transform 1.2s cubic-bezier(.16,1,.3,1), filter .6s; }
+    .card[data-merguez="1"]:hover .photo { filter: grayscale(.2); }
+    .card[data-merguez="1"]:hover { box-shadow: 0 30px 80px -30px rgba(239,68,68,.35), 0 0 0 1px rgba(239,68,68,.2); }
+    .merguez-badge { animation: pulse-red 2.4s ease-in-out infinite; }
+    @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.45); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+
+    /* ---------- Badges options premium : reflet au survol ---------- */
+    .opt { position: relative; overflow: hidden; opacity: 0; transform: translateY(6px) scale(.96);
+      animation: opt-in .6s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--od, 0ms); }
+    @keyframes opt-in { to { opacity: 1; transform: none; } }
+    .opt::after { content: ""; position: absolute; inset: 0; transform: translateX(-120%);
+      background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.35) 50%, transparent 80%); }
+    .card:hover .opt::after { transition: transform .9s cubic-bezier(.16,1,.3,1); transform: translateX(120%); }
+
+    /* ---------- Interrupteur ---------- */
+    .switch { width: 30px; height: 18px; border-radius: 9999px; background: rgba(255,255,255,.12); position: relative; transition: background .35s; flex: none; }
+    .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 9999px; background: #fff;
+      transition: transform .45s cubic-bezier(.16,1,.3,1); box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+    [aria-pressed="true"] .switch { background: #ef4444; }
+    [aria-pressed="true"] .switch::after { transform: translateX(12px); }
+
+    /* ---------- Skeleton ---------- */
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 100%);
+      background-size: 200% 100%; animation: sk 1.6s ease-in-out infinite; }
+    @keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+    /* ---------- View Transitions (tri / filtre) ---------- */
+    :root { view-transition-name: none; } /* seules les cartes sont capturées : transition plus légère */
+    ::view-transition-group(*) { animation-duration: .55s; animation-timing-function: cubic-bezier(.16,1,.3,1); }
+
+    .live-dot { box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: ping 2s infinite; }
+    @keyframes ping { 70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .reveal, .word { opacity: 1; transform: none; filter: none; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans text-zinc-100 antialiased selection:bg-accent/40">
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-8">
+    <!-- ================= Barre de navigation ================= -->
+    <header class="reveal sticky top-4 z-30 mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-4 py-3 backdrop-blur-xl" style="--d:0ms">
+      <div class="flex items-center gap-3">
+        <div class="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-accent to-[#ff3d6e] shadow-lg shadow-accent/30">
+          <svg viewBox="0 0 24 24" class="size-5 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M21 12h-3"/></svg>
+        </div>
+        <span class="text-[15px] font-semibold tracking-tight">Autoradar</span>
+        <span class="hidden rounded-full border border-white/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-zinc-400 sm:inline">local</span>
+        <a href="/" class="ml-2 rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-white/5 hover:text-white">← Recherche en direct</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden items-center gap-2 font-mono text-[11px] text-zinc-400 sm:flex">
+          <span class="live-dot size-1.5 rounded-full bg-green-400"></span><span id="lastSync">—</span>
+        </span>
+        <button id="refresh" class="group inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10 active:scale-95">
+          <svg id="refreshIcon" viewBox="0 0 24 24" class="size-4 transition-transform duration-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+          Actualiser
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= Hero ================= -->
+    <section class="pt-16 pb-10 sm:pt-24">
+      <p class="reveal mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-[11px] uppercase tracking-[.2em] text-zinc-400" style="--d:120ms">
+        <span class="size-1 rounded-full bg-accent"></span> Agrégateur personnel
+      </p>
+      <h1 id="headline" class="max-w-4xl text-[clamp(2.6rem,7vw,5.5rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
+      <p class="reveal mt-6 max-w-xl text-lg text-zinc-400" style="--d:700ms">
+        Toutes les annonces collectées par vos scrapers, dans une seule vue claire. Triez, filtrez, ouvrez.
+      </p>
+
+      <!-- KPIs -->
+      <dl id="kpis" class="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 lg:grid-cols-4">
+        <div class="reveal bg-ink/80 p-5 backdrop-blur" style="--d:800ms"><dt class="font-mono text-[11px] uppercase tracking-widest text-zinc-500">Annonces</dt><dd class="mt-2 whitespace-nowrap text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl" data-kpi="count">0</dd></div>
+        <div class="reveal bg-ink/80 p-5 backdrop-blur" style="--d:880ms"><dt class="font-mono text-[11px] uppercase tracking-widest text-zinc-500">Prix moyen</dt><dd class="mt-2 whitespace-nowrap text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl" data-kpi="price" data-suffix=" €">0</dd></div>
+        <div class="reveal bg-ink/80 p-5 backdrop-blur" style="--d:960ms"><dt class="font-mono text-[11px] uppercase tracking-widest text-zinc-500">Km moyen</dt><dd class="mt-2 whitespace-nowrap text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl" data-kpi="km" data-suffix=" km">0</dd></div>
+        <div class="reveal bg-ink/80 p-5 backdrop-blur" style="--d:1040ms"><dt class="font-mono text-[11px] uppercase tracking-widest text-zinc-500">Année moyenne</dt><dd class="mt-2 whitespace-nowrap text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl" data-kpi="year" data-raw="1">0</dd></div>
+      </dl>
+    </section>
+
+    <!-- ================= Barre d'outils ================= -->
+    <section class="reveal sticky top-[88px] z-20 mb-8 flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/50 p-2 backdrop-blur-xl" style="--d:1100ms">
+     <div class="flex flex-col gap-3 md:flex-row md:items-center">
+      <label class="relative flex-1">
+        <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Rechercher dans les titres, descriptions, équipements…" autocomplete="off"
+          class="w-full rounded-xl border border-transparent bg-white/[0.04] py-2.5 pl-9 pr-3 text-sm placeholder:text-zinc-500 outline-none transition focus:border-accent/50 focus:bg-white/[0.06] focus:ring-4 focus:ring-accent/10" />
+      </label>
+      <div id="sources" class="flex flex-wrap gap-1.5"></div>
+      <button id="hideMerguez" type="button" aria-pressed="false" title="Masquer les annonces HS, pour pièces, accidentées…"
+        class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-red-500/10 aria-pressed:text-red-200">
+        <span class="switch"></span>
+        Masquer les merguez
+        <span id="merguezCount" class="rounded-md bg-red-500/15 px-1.5 py-0.5 font-mono text-[10px] text-red-300 tabular-nums">0</span>
+      </button>
+      <div id="sort" class="relative flex rounded-xl bg-white/[0.04] p-1 text-sm">
+        <span id="sortPill" class="absolute inset-y-1 rounded-lg bg-white/10 shadow-inner transition-all duration-500 ease-out-expo"></span>
+        <button data-sort="recent" class="relative z-10 rounded-lg px-3 py-1.5 text-zinc-300 transition hover:text-white">Récentes</button>
+        <button data-sort="price-asc" class="relative z-10 rounded-lg px-3 py-1.5 text-zinc-300 transition hover:text-white">Prix ↑</button>
+        <button data-sort="price-desc" class="relative z-10 rounded-lg px-3 py-1.5 text-zinc-300 transition hover:text-white">Prix ↓</button>
+        <button data-sort="km" class="relative z-10 rounded-lg px-3 py-1.5 text-zinc-300 transition hover:text-white">Km</button>
+      </div>
+     </div>
+     <div class="flex flex-wrap items-center gap-1.5 border-t border-white/5 px-1 pt-2">
+      <span class="mr-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">Options</span>
+      <div id="optFilters" class="flex flex-wrap gap-1.5"></div>
+      <button id="optClear" class="ml-auto hidden rounded-lg px-2 py-1 text-[11px] text-zinc-400 transition hover:text-white">Réinitialiser</button>
+     </div>
+    </section>
+
+    <!-- ================= Grille ================= -->
+    <main id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></main>
+    <div id="more" class="flex h-24 items-center justify-center pb-24 pt-8 font-mono text-[11px] text-zinc-600"></div>
+
+    <footer class="border-t border-white/5 py-8 font-mono text-[11px] text-zinc-600">
+      Autoradar · données locales SQLite · <span id="footCount">0</span> annonce(s)
+    </footer>
+  </div>
+
+  <template id="cardTpl">
+    <article class="card reveal group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm">
+      <a class="absolute inset-0 z-[4]" target="_blank" rel="noopener noreferrer" data-link aria-label="Voir l'annonce"></a>
+      <div class="relative aspect-[4/3] overflow-hidden bg-zinc-900">
+        <img class="photo size-full object-cover" loading="lazy" referrerpolicy="no-referrer" alt="" data-img />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/20"></div>
+        <div class="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md" data-source></span>
+          <span class="merguez-badge hidden items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-semibold text-white" data-merguez-badge>
+            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+            <span>Merguez</span>
+          </span>
+        </div>
+        <span class="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[11px] font-medium text-black" data-year></span>
+        <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+          <p class="text-[28px] font-semibold leading-none tracking-tight tabular-nums text-white drop-shadow" data-price></p>
+        </div>
+      </div>
+      <div class="flex flex-1 flex-col gap-4 p-5">
+        <h3 class="line-clamp-2 min-h-[2.75rem] text-[15px] font-medium leading-snug text-zinc-100" data-title></h3>
+        <p class="-mt-2 truncate text-xs text-zinc-500 empty:hidden" data-specs></p>
+        <p class="-mt-2 hidden text-xs text-red-300/90" data-merguez-motifs></p>
+        <div class="flex flex-wrap gap-1.5 empty:hidden" data-options></div>
+        <div class="flex flex-wrap gap-2 font-mono text-[11px] text-zinc-400">
+          <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1">
+            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 14l4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></svg>
+            <span data-km></span>
+          </span>
+          <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1">
+            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+            <span data-added></span>
+          </span>
+        </div>
+        <div class="mt-auto flex items-center justify-between border-t border-white/5 pt-4 text-sm">
+          <span class="text-zinc-400 transition group-hover:text-white">Voir l'annonce</span>
+          <span class="grid size-8 place-items-center rounded-full bg-white/5 transition group-hover:bg-accent group-hover:text-black">
+            <svg viewBox="0 0 24 24" class="cta-arrow size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const $ = (s, el = document) => el.querySelector(s);
+    const fmt = new Intl.NumberFormat("fr-FR");
+    const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c1c22"/><stop offset="1" stop-color="#0e0e12"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><g fill="none" stroke="#3f3f46" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" transform="translate(130 105)"><path d="M10 60h120M20 60l14-36c3-7 9-12 17-12h38c8 0 14 5 17 12l14 36"/><circle cx="35" cy="66" r="12"/><circle cx="105" cy="66" r="12"/></g></svg>`);
+
+    const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+                    set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+    const state = { data: [], q: "", sort: "recent", source: "all", hideMerguez: store.get("hideMerguez.v2") !== "0", opts: new Set() };
+
+    // Couleurs + icônes des options premium (clé = libellé stocké par le scraper, cf. detection.py)
+    const ICON = {
+      audio: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+      roof:  '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+      light: '<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
+      star:  '<path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>',
+    };
+    const OPTIONS = {
+      "Bose":             { icon: "audio", cls: "bg-sky-400/15 text-sky-200 ring-sky-400/40" },
+      "Harman Kardon":    { icon: "audio", cls: "bg-violet-400/15 text-violet-200 ring-violet-400/40" },
+      "Burmester":        { icon: "audio", cls: "bg-amber-300/15 text-amber-200 ring-amber-300/40" },
+      "Toit panoramique": { icon: "roof",  cls: "bg-emerald-400/15 text-emerald-200 ring-emerald-400/40" },
+      "Matrix LED":       { icon: "light", cls: "bg-fuchsia-400/15 text-fuchsia-200 ring-fuchsia-400/40" },
+    };
+    const optionBadge = (label, i) => {
+      const o = OPTIONS[label] || { icon: "star", cls: "bg-white/10 text-zinc-200 ring-white/20" };
+      return `<span class="opt inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${o.cls}" style="--od:${300 + i * 80}ms">
+        <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[o.icon]}</svg>${label}</span>`;
+    };
+
+    /* ---------- Titre animé mot par mot ---------- */
+    (function headline() {
+      const words = ["Vos", "annonces,", "<shine>réunies.</shine>"];
+      $("#headline").innerHTML = words.map((w, i) => {
+        const shine = w.startsWith("<shine>");
+        const txt = w.replace(/<\/?shine>/g, "");
+        return `<span class="inline-block overflow-hidden pb-2 align-bottom"><span class="word" style="--d:${200 + i * 110}ms">${shine ? `<span class="shimmer-text">${txt}</span>` : txt}</span></span>`;
+      }).join(" ");
+    })();
+
+    /* ---------- Compteurs animés ---------- */
+    function countTo(el, target) {
+      const raw = el.dataset.raw, suffix = el.dataset.suffix || "";
+      if (target == null || isNaN(target)) { el.textContent = "—"; return; }
+      const from = Number(el.dataset.v || 0), t0 = performance.now(), dur = 1200;
+      const step = (t) => {
+        const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+        const v = Math.round(from + (target - from) * e);
+        el.textContent = (raw ? v : fmt.format(v)) + suffix;
+        if (p < 1) requestAnimationFrame(step); else el.dataset.v = target;
+      };
+      requestAnimationFrame(step);
+    }
+    const avg = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+
+    function updateKpis(list) {
+      const nums = (k) => list.map(x => x[k]).filter(v => typeof v === "number");
+      countTo($('[data-kpi="count"]'), list.length);
+      countTo($('[data-kpi="price"]'), avg(nums("prix")) && Math.round(avg(nums("prix"))));
+      countTo($('[data-kpi="km"]'), avg(nums("kilometrage")) && Math.round(avg(nums("kilometrage"))));
+      countTo($('[data-kpi="year"]'), avg(nums("annee")) && Math.round(avg(nums("annee"))));
+      $("#footCount").textContent = list.length;
+    }
+
+    /* ---------- Filtres & tri ---------- */
+    function view() {
+      const q = state.q.trim().toLowerCase();
+      let list = state.data.filter(a =>
+        (state.source === "all" || a.source === state.source) &&
+        !(state.hideMerguez && a.merguez) &&
+        [...state.opts].every(o => (a.options || []).includes(o)) &&
+        (!q || a._hay.includes(q)));
+      const n = (v, d) => (typeof v === "number" ? v : d);
+      const sorters = {
+        "recent": (a, b) => String(b.maj_le).localeCompare(String(a.maj_le)) || b.id - a.id,
+        "price-asc": (a, b) => n(a.prix, Infinity) - n(b.prix, Infinity),
+        "price-desc": (a, b) => n(b.prix, -1) - n(a.prix, -1),
+        "km": (a, b) => n(a.kilometrage, Infinity) - n(b.kilometrage, Infinity),
+      };
+      return list.sort(sorters[state.sort]);
+    }
+
+    function renderSources() {
+      const sources = [...new Set(state.data.map(a => a.source))];
+      const chip = (val, label) => `<button data-src="${val}" class="rounded-xl px-3 py-2 text-xs font-medium transition ${state.source === val ? "bg-accent text-black shadow-lg shadow-accent/20" : "bg-white/[0.04] text-zinc-300 hover:bg-white/10"}">${label}</button>`;
+      $("#sources").innerHTML = chip("all", "Toutes") + sources.map(s => chip(s, s)).join("");
+    }
+
+    function renderOptFilters() {
+      const counts = {};
+      state.data.forEach(a => (a.options || []).forEach(o => counts[o] = (counts[o] || 0) + 1));
+      const labels = [...new Set([...Object.keys(OPTIONS), ...Object.keys(counts)])];
+      $("#optFilters").innerHTML = labels.map(l => {
+        const o = OPTIONS[l] || { icon: "star", cls: "bg-white/10 text-zinc-200 ring-white/20" }, on = state.opts.has(l), n = counts[l] || 0;
+        return `<button data-opt="${l}" aria-pressed="${on}" ${n ? "" : "disabled"}
+          class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ring-inset transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-30
+          ${on ? o.cls + " shadow-lg" : "bg-white/[0.03] text-zinc-400 ring-white/10 hover:text-zinc-100 hover:ring-white/25"}">
+          <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[o.icon]}</svg>
+          ${l}<span class="font-mono text-[10px] opacity-70">${n}</span></button>`;
+      }).join("");
+      $("#optClear").classList.toggle("hidden", !state.opts.size);
+    }
+
+    function syncMerguezToggle() {
+      const btn = $("#hideMerguez");
+      btn.setAttribute("aria-pressed", String(state.hideMerguez));
+      $("#merguezCount").textContent = state.data.filter(a => a.merguez).length;
+    }
+
+    function moveSortPill() {
+      const btn = $(`#sort [data-sort="${state.sort}"]`), pill = $("#sortPill");
+      pill.style.left = btn.offsetLeft + "px"; pill.style.width = btn.offsetWidth + "px";
+      document.querySelectorAll("#sort button").forEach(b => b.classList.toggle("!text-white", b === btn));
+    }
+
+    /* ---------- Cartes ---------- */
+    function timeAgo(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso.replace(" ", "T") + "Z"), s = (Date.now() - d) / 1000;
+      const rtf = new Intl.RelativeTimeFormat("fr", { numeric: "auto" });
+      if (s < 3600) return rtf.format(-Math.round(s / 60), "minute");
+      if (s < 86400) return rtf.format(-Math.round(s / 3600), "hour");
+      return rtf.format(-Math.round(s / 86400), "day");
+    }
+
+    function buildCard(a, i) {
+      const node = $("#cardTpl").content.firstElementChild.cloneNode(true);
+      node.style.setProperty("--d", `${Math.min(i, 12) * 70}ms`);
+      node.style.viewTransitionName = `card-${a.id}`;
+      // l'animation d'entrée figerait le transform : on la retire une fois jouée pour libérer le tilt 3D
+      node.addEventListener("animationend", (e) => { if (e.animationName === "reveal") node.classList.remove("reveal"); });
+      $("[data-link]", node).href = a.lien;
+      const img = $("[data-img]", node);
+      img.src = a.image || PLACEHOLDER;
+      img.alt = a.titre;
+      img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
+      $("[data-source]", node).innerHTML = `<span class="size-1.5 rounded-full bg-accent"></span>${a.source}`;
+      const y = $("[data-year]", node); a.annee ? (y.textContent = a.annee) : y.remove();
+      $("[data-price]", node).textContent = a.prix ? `${fmt.format(a.prix)} €` : "Prix n.c.";
+      $("[data-title]", node).textContent = a.titre;
+      if (a.merguez) {
+        node.dataset.merguez = "1";
+        const b = $("[data-merguez-badge]", node); b.classList.replace("hidden", "inline-flex");
+        const motifs = (a.motifs_merguez || []).join(" · ");
+        b.title = motifs;
+        const m = $("[data-merguez-motifs]", node); m.textContent = "Détecté : " + motifs; m.classList.remove("hidden");
+      }
+      $("[data-options]", node).innerHTML = (a.options || []).map(optionBadge).join("");
+      $("[data-specs]", node).textContent = [a.carburant, a.boite && a.boite.replace(/^Boîte\s+/i, ""),
+        a.puissance_ch && `${a.puissance_ch} ch`, a.ville].filter(Boolean).join(" · ");
+      $("[data-km]", node).textContent = a.kilometrage != null ? `${fmt.format(a.kilometrage)} km` : "km n.c.";
+      $("[data-added]", node).textContent = timeAgo(a.maj_le);
+      attachTilt(node);
+      return node;
+    }
+
+    function attachTilt(card) {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches || matchMedia("(hover: none)").matches) return;
+      card.addEventListener("pointermove", (e) => {
+        const r = card.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+        card.style.setProperty("--x", `${px * 100}%`); card.style.setProperty("--y", `${py * 100}%`);
+        card.style.setProperty("--rx", `${(0.5 - py) * 6}deg`); card.style.setProperty("--ry", `${(px - 0.5) * 8}deg`);
+      });
+      card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
+    }
+
+    function emptyState(kind) {
+      const msg = kind === "error"
+        ? { t: "Serveur local introuvable", d: `Lancez <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-accent-soft">python server.py</code> puis ouvrez <span class="font-mono">http://localhost:8000</span>.` }
+        : kind === "nomatch"
+        ? { t: "Aucun résultat", d: "Essayez une autre recherche ou un autre filtre." }
+        : { t: "La base est vide", d: `Lancez <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-accent-soft">python scraper_autoscout24.py</code> pour récupérer vos premières annonces.` };
+      return `<div class="reveal col-span-full grid place-items-center rounded-3xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-20 text-center">
+        <div class="mb-4 grid size-12 place-items-center rounded-2xl bg-white/5"><svg viewBox="0 0 24 24" class="size-6 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 13h18M5 13l2-5c.4-1 1.3-1.6 2.3-1.6h5.4c1 0 1.9.6 2.3 1.6l2 5"/><circle cx="7.5" cy="16.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/></svg></div>
+        <p class="text-lg font-medium">${msg.t}</p><p class="mt-2 max-w-md text-sm text-zinc-400">${msg.d}</p></div>`;
+    }
+
+    let currentVT = null;
+    const CHUNK = 48;                       // rendu progressif : 48 cartes, puis la suite au défilement
+    const cur = { list: [], shown: 0 };
+
+    function appendChunk(animate) {
+      const grid = $("#grid"), start = cur.shown, end = Math.min(cur.list.length, start + CHUNK);
+      const frag = document.createDocumentFragment();
+      for (let i = start; i < end; i++) {
+        const c = buildCard(cur.list[i], i - start);
+        if (!animate) c.classList.remove("reveal");
+        frag.appendChild(c);
+      }
+      grid.appendChild(frag);
+      cur.shown = end;
+      $("#more").textContent = cur.shown < cur.list.length ? `${cur.shown} / ${cur.list.length} — défilez pour la suite` : "";
+    }
+
+    function render({ animate = true } = {}) {
+      const paint = () => {
+        cur.list = view(); cur.shown = 0; // recalculé au moment du rendu : l'état le plus récent gagne toujours
+        const grid = $("#grid");
+        grid.innerHTML = ""; $("#more").textContent = "";
+        if (!state.data.length) { grid.innerHTML = emptyState("empty"); return; }
+        if (!cur.list.length) { grid.innerHTML = emptyState("nomatch"); return; }
+        appendChunk(animate);
+      };
+      // Réorganisation fluide des cartes via l'API View Transitions (si dispo)
+      if (!animate && document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        currentVT?.skipTransition();
+        const vt = (currentVT = document.startViewTransition(paint));
+        vt.finished.finally(() => { if (currentVT === vt) currentVT = null; });
+      } else paint();
+      updateKpis(view());
+    }
+
+    new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && cur.shown < cur.list.length) appendChunk(true);
+    }, { rootMargin: "800px" }).observe($("#more"));
+
+    function skeletons(n = 6) {
+      $("#grid").innerHTML = Array.from({ length: n }, (_, i) => `
+        <div class="reveal overflow-hidden rounded-3xl border border-white/[0.06] bg-white/[0.02]" style="--d:${i * 60}ms">
+          <div class="skeleton aspect-[4/3]"></div>
+          <div class="space-y-3 p-5"><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-4 w-1/2 rounded"></div><div class="skeleton mt-6 h-8 w-full rounded-lg"></div></div>
+        </div>`).join("");
+    }
+
+    /* ---------- Chargement ---------- */
+    async function load() {
+      const icon = $("#refreshIcon");
+      icon.style.transform = `rotate(${(Number(icon.dataset.r || 0) + 360)}deg)`; icon.dataset.r = Number(icon.dataset.r || 0) + 360;
+      if (!state.data.length) skeletons();
+      try {
+        const res = await fetch("/api/annonces", { cache: "no-store" });
+        if (!res.ok) throw new Error(res.status);
+        state.data = await res.json();
+        $("#lastSync").textContent = "Synchronisé " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+        state.data.forEach(a => a._hay = [a.titre, a.source, a.annee, a.carburant, a.boite, a.ville, a.vendeur,
+          (a.options || []).join(" "), (a.equipements || []).join(" "), a.description].filter(Boolean).join(" ").toLowerCase());
+        renderSources(); renderOptFilters(); syncMerguezToggle(); render();
+      } catch (e) {
+        $("#grid").innerHTML = emptyState("error");
+        $("#lastSync").textContent = "hors ligne";
+      }
+    }
+
+    /* ---------- Événements ---------- */
+    let t;
+    $("#search").addEventListener("input", (e) => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value; render({ animate: false }); }, 120); });
+    $("#sort").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-sort]"); if (!b) return;
+      state.sort = b.dataset.sort; moveSortPill(); render({ animate: false });
+    });
+    $("#sources").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-src]"); if (!b) return;
+      state.source = b.dataset.src; renderSources(); render({ animate: false });
+    });
+    $("#optFilters").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-opt]"); if (!b || b.disabled) return;
+      const o = b.dataset.opt; state.opts.has(o) ? state.opts.delete(o) : state.opts.add(o);
+      renderOptFilters(); render({ animate: false });
+    });
+    $("#optClear").addEventListener("click", () => { state.opts.clear(); renderOptFilters(); render({ animate: false }); });
+    $("#hideMerguez").addEventListener("click", () => {
+      state.hideMerguez = !state.hideMerguez;
+      store.set("hideMerguez.v2", state.hideMerguez ? "1" : "0");
+      syncMerguezToggle(); render({ animate: false });
+    });
+    $("#refresh").addEventListener("click", load);
+    addEventListener("resize", moveSortPill);
+    document.fonts?.ready.then(moveSortPill);
+
+    syncMerguezToggle();
+    moveSortPill();
+    load();
+  </script>
+</body>
+</html>
