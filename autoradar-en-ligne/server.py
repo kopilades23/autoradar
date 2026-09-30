@@ -171,7 +171,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def log_message(self, fmt, *args):
-        if "/api/recherche" in (args[0] if args else ""):
+        if "/api/recherche" in str(args[0] if args else ""):   # args[0] peut être un code HTTP (erreurs)
             super().log_message(fmt, *args)
 
 
