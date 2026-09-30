@@ -9,7 +9,8 @@ Serveur d'Autoradar (sur votre PC ou en ligne).
 En ligne (Render, Docker…), tout se règle par variables d'environnement :
     AUTORADAR_HOTE=0.0.0.0          écouter sur le réseau (par défaut 127.0.0.1 = ce PC seulement)
     PORT / AUTORADAR_PORT           port d'écoute (Render fournit PORT)
-    AUTORADAR_MOT_DE_PASSE=...      protège tout le site (identifiant au choix) — OBLIGATOIRE en ligne
+    AUTORADAR_MOT_DE_PASSE=...      protège tout le site (identifiant au choix)
+    AUTORADAR_PUBLIC=1              site ouvert à tous, sans mot de passe (limite de requêtes par visiteur)
     AUTORADAR_MODE=http|navigateur  http par défaut
 
 Pages :
@@ -28,7 +29,10 @@ import base64
 import hmac
 import json
 import os
+import threading
+import time
 import webbrowser
+from collections import defaultdict, deque
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -38,6 +42,25 @@ from database import list_annonces
 STATIC_DIR = Path(__file__).with_name("static")
 MOTEUR = None  # initialisé dans main()
 MOT_DE_PASSE = os.environ.get("AUTORADAR_MOT_DE_PASSE", "")
+PUBLIC = os.environ.get("AUTORADAR_PUBLIC") == "1"
+# Limite par visiteur (site public) : évite qu'un robot ou un curieux fasse bloquer le serveur par les sites
+LIMITE_MINUTE = int(os.environ.get("AUTORADAR_LIMITE_MINUTE", "90"))
+_appels: dict[str, deque] = defaultdict(deque)
+_verrou = threading.Lock()
+
+
+def _trop(ip: str) -> bool:
+    maintenant = time.time()
+    with _verrou:
+        d = _appels[ip]
+        while d and maintenant - d[0] > 60:
+            d.popleft()
+        if len(d) >= LIMITE_MINUTE:
+            return True
+        d.append(maintenant)
+        if len(_appels) > 5000:
+            _appels.clear()
+        return False
 
 
 def _q(qs: dict, k: str, default=None):
@@ -67,6 +90,19 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         return False
 
+    def end_headers(self):
+        self.send_header("X-Robots-Tag", "noindex, nofollow")   # pas de référencement par Google & co
+        super().end_headers()
+
+    def _ip(self) -> str:
+        return (self.headers.get("X-Forwarded-For") or self.client_address[0]).split(",")[0].strip()
+
+    def _limite(self) -> bool:
+        if PUBLIC and _trop(self._ip()):
+            self._json({"erreur": "trop de requêtes", "message": "Patientez une minute."}, 429)
+            return True
+        return False
+
     def _json(self, data, status: int = 200) -> None:
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -79,7 +115,16 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/healthz":   # contrôle de santé de l'hébergeur (sans mot de passe, ne révèle rien)
             return self._json({"ok": True})
+        if self.path == "/robots.txt":
+            body = b"User-agent: *\nDisallow: /\n"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            return self.wfile.write(body)
         if not self._autorise():
+            return
+        if self.path.startswith(("/api/recherche", "/api/modeles")) and self._limite():
             return
         u = urlparse(self.path)
         qs = parse_qs(u.query)
@@ -111,7 +156,7 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if not self._autorise():
+        if not self._autorise() or self._limite():
             return
         u = urlparse(self.path)
         try:
@@ -140,9 +185,9 @@ def main() -> None:
     ap.add_argument("--no-browser", action="store_true", help="n'ouvre pas l'interface automatiquement")
     args = ap.parse_args()
 
-    if args.hote not in ("127.0.0.1", "localhost") and not MOT_DE_PASSE:
+    if args.hote not in ("127.0.0.1", "localhost") and not MOT_DE_PASSE and not PUBLIC:
         raise SystemExit("Refus de démarrer : site accessible depuis le réseau sans mot de passe. "
-                         "Définissez AUTORADAR_MOT_DE_PASSE.")
+                         "Définissez AUTORADAR_MOT_DE_PASSE, ou AUTORADAR_PUBLIC=1 pour un site ouvert à tous.")
 
     from recherche_live import Moteur
     mode = "navigateur" if (args.navigateur or args.visible) else None

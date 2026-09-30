@@ -18,6 +18,10 @@ n'a plus besoin d'être allumé. Le moteur ne lance plus Chrome : il fait des re
 
 Mises à jour : remplacez les fichiers dans GitHub, Render redéploie tout seul.
 
+**Site ouvert à tous** (sans mot de passe) : dans Render > Environment, supprimez
+`AUTORADAR_MOT_DE_PASSE` et ajoutez `AUTORADAR_PUBLIC` = `1`. Chaque visiteur est alors limité à
+90 requêtes par minute (`AUTORADAR_LIMITE_MINUTE`) et le site demande à Google de ne pas l'indexer.
+
 À savoir sur l'offre gratuite : le serveur **s'endort après 15 min sans visite** ; la première
 recherche suivante attend ~1 min qu'il se réveille, ensuite tout est normal.
 
