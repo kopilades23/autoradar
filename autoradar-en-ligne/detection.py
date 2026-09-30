@@ -27,6 +27,14 @@ MERGUEZ_MOTIFS: dict[str, str] = {
     "accidenté":     r"\baccidentee?s?\b",
     "dans l'état":   r"\bdans\s+l\s*'?\s*etat\b",
     "moteur cassé":  r"\bmoteur\s+(est\s+)?cassee?\b",
+    "problème moteur": r"\b(probleme|souci|defaut|panne)s?\s+(de\s+|du\s+)?moteur\b|\bmoteur\s+(a\s+refaire|a\s+changer|serre|grippe)\b|\bbruit\s+(anormal\s+)?(du\s+)?moteur\b",
+    "turbo à changer": r"\bturbo\s+(a\s+changer|a\s+remplacer|defectueux|mort|fuit|a\s+prevoir|siffle)\b",
+    "boîte à changer": r"\bboite(\s+de\s+vitesses?)?\s+(a\s+changer|a\s+remplacer|defectueuse|cassee|qui\s+craque)\b",
+    "embrayage à changer": r"\bembrayage\s+(a\s+changer|a\s+remplacer|a\s+prevoir|a\s+faire|patine|qui\s+patine|defectueux)\b",
+    "joint de culasse": r"\bjoint\s+de\s+culasse\s+(hs|a\s+changer|a\s+faire|a\s+prevoir|defectueux|grille|claque)\b",
+    "ne démarre pas": r"\bne\s+demarre\s+(plus|pas)\b",
+    "sans contrôle technique": r"\bsans\s+(controle\s+technique|ct)\b|\bct\s+(refuse|a\s+refaire)\b|\bcontre[\s-]+visite\b",
+    "épave / VGE":   r"\bepave\b|\bvge\b|\bvei\b|\bsinistree?\b",
 }
 
 # Groupe -> {libellé affiché -> expression régulière}. L'ordre compte : le 1er motif coché

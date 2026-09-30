@@ -57,8 +57,11 @@ python server.py --navigateur     # ancien mode : Chrome piloté en arrière-pla
   AutoScout24, L'argus, Autohero, Renew. ParuVendu, Auto-Sélection et Autosphere ne la donnent pas :
   leurs annonces sont masquées quand le filtre est actif.
 - **Seulement vérifiées** : n'affiche que les annonces dont la description a été lue.
-- Pages `mentions-legales.html`, `confidentialite.html`, `conditions.html` (dans `static/`) : remplacez
-  les champs en jaune [Prénom Nom], [adresse e-mail de contact].
+- **Audio premium** : plusieurs marques cochées = « au moins une » (bouton « Toutes marques »).
+- **Puissance min** : lue sur le site ou dans le titre (« 130 ch », « PureTech 110 ») ; AutoScout24 filtre lui-même.
+- **Favoris** : cœur sur chaque annonce, page « Favoris » ; gardés dans le navigateur (localStorage).
+- **Aide & FAQ** : `static/faq.html`.
+- Pages `mentions-legales.html`, `confidentialite.html`, `conditions.html` (dans `static/`) : éditeur : Lipiany.
 - Photos : image de la carte, sinon celle trouvée dans le JSON de la page (sites React comme
   Renew), sinon celle de la fiche.
 - Une même voiture publiée sur plusieurs sites (même prix, km, année) n'apparaît qu'une fois

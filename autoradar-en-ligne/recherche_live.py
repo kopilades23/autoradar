@@ -35,7 +35,7 @@ except ImportError:
     BrowserContext = Page = async_playwright = None
 
 import scraper_autoscout24 as as24
-from detection import MOTS_CLES_SITE, OPTIONS_PREMIUM, analyser
+from detection import MOTS_CLES_SITE, OPTIONS_GROUPES, OPTIONS_PREMIUM, analyser
 
 ICI = Path(__file__).parent
 PROFIL = Path(os.environ.get("AUTORADAR_PROFIL") or ICI / "profil_navigateur")   # cookies des sites, mémorisés
@@ -159,8 +159,14 @@ def carburant_norm(c: Optional[str]) -> Optional[str]:
     return c
 
 
+AUDIO = set(OPTIONS_GROUPES.get("Audio premium", []))
+
+
 def mot_cle(options: list[str]) -> Optional[str]:
-    """Option la plus sélective -> mot-clé pour la recherche texte des sites (ordre = détection)."""
+    """Option la plus sélective -> mot-clé pour la recherche texte des sites (ordre = détection).
+    Plusieurs marques audio cochées = « n'importe laquelle » : aucune n'est envoyée comme mot-clé."""
+    if len(AUDIO.intersection(options)) > 1:
+        options = [o for o in options if o not in AUDIO]
     for opt in OPTIONS_PREMIUM:
         if opt in options and opt in MOTS_CLES_SITE:
             return MOTS_CLES_SITE[opt]
@@ -194,11 +200,39 @@ def publique(c: dict) -> dict:
     return {k: v for k, v in c.items() if not k.startswith("_")}
 
 
+_MOTEURS = (r"puretech|e-?thp|thp|vti|e-?hdi|bluehdi|hdi|tce|blue ?dci|dci|sce|tsi|tdi|tfsi|ecoboost|ecoblue|tdci|"
+            r"mpi|t-?gdi|crdi|multijet|jtdm?|skyactiv-?[gdx]|d-?4d|vvt-?i|cdti|ecotec|mhev|e-?tense")
+
+
+def puissance_de(*textes: Optional[str]) -> Optional[int]:
+    """Puissance en chevaux lue dans le titre / la version / la description (« 130 ch », « PureTech 110 »).
+    Les « CV » seuls sont souvent des chevaux fiscaux (5 CV) : ignorés sous 40."""
+    t = sans_accents(" ".join(x for x in textes if x)).lower()
+    m = re.search(r"\b(\d{2,3})\s?(?:ch|hp|chevaux|cv din)\b", t)
+    if m and 40 <= int(m.group(1)) <= 800:
+        return int(m.group(1))
+    m = re.search(r"\b(?:" + _MOTEURS + r")\s?(\d{2,3})\b", t)
+    if m and 40 <= int(m.group(1)) <= 800:
+        return int(m.group(1))
+    m = re.search(r"\b\d[.,]\d\s(\d{2,3})\b(?!\s?(?:km|000|€|eur))", t)   # « 1.2 100 S&S »
+    if m and 50 <= int(m.group(1)) <= 400:
+        return int(m.group(1))
+    m = re.search(r"\b(\d{3})h\b", t)                                    # hybrides Toyota « 116h »
+    if m and 70 <= int(m.group(1)) <= 400:
+        return int(m.group(1))
+    m = re.search(r"\b(\d{2,3})\s?cv\b", t)
+    if m and 40 <= int(m.group(1)) <= 800:
+        return int(m.group(1))
+    return None
+
+
 def verifier(c: dict, description: Optional[str], equipements=None, accident=None, dommages=None) -> None:
     autres = [x for x in (c.get("_sous_titre"), f"boite {c['boite']}" if c.get("boite") else None) if x]
     motifs, options = analyser(c["titre"], description, equipements, accident, dommages, autres)
     c.update(merguez=bool(motifs), motifs_merguez=motifs, options=options, verifiee=description is not None,
              extrait=(re.sub(r"\s+", " ", description)[:220] if description else None))
+    if not c.get("puissance_ch"):
+        c["puissance_ch"] = puissance_de(c.get("titre"), c.get("_sous_titre"), (description or "")[:3000])
 
 
 # --------------------------------------------------------------------------- #
@@ -684,6 +718,8 @@ class Moteur:
                               f"{mid}|{mod[2:]}||" if mod.startswith("m:") else f"{mid}|||")
         if q.get("prix_max"): params["priceto"] = q["prix_max"]
         if q.get("km_max"): params["kmto"] = q["km_max"]
+        if q.get("puissance_min"):   # le site attend des kW (1 kW = 1,36 ch)
+            params.update(powerfrom=int(int(q["puissance_min"]) / 1.36), powertype="kw")
         if q.get("annee_min"): params["fregfrom"] = q["annee_min"]
         fuels = sorted({v for c in q.get("carburants") or [] for v in {"Essence": ["B"], "Diesel": ["D"],
                         "Hybride": ["2", "3"], "Électrique": ["E"]}.get(c, [])})

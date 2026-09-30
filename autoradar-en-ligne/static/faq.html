@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aide & questions fréquentes — Autoradar</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#08080a" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ff5a3c'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-opacity='.45' stroke-width='1.6'/%3E%3Cpath d='M16 16 L23 9' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: dark; --fg: #e4e4e7; --muted: #a1a1aa; --dim: #71717a; --line: rgba(255,255,255,.08); --accent: #ff6a2b; --bg: #08080a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.7 "Geist", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+      background: radial-gradient(60vmax 40vmax at 90% -10%, rgba(255,106,43,.14), transparent 60%), radial-gradient(50vmax 40vmax at -10% 10%, rgba(109,74,255,.10), transparent 60%); }
+    .wrap { position: relative; max-width: 760px; margin: 0 auto; padding: 24px 16px 80px; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 40px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 600; letter-spacing: -.02em; }
+    .mark { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(145deg, #ff7a3d, #ff3d6e); display: grid; place-items: center; }
+    .back { color: var(--muted); text-decoration: none; font-size: 14px; } .back:hover { color: #fff; }
+    .kicker { font: 500 11px/1 "Geist Mono", monospace; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+    h1 { font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.05; letter-spacing: -.035em; margin: 12px 0 8px; color: #fff; }
+    .maj { color: var(--dim); font-size: 13px; margin-bottom: 36px; }
+    h2 { font-size: 1.15rem; letter-spacing: -.01em; margin: 36px 0 8px; color: #fff; }
+    p, li { color: var(--muted); }
+    a { color: #fff; text-underline-offset: 3px; }
+    .card { border: 1px solid var(--line); background: rgba(255,255,255,.02); border-radius: 16px; padding: 18px 20px; }
+    .todo { color: #fbbf24; }
+    details { border: 1px solid var(--line); background: rgba(255,255,255,.02); border-radius: 14px; margin: 10px 0; transition: background .2s, border-color .2s; }
+    details[open] { background: rgba(255,255,255,.035); border-color: rgba(255,255,255,.14); }
+    summary { cursor: pointer; list-style: none; padding: 16px 48px 16px 18px; color: #fff; font-weight: 500; position: relative; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--dim); font-size: 20px; transition: transform .3s; }
+    details[open] summary::after { transform: translateY(-50%) rotate(45deg); color: var(--accent); }
+    details > div { padding: 0 18px 14px; }
+    details p, details li { margin: .4em 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 4px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--dim); font: 500 11px/1.4 "Geist Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+    td:first-child { color: #fff; white-space: nowrap; } td { color: var(--muted); }
+    .sommaire { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+    .sommaire a { font-size: 13px; text-decoration: none; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+    .sommaire a:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+    kbd, .ui { font: 500 12.5px/1 "Geist Mono", monospace; color: #fff; background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+    h2 { scroll-margin-top: 20px; }
+    footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
+    footer a { color: var(--muted); text-decoration: none; } footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="/"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8" stroke-opacity=".5"/><circle cx="12" cy="12" r="3.5" stroke-opacity=".8"/><path d="M12 12l5.5-5.5"/></svg></span>Autoradar</a>
+      <a class="back" href="/">← Retour à la recherche</a>
+    </header>
+    <p class="kicker">Aide</p>
+    <h1>Aide & questions fréquentes</h1>
+    <p class="maj">Dernière mise à jour : 1er octobre 2026</p>
+    <p>Tout ce qu'il faut savoir pour trouver la bonne voiture, sans perdre de temps ni tomber sur un véhicule à problème.</p>
+    <nav class="sommaire" aria-label="Sommaire">
+      <a href="#bien-chercher">Bien chercher</a><a href="#aucun-resultat">0 résultat ?</a><a href="#risque">Véhicules à risque</a>
+      <a href="#options">Options par marque</a><a href="#date">Date &amp; tri</a><a href="#favoris">Favoris</a><a href="#sites">Sites</a>
+    </nav>
+
+    <h2 id="bien-chercher">Comment bien faire sa recherche</h2>
+    <div class="card">
+      <p><strong style="color:#fff">1.</strong> Choisissez la <strong style="color:#fff">marque</strong> puis le <strong style="color:#fff">modèle</strong>
+      (ou « Tous les modèles »), et indiquez votre budget maximum. Cliquez sur <span class="ui">Rechercher</span>.</p>
+      <p><strong style="color:#fff">2.</strong> Affinez ensuite : kilométrage, année, puissance, carburant, options, date de mise en ligne.</p>
+      <p><strong style="color:#fff">3.</strong> Une fois la première recherche lancée, <strong style="color:#fff">la recherche s'actualise toute seule</strong>
+      dès que vous modifiez un critère : cocher ou décocher une option, un carburant ou un site, changer le modèle, le prix,
+      le kilométrage, l'année ou la puissance. Pas besoin de recliquer sur Rechercher.</p>
+      <p><strong style="color:#fff">4.</strong> Si vous changez de <strong style="color:#fff">marque</strong>, choisissez ensuite le modèle :
+      la recherche repart automatiquement (ou cliquez sur Rechercher pour toute la marque).</p>
+    </div>
+    <details><summary>Conseil : commencez large, puis resserrez</summary><div>
+      <p>Chaque filtre ajouté réduit le nombre d'annonces. Commencez par marque, modèle et budget, regardez combien d'annonces sortent,
+      puis ajoutez les options une par une. Si le nombre tombe à zéro, retirez le dernier filtre ajouté.</p></div></details>
+    <details><summary>Que fait « Charger plus d'annonces » ?</summary><div>
+      <p>Chaque site renvoie ses annonces page par page. Le bouton va chercher la page suivante sur tous les sites à la fois.
+      Quand des options sont cochées, les pages suivantes sont parcourues automatiquement tant qu'il y a peu de résultats.</p></div></details>
+    <details><summary>Comment repartir de zéro ?</summary><div>
+      <p>Bouton <span class="ui">Effacer les filtres</span> sous le formulaire, ou <span class="ui">Nouvelle recherche</span> en haut de la page.</p></div></details>
+
+    <h2 id="aucun-resultat">Aucune annonce ne s'affiche : que vérifier ?</h2>
+    <details open><summary>Les causes les plus fréquentes</summary><div>
+      <ul>
+        <li><strong style="color:#fff">Une option que votre voiture n'a pas</strong> : un système audio de marque n'existe que chez certains constructeurs
+        (voir le tableau ci-dessous). Si vous voulez simplement un bon son sans connaître la marque, cliquez sur
+        <span class="ui">Toutes marques</span> dans « Audio premium » : il suffit qu'une des marques soit présente.</li>
+        <li><strong style="color:#fff">Trop d'options cumulées</strong> : hors audio, toutes les options cochées doivent être présentes en même temps.</li>
+        <li><strong style="color:#fff">Le filtre de date</strong> : certains sites ne donnent pas la date de mise en ligne ; leurs annonces sont masquées quand ce filtre est actif.</li>
+        <li><strong style="color:#fff">Budget, kilométrage ou puissance trop serrés</strong> pour le modèle choisi.</li>
+        <li><strong style="color:#fff">« Seulement vérifiées »</strong> activé : seules les annonces dont la description a pu être lue restent.</li>
+      </ul>
+      <p>Quand aucune annonce ne s'affiche, Autoradar liste vos filtres actifs : cliquez sur l'un d'eux pour le retirer.</p></div></details>
+
+    <h2 id="risque">Véhicules à risque et annonces vérifiées</h2>
+    <details><summary>Qu'est-ce qu'un « véhicule à risque » ?</summary><div>
+      <p>Autoradar lit la description de chaque annonce et repère les véhicules à problème : moteur ou boîte HS, turbo ou embrayage
+      à changer, joint de culasse, problème moteur, véhicule accidenté ou sinistré (VGE), vendu « pour pièces » ou « dans l'état »,
+      non roulant, qui ne démarre pas, sans contrôle technique…
+      Les négations sont comprises (« jamais accidenté » n'est pas signalé).</p>
+      <p>Ces annonces portent le badge <span class="ui">À risque</span> avec le motif détecté. Le bouton
+      <span class="ui">Exclure les véhicules à risque</span> les masque (activé par défaut).</p></div></details>
+    <details><summary>Que signifie la petite icône ⓘ sur une annonce ?</summary><div>
+      <p>La description n'a pas pu être lue (certaines annonces Leboncoin et La Centrale, par exemple) : les options et les problèmes n'ont
+      été cherchés que dans le titre. Lisez l'annonce avant de vous déplacer, ou activez <span class="ui">Seulement vérifiées</span>
+      pour n'afficher que les annonces dont la description a été lue.</p></div></details>
+    <details><summary>La détection est-elle fiable à 100 % ?</summary><div>
+      <p>Non : elle repose sur les mots employés par le vendeur. Elle évite la plupart des mauvaises surprises, mais lisez toujours
+      l'annonce complète et faites vérifier le véhicule avant d'acheter.</p></div></details>
+
+    <h2 id="options">Les options, et sur quelles marques les trouver</h2>
+    <p>À titre indicatif : l'équipement dépend de la finition et de l'année. Une option est reconnue quand elle figure dans le titre,
+    la description ou la liste d'équipements de l'annonce.</p>
+    <details open><summary>Systèmes audio premium</summary><div>
+      <table>
+        <thead><tr><th>Marque audio</th><th>On la trouve surtout chez</th></tr></thead>
+        <tbody>
+          <tr><td>Bose</td><td>Renault, Nissan, Mazda, Porsche, Hyundai, Audi (certains modèles)</td></tr>
+          <tr><td>Harman Kardon</td><td>BMW, Mini, Volkswagen, Kia, Mercedes (anciens modèles), Volvo (anciens modèles)</td></tr>
+          <tr><td>Burmester</td><td>Mercedes-Benz, Porsche</td></tr>
+          <tr><td>Focal</td><td>Peugeot, DS</td></tr>
+          <tr><td>JBL</td><td>Toyota, Peugeot (anciens modèles)</td></tr>
+          <tr><td>Bang &amp; Olufsen</td><td>Audi, Ford, BMW (haut de gamme)</td></tr>
+          <tr><td>Meridian</td><td>Land Rover, Jaguar, Kia (modèles récents)</td></tr>
+        </tbody>
+      </table>
+      <p>Vous ne savez pas quelle marque équipe votre voiture ? Cliquez sur <span class="ui">Toutes marques</span> : une seule suffit.</p></div></details>
+    <details><summary>Confort &amp; techno</summary><div>
+      <table>
+        <tbody>
+          <tr><td>Toit panoramique</td><td>Toit vitré ou ouvrant panoramique ; très répandu sur les SUV et breaks récents.</td></tr>
+          <tr><td>Matrix LED</td><td>Phares adaptatifs : « Matrix LED » (Audi), « Multibeam » (Mercedes), « IQ.Light » (Volkswagen), « IntelliLux » (Opel).</td></tr>
+          <tr><td>Affichage tête haute</td><td>Informations projetées sur le pare-brise : BMW, Mazda, Mercedes, Audi, Toyota, Kia, Hyundai…</td></tr>
+          <tr><td>Caméra 360°</td><td>Vue du dessus pour les manœuvres, sur les finitions hautes.</td></tr>
+          <tr><td>CarPlay / Android Auto</td><td>Recopie du téléphone sur l'écran ; présent sur la plupart des voitures depuis 2016-2017.</td></tr>
+          <tr><td>Régulateur adaptatif</td><td>Garde automatiquement la distance avec la voiture devant (ACC).</td></tr>
+          <tr><td>Sièges chauffants / cuir, hayon électrique</td><td>Surtout sur les finitions hautes et les SUV.</td></tr>
+        </tbody>
+      </table></div></details>
+    <details><summary>Mécanique &amp; historique</summary><div>
+      <table>
+        <tbody>
+          <tr><td>Boîte automatique</td><td>EAT6/EAT8 (Peugeot, Citroën, DS), EDC (Renault), DSG (Volkswagen, Audi, Skoda, Seat), BVA, CVT (hybrides Toyota)…</td></tr>
+          <tr><td>4x4 / intégrale</td><td>quattro (Audi), xDrive (BMW), 4MATIC (Mercedes), 4Motion (Volkswagen), ALL4 (Mini), AWD…</td></tr>
+          <tr><td>Attelage, première main</td><td>Repérés dans la description (« crochet d'attelage », « 1ère main »…).</td></tr>
+          <tr><td>Puissance min</td><td>Lue sur le site ou dans le titre (« 130 ch », « PureTech 110 »). Les annonces dont la puissance n'est pas indiquée sont masquées tant que ce filtre est actif.</td></tr>
+        </tbody>
+      </table></div></details>
+
+    <h2 id="date">Date de mise en ligne et tri</h2>
+    <details><summary>Comment fonctionne le filtre de date ?</summary><div>
+      <p>Il n'affiche que les annonces publiées depuis 24 h, 3, 7 ou 30 jours. La date est connue pour Leboncoin, La Centrale,
+      AutoScout24, L'argus, Autohero et Renew ; les sites qui ne la donnent pas sont masqués tant que ce filtre est actif.</p></div></details>
+    <details><summary>Le tri par prix porte-t-il sur toutes les annonces ?</summary><div>
+      <p>Oui : en « Prix croissant », « Prix décroissant » ou « Mises en ligne récemment », Autoradar redemande à chaque site ses annonces
+      dans cet ordre. Vous voyez donc vraiment les moins chères de tous les sites, pas seulement parmi celles déjà affichées.
+      Le tri par kilométrage ou par année classe les annonces affichées.</p></div></details>
+
+    <h2 id="favoris">Favoris</h2>
+    <details><summary>Comment garder une annonce ?</summary><div>
+      <p>Touchez le <strong style="color:#fff">cœur</strong> en haut à droite d'une annonce. Retrouvez-les dans <span class="ui">Favoris</span>
+      en haut de la page. Touchez de nouveau le cœur pour retirer une annonce.</p></div></details>
+    <details><summary>Mes favoris sont-ils conservés ?</summary><div>
+      <p>Oui, dans votre navigateur, même après avoir fermé le site. Ils sont propres à l'appareil et au navigateur utilisés
+      (pas de compte à créer) : ils disparaissent si vous effacez les données du site ou naviguez en mode privé.
+      Si le vendeur retire son annonce, le lien peut ne plus fonctionner.</p></div></details>
+
+    <h2 id="sites">Les sites interrogés</h2>
+    <details><summary>Quels sites sont inclus ?</summary><div>
+      <p>Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu, Auto-Sélection, Autohero, Renew et Autosphere, ainsi que de nombreuses
+      concessions. Dans « Sites », décochez ceux que vous ne voulez pas voir.</p></div></details>
+    <details><summary>Pourquoi un site est-il grisé dans les résultats ?</summary><div>
+      <p>Il n'a pas répondu à temps ou est momentanément indisponible. Relancez la recherche un peu plus tard.</p></div></details>
+    <details><summary>Autoradar vend-il des voitures ?</summary><div>
+      <p>Non. Autoradar est un moteur de recherche gratuit : chaque carte renvoie vers l'annonce d'origine, sur le site du vendeur.
+      Méfiez-vous des demandes de paiement à distance et des prix anormalement bas.</p></div></details>
+
+    <h2>Une question ?</h2>
+    <p>Écrivez à <a href="mailto:spinmagic77@gmail.com">spinmagic77@gmail.com</a>.</p>
+
+    <footer>
+      <a href="/faq.html">Aide &amp; FAQ</a>
+      <a href="/mentions-legales.html">Mentions légales</a>
+      <a href="/confidentialite.html">Confidentialité &amp; cookies</a>
+      <a href="/conditions.html">Conditions d'utilisation</a>
+    </footer>
+  </div>
+</body>
+</html>

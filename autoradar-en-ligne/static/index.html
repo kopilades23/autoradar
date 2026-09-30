@@ -156,6 +156,38 @@
     .marquee:hover .marquee-track { animation-play-state: paused; }
     @keyframes defile { to { transform: translateX(-50%); } }
 
+    /* ---------- Menu déroulant maison ---------- */
+    .dd { position: relative; }
+    .dd-btn { display: inline-flex; align-items: center; gap: .5rem; border-radius: .8rem; padding: .5rem .7rem .5rem .75rem;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); color: #e4e4e7; font-size: .75rem; font-weight: 500;
+      transition: background .25s, border-color .25s, box-shadow .25s; }
+    .dd-btn:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); }
+    .dd-btn[aria-expanded="true"], .dd-btn.actif { border-color: rgba(255,106,43,.55); box-shadow: 0 0 0 4px rgba(255,106,43,.12); }
+    .dd-btn.actif { background: rgba(255,106,43,.12); color: #ffd2bd; }
+    .dd-btn .chev { transition: transform .35s cubic-bezier(.16,1,.3,1); }
+    .dd-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .dd-menu { position: absolute; z-index: 40; top: calc(100% + 8px); right: 0; min-width: 230px; padding: 6px; border-radius: 16px;
+      background: rgba(18,18,22,.96); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(18px);
+      box-shadow: 0 24px 60px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(0,0,0,.4);
+      transform-origin: top right; opacity: 0; transform: translateY(-6px) scale(.97); pointer-events: none;
+      transition: opacity .18s ease, transform .3s cubic-bezier(.16,1,.3,1); }
+    .dd-menu.ouvert { opacity: 1; transform: none; pointer-events: auto; }
+    .dd-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 1rem; padding: .6rem .75rem; border-radius: 10px;
+      font-size: .8125rem; color: #d4d4d8; text-align: left; transition: background .15s, color .15s; }
+    .dd-item:hover, .dd-item:focus-visible { background: rgba(255,255,255,.07); color: #fff; outline: none; }
+    .dd-item[aria-checked="true"] { color: #fff; background: rgba(255,106,43,.14); }
+    .dd-item .ok { opacity: 0; color: #ff8a5b; } .dd-item[aria-checked="true"] .ok { opacity: 1; }
+    .dd-item small { color: #71717a; font-size: .7rem; }
+
+    /* ---------- Favoris ---------- */
+    .fav { transition: transform .35s cubic-bezier(.16,1,.3,1), background .25s, color .25s; }
+    .fav:hover { transform: scale(1.08); }
+    .fav[aria-pressed="true"] { background: #ff3d6e; color: #fff; border-color: transparent; }
+    .fav[aria-pressed="true"] svg { fill: currentColor; }
+    .fav.pop { animation: pop .5s cubic-bezier(.16,1,.3,1); }
+    @keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
+    .compteur { transition: transform .4s cubic-bezier(.16,1,.3,1); } .compteur.bump { transform: scale(1.35); }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
       .reveal, .word { opacity: 1; transform: none; filter: none; }
@@ -205,14 +237,17 @@
         </span>
       </a>
       <nav class="flex items-center gap-1 whitespace-nowrap text-[13px] text-zinc-400">
-        <a href="#comment" class="hidden rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white sm:inline">Comment ça marche</a>
+        <a href="/faq.html" class="hidden rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white sm:inline">Aide &amp; FAQ</a>
+        <a href="#favoris" id="lienFavoris" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">
+          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>
+          <span class="hidden sm:inline">Favoris</span><span id="nbFavoris" class="compteur hidden min-w-5 rounded-full bg-[#ff3d6e] px-1.5 text-center text-[11px] font-semibold leading-5 text-white"></span></a>
         <a href="/base.html" id="lienBase" class="hidden rounded-lg px-3 py-1.5 sm:inline transition hover:bg-white/[0.06] hover:text-white">Base locale</a>
         <button type="button" id="nouvelle" class="ml-1 hidden rounded-lg border sm:inline-block border-white/10 bg-white/[0.04] px-3 py-1.5 text-zinc-200 transition hover:border-white/20 hover:bg-white/10">Nouvelle recherche</button>
       </nav>
     </header>
 
     <!-- ================= Hero + formulaire ================= -->
-    <section class="relative pt-14 pb-8 sm:pt-20">
+    <section id="recherche" class="relative pt-14 pb-8 sm:pt-20">
       <div class="hero-radar" aria-hidden="true">
         <div class="rings"></div><div class="cross"></div><div class="beam"></div>
         <span class="dot" style="left:71%;top:30%;animation-delay:.7s"></span>
@@ -230,8 +265,8 @@
         interrogés en direct. Les annonces douteuses sont repérées pour vous.
       </p>
 
-      <form id="form" class="reveal relative mt-10 rounded-3xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl sm:p-5" style="--d:800ms" autocomplete="off">
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-6">
+      <form id="form" class="reveal relative z-20 mt-10 rounded-3xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl sm:p-5" style="--d:800ms" autocomplete="off">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
           <label class="col-span-2 md:col-span-1"><span class="lbl">Marque</span>
             <select id="marque" class="field" required><option value="">Chargement…</option></select></label>
           <label class="col-span-2 md:col-span-1"><span class="lbl">Modèle</span>
@@ -239,6 +274,10 @@
           <label><span class="lbl">Prix max (€)</span><input id="prix_max" class="field" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
           <label><span class="lbl">Km max</span><input id="km_max" class="field" type="number" min="0" step="5000" placeholder="Illimité" inputmode="numeric"></label>
           <label><span class="lbl">Année min</span><select id="annee_min" class="field"><option value="">Toutes</option></select></label>
+          <label><span class="lbl">Puissance min</span><select id="puissance_min" class="field"><option value="">Toutes</option>
+            <option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option>
+            <option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option>
+            <option value="250">250 ch</option><option value="300">300 ch</option></select></label>
           <div class="flex items-end"><button id="go" type="submit" class="btn-go inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-[.72rem] text-sm font-semibold text-white">
             <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher</button></div>
         </div>
@@ -249,20 +288,22 @@
             <div id="srcChips" class="flex flex-wrap gap-1.5"></div>
           </div>
           <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
-            <label class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] py-1 pl-3 pr-1 text-xs text-zinc-300" title="Date de mise en ligne de l'annonce (quand le site la donne)">
-              <svg viewBox="0 0 24 24" class="size-3.5 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-              <select id="depuis" class="rounded-lg bg-transparent py-1 pr-1 text-xs text-zinc-200 outline-none">
-                <option value="">Toutes les dates</option><option value="1">Dernières 24 h</option><option value="3">3 derniers jours</option>
-                <option value="7">7 derniers jours</option><option value="30">30 derniers jours</option>
-              </select></label>
+            <div class="dd" id="ddDepuis">
+              <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Date de mise en ligne de l'annonce">
+                <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                <span data-dd-label>Toutes les dates</span>
+                <svg viewBox="0 0 24 24" class="chev size-3.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dd-menu" role="listbox"></div>
+            </div>
             <button id="verifOnly" type="button" aria-pressed="false" title="N'afficher que les annonces dont la description a été lue (pannes cachées repérées)"
               class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-emerald-500/10 aria-pressed:text-emerald-200">
               <span class="switch"></span>Seulement vérifiées</button>
             <button id="effacer" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
               <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Effacer les filtres</button>
-            <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les annonces HS, pour pièces, accidentées…"
+            <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les véhicules en panne, accidentés, vendus pour pièces ou « en l'état »"
               class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-red-500/10 aria-pressed:text-red-200">
-              <span class="switch"></span>Masquer les merguez</button>
+              <span class="switch"></span>Exclure les véhicules à risque</button>
           </div>
         </div>
       </form>
@@ -289,6 +330,18 @@
         <button id="plus" class="hidden rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10 active:scale-95">Charger plus d'annonces</button>
         <p id="plusInfo" class="font-mono text-[11px] text-zinc-600"></p>
       </div>
+    </section>
+
+    <section id="vueFavoris" class="hidden pb-24 pt-12">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-mono text-[11px] uppercase tracking-[.22em] text-accent">Mes favoris</p>
+          <h2 class="mt-2 text-3xl font-semibold tracking-[-0.03em]"><span id="nbFavTitre">0</span> annonce<span id="nbFavS">s</span> enregistrée<span id="nbFavS2">s</span></h2>
+          <p class="mt-2 text-sm text-zinc-500">Gardées sur cet appareil, même après avoir fermé le site. Une annonce peut disparaître si le vendeur la retire.</p>
+        </div>
+        <a href="#" id="retourRecherche" class="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10">← Retour à la recherche</a>
+      </div>
+      <div id="gridFavoris" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
     </section>
 
     <section id="accueil" class="reveal pb-20" style="--d:950ms">
@@ -322,7 +375,8 @@
         <p class="text-[15px] font-semibold tracking-tight">Autoradar</p>
         <p class="mt-2 text-sm leading-relaxed text-zinc-500">Moteur de recherche de voitures d'occasion. Les annonces restent la propriété des sites qui les publient ; chaque carte renvoie vers l'annonce d'origine.</p>
       </div>
-      <nav class="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-zinc-400 sm:grid-cols-1" aria-label="Informations">
+      <nav class="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-zinc-400 sm:grid-cols-2" aria-label="Informations">
+        <a class="transition hover:text-white" href="/faq.html">Aide &amp; FAQ</a>
         <a class="transition hover:text-white" href="/mentions-legales.html">Mentions légales</a>
         <a class="transition hover:text-white" href="/confidentialite.html">Confidentialité &amp; cookies</a>
         <a class="transition hover:text-white" href="/conditions.html">Conditions d'utilisation</a>
@@ -341,9 +395,11 @@
           <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md" data-source></span>
           <span class="merguez-badge hidden items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-semibold text-white" data-merguez-badge>
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-            <span>Merguez</span></span>
+            <span>À risque</span></span>
         </div>
-        <span class="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[11px] font-medium text-black" data-year></span>
+        <button type="button" class="fav absolute right-3 top-3 z-[5] grid size-9 place-items-center rounded-full border border-white/15 bg-black/45 text-white backdrop-blur-md" data-fav aria-pressed="false" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">
+          <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg></button>
+        <span class="absolute bottom-3.5 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[11px] font-medium text-black" data-year></span>
         <p class="absolute bottom-3 left-4 text-[28px] font-semibold leading-none tracking-tight tabular-nums text-white drop-shadow" data-price></p>
       </div>
       <div class="flex flex-1 flex-col gap-3 p-5">
@@ -379,7 +435,7 @@
 
     const SOURCES = {
       autoscout24:   { nom: "AutoScout24",   dot: "#f5c400" },
-      leparking:     { nom: "Leboncoin · La Centrale", source: "LeParking", dot: "#ff6e14", info: "et concessions" },
+      leparking:     { nom: "Leboncoin · La Centrale", source: "LeParking", dot: "#ff6e14" },
       paruvendu:     { nom: "ParuVendu",     dot: "#e3342f" },
       largus:        { nom: "L'argus",       dot: "#3b82f6" },
       zoomcar:       { nom: "Zoomcar (Ouest-France Auto)", court: "Zoomcar", dot: "#f472b6" },
@@ -388,6 +444,15 @@
       renew:         { nom: "Renew",         dot: "#facc15" },
       autosphere:    { nom: "Autosphere",    dot: "#a3e635" },
     };
+    // Puces « Sites » : Leboncoin et La Centrale séparés (tous deux viennent de la source LeParking)
+    const CHIPS = {};
+    for (const [k, v] of Object.entries(SOURCES)) {
+      if (k === "leparking") {
+        CHIPS.leboncoin = { nom: "Leboncoin", dot: "#ff6e14", via: "leparking" };
+        CHIPS.lacentrale = { nom: "La Centrale", dot: "#e4003a", via: "leparking" };
+      } else CHIPS[k] = { nom: v.court || v.nom, dot: v.dot, via: k };
+    }
+    const sourcesAInterroger = () => [...new Set([...state.sources].filter(k => CHIPS[k]).map(k => CHIPS[k].via))];
     const ICON = {
       audio: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
       roof:  '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -408,6 +473,7 @@
       "Mécanique & historique": ["Boîte automatique", "4x4 / intégrale", "Attelage", "Première main"],
     };
     let OPTIONS = {};
+    const GROUPE_AUDIO = "Audio premium";
     const CARBURANTS = ["Essence", "Diesel", "Hybride", "Électrique"];
     function construireOptions() {
       OPTIONS = {};
@@ -421,7 +487,7 @@
     const MIN_RESULTATS = 12;   // … tant qu'on n'a pas au moins ce nombre de résultats
 
     const state = {
-      opts: new Set(), carbus: new Set(), sources: new Set(Object.keys(SOURCES)),
+      opts: new Set(), carbus: new Set(), sources: new Set(Object.keys(CHIPS)),
       hideMerguez: store.get("live.hideMerguez") !== "0", tri: "pertinence",
       verifOnly: store.get("live.verifOnly") === "1", depuis: 0,
       run: 0, annonces: [], vus: new Set(), src: {},
@@ -442,8 +508,12 @@
 
     function renderChips() {
       $("#optChips").innerHTML = Object.entries(GROUPES).map(([g, liste]) => `
-        <span class="pt-1.5 font-mono text-[10px] uppercase tracking-widest text-zinc-500">${g}</span>
-        <div class="flex flex-wrap items-center gap-1.5">${g.startsWith("Mécanique") ? CARBURANTS.map(cb => {
+        <span class="pt-1.5 font-mono text-[10px] uppercase tracking-widest text-zinc-500">${g}${g === GROUPE_AUDIO ? `<span class="block normal-case tracking-normal text-zinc-600">au moins une marque</span>` : ""}</span>
+        <div class="flex flex-wrap items-center gap-1.5">${g === GROUPE_AUDIO ? (() => {
+          const tout = liste.every(o => state.opts.has(o));
+          return `<button type="button" data-audio-tout aria-pressed="${tout}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset transition active:scale-95 ${tout ? "bg-violet-400/20 text-violet-100 ring-violet-400/50" : "bg-white/[0.03] text-zinc-300 ring-white/15 hover:text-white hover:ring-white/30"}">
+            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">${ICON.audio}</svg>Toutes marques</button><span class="mx-1 h-4 w-px bg-white/10"></span>`;
+        })() : ""}${g.startsWith("Mécanique") ? CARBURANTS.map(cb => {
           const on = state.carbus.has(cb);
           return `<button type="button" data-carbu="${cb}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ring-inset transition active:scale-95 ${on ? "bg-sky-400/15 text-sky-200 ring-sky-400/40 shadow-lg" : "bg-white/[0.03] text-zinc-400 ring-white/10 hover:text-zinc-100 hover:ring-white/25"}">
             <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v17M3 22h12M15 10h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3M7 7h4"/></svg>${cb}</button>`;
@@ -452,26 +522,31 @@
           return `<button type="button" data-opt="${l}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ring-inset transition active:scale-95 ${on ? o.cls + " shadow-lg" : "bg-white/[0.03] text-zinc-400 ring-white/10 hover:text-zinc-100 hover:ring-white/25"}">
             <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[o.icon]}</svg>${l}</button>`;
         }).join("")}</div>`).join("");
-      $("#srcChips").innerHTML = Object.entries(SOURCES).map(([k, s]) => {
+      $("#srcChips").innerHTML = Object.entries(CHIPS).map(([k, s]) => {
         const on = state.sources.has(k);
         return `<button type="button" data-src="${k}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition active:scale-95 ${on ? "bg-white/10 text-white" : "bg-white/[0.03] text-zinc-500 line-through"}">
-          <span class="size-1.5 rounded-full" style="background:${s.dot}"></span>${s.court || s.nom}${s.info ? `<span class="font-normal text-zinc-500">· ${s.info}</span>` : ""}</button>`;
+          <span class="size-1.5 rounded-full" style="background:${s.dot}"></span>${s.nom}</button>`;
       }).join("");
       $("#hideMerguez").setAttribute("aria-pressed", String(state.hideMerguez));
       $("#verifOnly").setAttribute("aria-pressed", String(state.verifOnly));
     }
     $("#optChips").addEventListener("click", (e) => {
+      if (e.target.closest("[data-audio-tout]")) {
+        const liste = GROUPES[GROUPE_AUDIO] || [], tout = liste.every(o => state.opts.has(o));
+        liste.forEach(o => tout ? state.opts.delete(o) : state.opts.add(o));
+        renderChips(); if (state.crit) lancer(); return;
+      }
       const cb = e.target.closest("[data-carbu]");
-      if (cb) { const v = cb.dataset.carbu; state.carbus.has(v) ? state.carbus.delete(v) : state.carbus.add(v); renderChips(); if (state.annonces.length) lancer(); return; }
+      if (cb) { const v = cb.dataset.carbu; state.carbus.has(v) ? state.carbus.delete(v) : state.carbus.add(v); renderChips(); if (state.crit) lancer(); return; }
       const b = e.target.closest("[data-opt]"); if (!b) return;
       const o = b.dataset.opt; state.opts.has(o) ? state.opts.delete(o) : state.opts.add(o);
-      renderChips(); if (state.annonces.length) lancer();   // les options changent le filtrage côté site
+      renderChips(); if (state.crit) lancer();   // les options changent le filtrage côté site
     });
     $("#srcChips").addEventListener("click", (e) => {
       const b = e.target.closest("[data-src]"); if (!b) return;
       const k = b.dataset.src;
       if (state.sources.has(k) && state.sources.size > 1) state.sources.delete(k); else state.sources.add(k);
-      renderChips(); if (state.annonces.length) lancer();
+      renderChips(); if (state.crit) lancer();
     });
     $("#hideMerguez").addEventListener("click", () => {
       state.hideMerguez = !state.hideMerguez; store.set("live.hideMerguez", state.hideMerguez ? "1" : "0");
@@ -485,7 +560,39 @@
       if (state.crit && voulu !== "pertinence" && voulu !== state.triCharge) lancer(); else if (state.crit) render(false);
     };
     $("#tri").addEventListener("change", (e) => { state.tri = e.target.value; retrier(); });
-    $("#depuis").addEventListener("change", (e) => { state.depuis = +e.target.value || 0; retrier(); });
+    // Menu déroulant maison (date de mise en ligne)
+    const DEPUIS = [["0", "Toutes les dates", ""], ["1", "Dernières 24 h", ""], ["3", "3 derniers jours", ""],
+                    ["7", "7 derniers jours", ""], ["30", "30 derniers jours", ""]];
+    function menuDeroulant(root, items, valeur, choisir) {
+      const btn = $(".dd-btn", root), menu = $(".dd-menu", root);
+      const peindre = () => {
+        const v = String(valeur()); const it = items.find(i => i[0] === v) || items[0];
+        $("[data-dd-label]", root).textContent = it[1]; btn.classList.toggle("actif", v !== items[0][0]);
+        menu.innerHTML = items.map(([k, lab, aide]) => `<button type="button" role="option" class="dd-item" data-v="${k}" aria-checked="${k === v}">
+          <span>${lab}${aide ? ` <small>· ${aide}</small>` : ""}</span>
+          <svg viewBox="0 0 24 24" class="ok size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5 9-10"/></svg></button>`).join("");
+      };
+      const fermer = () => { menu.classList.remove("ouvert"); btn.setAttribute("aria-expanded", "false"); };
+      btn.addEventListener("click", () => {
+        const o = !menu.classList.contains("ouvert"); menu.classList.toggle("ouvert", o); btn.setAttribute("aria-expanded", String(o));
+        if (o) $('[aria-checked="true"]', menu)?.focus();
+      });
+      menu.addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (!b) return; fermer(); choisir(b.dataset.v); peindre(); });
+      menu.addEventListener("keydown", (e) => {
+        const l = [...menu.querySelectorAll(".dd-item")], i = l.indexOf(document.activeElement);
+        if (e.key === "ArrowDown") { e.preventDefault(); l[Math.min(i + 1, l.length - 1)].focus(); }
+        if (e.key === "ArrowUp") { e.preventDefault(); l[Math.max(i - 1, 0)].focus(); }
+      });
+      document.addEventListener("click", (e) => { if (!root.contains(e.target)) fermer(); });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermer(); });
+      peindre();
+      return peindre;
+    }
+    const peindreDepuis = menuDeroulant($("#ddDepuis"), DEPUIS, () => state.depuis, (v) => { state.depuis = +v || 0; retrier(); });
+
+    // Recherche déjà lancée : tout changement de critère relance la recherche automatiquement
+    for (const id of ["modele", "prix_max", "km_max", "annee_min", "puissance_min"])
+      $("#" + id).addEventListener("change", () => { if (state.crit && $("#marque").value) lancer(); });
     $("#verifOnly").addEventListener("click", () => {
       state.verifOnly = !state.verifOnly; store.set("live.verifOnly", state.verifOnly ? "1" : "0");
       renderChips(); if (state.crit) render(false);
@@ -494,8 +601,9 @@
     $("#effacer").addEventListener("click", () => {
       state.run++;                                   // annule les recherches en cours
       $("#form").reset(); $("#modele").innerHTML = `<option value="">Tous les modèles</option>`; $("#modele").disabled = true;
-      state.opts.clear(); state.carbus.clear(); state.sources = new Set(Object.keys(SOURCES)); state.tri = "pertinence"; $("#tri").value = "pertinence";
-      state.depuis = 0; $("#depuis").value = "";
+      state.opts.clear(); state.carbus.clear(); state.sources = new Set(Object.keys(CHIPS)); state.tri = "pertinence"; $("#tri").value = "pertinence";
+      state.depuis = 0; peindreDepuis();
+      if (location.hash === "#favoris") history.replaceState(null, "", location.pathname), afficherVue();
       Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: null });
       history.replaceState(null, "", location.pathname);
       $("#resultats").classList.add("hidden"); $("#accueil").classList.remove("hidden"); $("#grid").innerHTML = "";
@@ -535,7 +643,7 @@
       return {
         marque: $("#marque").value, marque_label: txt($("#marque")),
         modele: $("#modele").value, modele_label: txt($("#modele")),
-        prix_max: $("#prix_max").value, km_max: $("#km_max").value, annee_min: $("#annee_min").value,
+        prix_max: $("#prix_max").value, km_max: $("#km_max").value, annee_min: $("#annee_min").value, puissance_min: $("#puissance_min").value,
         options: [...state.opts].join(","), carburants: [...state.carbus].join(","),
       };
     }
@@ -574,16 +682,17 @@
       const run = ++state.run;
       Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c, triCharge: triSite() });
       const url = new URL(location.href); url.search = new URLSearchParams({ ...c, sources: [...state.sources].join(",") }).toString();
+      url.hash = "";
       history.replaceState(null, "", url);
-      $("#accueil").classList.add("hidden"); $("#resultats").classList.remove("hidden");
+      afficherVue();
       $("#grid").innerHTML = Array.from({ length: 6 }, (_, i) => `
         <div class="reveal overflow-hidden rounded-3xl border border-white/[0.06] bg-white/[0.02]" style="--d:${i * 60}ms">
           <div class="skeleton aspect-[4/3]"></div><div class="space-y-3 p-5"><div class="skeleton h-4 w-3/4 rounded"></div><div class="skeleton h-4 w-1/2 rounded"></div></div></div>`).join("");
-      for (const s of state.sources) state.src[s] = { page: 0, suite: true, charge: false, verif: 0, total: null, duree: null, lien: null, erreur: null, repli: false, miroirs: 0 };
+      for (const s of sourcesAInterroger()) state.src[s] = { page: 0, suite: true, charge: false, verif: 0, total: null, duree: null, lien: null, erreur: null, repli: false, miroirs: 0 };
       state.cles = new Map();
       renderBar();
       $("#resultats").scrollIntoView({ behavior: "smooth", block: "start" });
-      for (const s of state.sources) chargerSource(s, run);
+      for (const s of sourcesAInterroger()) chargerSource(s, run);
     }
 
     async function chargerSource(s, run) {
@@ -663,9 +772,16 @@
     const JOUR = 864e5;
     const ageJours = (d) => d ? Math.floor((Date.now() - new Date(d + "T12:00:00").getTime()) / JOUR) : null;
     const assezRecente = (a) => !state.depuis || (a.date && ageJours(a.date) < state.depuis);
+    function optionsOk(a) {      // marques audio : « au moins une » ; autres options : toutes
+      const sel = [...state.opts], audio = sel.filter(o => OPTIONS[o]?.groupe === GROUPE_AUDIO), has = (o) => (a.options || []).includes(o);
+      return sel.filter(o => !audio.includes(o)).every(has) && (!audio.length || audio.some(has));
+    }
+    const plateformeOk = (a) => a.plateforme === "Leboncoin" ? state.sources.has("leboncoin")
+      : a.plateforme === "La Centrale" ? state.sources.has("lacentrale") : true;
+    const puissanceOk = (a) => { const m = +(state.crit?.puissance_min || 0); return !m || (a.puissance_ch && a.puissance_ch >= m); };
     function visibles() {
       return state.annonces.filter(a => !(state.hideMerguez && a.merguez) && !(state.verifOnly && !a.verifiee) && assezRecente(a)
-        && [...state.opts].every(o => (a.options || []).includes(o)));
+        && optionsOk(a) && plateformeOk(a) && puissanceOk(a));
     }
     function trier(list) {
       const n = (v, d) => (typeof v === "number" ? v : d);
@@ -733,9 +849,67 @@
         $("[data-merguez-badge]", node).classList.replace("hidden", "inline-flex");
         const m = $("[data-merguez-motifs]", node); m.textContent = "Détecté : " + (a.motifs_merguez || []).join(" · "); m.classList.remove("hidden");
       }
+      const fav = $("[data-fav]", node), estFav = () => !!FAV[a.lien];
+      const peindreFav = () => { fav.setAttribute("aria-pressed", String(estFav()));
+        fav.title = fav.ariaLabel = estFav() ? "Retirer des favoris" : "Ajouter aux favoris"; };
+      peindreFav();
+      fav.addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        basculerFavori(a); peindreFav(); fav.classList.remove("pop"); void fav.offsetWidth; fav.classList.add("pop");
+        if (location.hash === "#favoris" && !estFav()) {    // retirée depuis « Mes favoris » : la carte s'efface
+          node.style.transition = "opacity .35s, transform .35s"; node.style.opacity = "0"; node.style.transform = "scale(.96)";
+          setTimeout(renderFavoris, 350);
+        }
+      });
       attachTilt(node);
       return node;
     }
+
+    /* ---------- Favoris (gardés dans ce navigateur, même après fermeture du site) ---------- */
+    const CLE_FAV = "autoradar.favoris";
+    const CHAMPS_FAV = ["lien", "lien_origine", "titre", "prix", "annee", "kilometrage", "image", "source", "plateforme", "carburant", "boite",
+                        "puissance_ch", "ville", "type_vendeur", "options", "merguez", "motifs_merguez", "extrait", "verifiee", "date", "aussi"];
+    let FAV = (() => { try { return JSON.parse(localStorage.getItem(CLE_FAV) || "{}") || {}; } catch { return {}; } })();
+    function sauverFavoris() {
+      try { localStorage.setItem(CLE_FAV, JSON.stringify(FAV)); } catch {}
+      majNbFavoris(true);
+    }
+    function basculerFavori(a) {
+      if (FAV[a.lien]) delete FAV[a.lien];
+      else { const f = {}; for (const k of CHAMPS_FAV) if (a[k] != null) f[k] = a[k]; f._ajoute = Date.now(); FAV[a.lien] = f; }
+      sauverFavoris();
+    }
+    function majNbFavoris(bump) {
+      const n = Object.keys(FAV).length, el = $("#nbFavoris");
+      el.textContent = n; el.classList.toggle("hidden", !n);
+      if (bump) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); setTimeout(() => el.classList.remove("bump"), 400); }
+    }
+    function renderFavoris() {
+      const list = Object.values(FAV).sort((x, y) => (y._ajoute || 0) - (x._ajoute || 0)), g = $("#gridFavoris");
+      $("#nbFavTitre").textContent = list.length;
+      for (const id of ["#nbFavS", "#nbFavS2"]) $(id).textContent = list.length > 1 ? "s" : "";
+      if (!list.length) {
+        g.innerHTML = `<div class="col-span-full rounded-3xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-16 text-center">
+          <div class="mx-auto grid size-12 place-items-center rounded-2xl bg-[#ff3d6e]/10 text-[#ff6b8e]"><svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg></div>
+          <p class="mt-4 text-lg font-semibold">Aucun favori pour l'instant</p>
+          <p class="mx-auto mt-2 max-w-md text-sm text-zinc-400">Touchez le cœur en haut à droite d'une annonce pour la retrouver ici, même après avoir fermé le site.</p></div>`;
+        return;
+      }
+      g.innerHTML = ""; const frag = document.createDocumentFragment();
+      list.forEach((a, i) => frag.appendChild(buildCard(a, i, true))); g.appendChild(frag);
+    }
+    function afficherVue() {
+      const favoris = location.hash === "#favoris";
+      $("#vueFavoris").classList.toggle("hidden", !favoris);
+      $("#recherche").classList.toggle("hidden", favoris);
+      $("#accueil").classList.toggle("hidden", favoris || !!state.crit);
+      $("#resultats").classList.toggle("hidden", favoris || !state.crit);
+      $("#lienFavoris").classList.toggle("text-white", favoris);
+      if (favoris) { renderFavoris(); window.scrollTo({ top: 0 }); }
+    }
+    window.addEventListener("hashchange", afficherVue);
+    window.addEventListener("storage", (e) => { if (e.key === CLE_FAV) { try { FAV = JSON.parse(e.newValue || "{}") || {}; } catch {} majNbFavoris(); if (location.hash === "#favoris") renderFavoris(); else render(false); } });
+    $("#retourRecherche").addEventListener("click", (e) => { e.preventDefault(); history.pushState(null, "", location.pathname + location.search); afficherVue(); });
     function attachTilt(card) {
       if (matchMedia("(prefers-reduced-motion: reduce)").matches || matchMedia("(hover: none)").matches) return;
       card.addEventListener("pointermove", (e) => {
@@ -751,8 +925,9 @@
       const cachees = state.annonces.length - nb, nm = state.annonces.filter(a => a.merguez).length;
       $("#nbAff").textContent = fmt.format(nb); $("#nbAffS").textContent = nb > 1 ? "s" : "";
       const sansDate = state.depuis ? state.annonces.filter(a => !a.date).length : 0;
-      $("#resume").textContent = `${state.annonces.length} trouvée(s)` + (cachees ? ` · ${cachees} écartée(s)` : "") + (nm ? ` · ${nm} merguez` : "")
-        + (sansDate ? ` · ${sansDate} sans date` : "");
+      const sansPuissance = state.crit?.puissance_min ? state.annonces.filter(a => !a.puissance_ch).length : 0;
+      $("#resume").textContent = `${state.annonces.length} trouvée(s)` + (cachees ? ` · ${cachees} écartée(s)` : "") + (nm ? ` · ${nm} à risque` : "")
+        + (sansDate ? ` · ${sansDate} sans date` : "") + (sansPuissance ? ` · ${sansPuissance} sans puissance connue` : "");
       const suite = Object.values(state.src).some(s => s.suite && !s.erreur);
       $("#plus").classList.toggle("hidden", !suite || enCours);
       $("#plusInfo").textContent = enCours ? "Recherche en cours…" : suite ? "Charge la page suivante de chaque site" : (state.annonces.length ? "Toutes les pages disponibles ont été parcourues" : "");
@@ -763,9 +938,7 @@
       majCompteurs(list.length, enCours);
       if (!list.length) {
         if (enCours && !state.annonces.length) return;        // on garde les squelettes
-        grid.innerHTML = `<div class="reveal col-span-full grid place-items-center rounded-3xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
-          <p class="text-lg font-medium">${enCours ? "Recherche en cours…" : "Aucune annonce ne correspond"}</p>
-          <p class="mt-2 max-w-md text-sm text-zinc-400">${state.annonces.length ? `${state.annonces.length} annonce(s) écartée(s) par vos options, la date ou le filtre merguez.${enCours ? " Les pages suivantes sont en cours d'analyse." : " Essayez « Charger plus » ou retirez une option."}` : "Élargissez les critères (prix, km, année) ou changez de modèle."}</p></div>`;
+        grid.innerHTML = enCours ? `<div class="col-span-full grid place-items-center rounded-3xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center"><p class="text-lg font-medium">Recherche en cours…</p></div>` : messageVide();
         deja = new Set();
         return;
       }
@@ -775,6 +948,38 @@
       grid.appendChild(frag);
       deja = new Set(list.map(a => a.lien));
     }
+
+    function messageVide() {
+      const c = state.crit || {}, f = [];
+      const puce = (txt, act) => `<button type="button" data-act="${act}" class="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1.5 text-xs text-zinc-200 ring-1 ring-inset ring-white/10 transition hover:bg-white/10 hover:ring-white/25">${txt}<span class="text-zinc-500">✕</span></button>`;
+      if (state.opts.size) f.push(puce(`Options : ${[...state.opts].slice(0, 4).join(", ")}${state.opts.size > 4 ? "…" : ""}`, "opts"));
+      if (state.carbus.size) f.push(puce(`Carburant : ${[...state.carbus].join(", ")}`, "carbus"));
+      if (state.depuis) f.push(puce(`Mises en ligne : ${DEPUIS.find(d => d[0] === String(state.depuis))[1].toLowerCase()}`, "depuis"));
+      if (c.puissance_min) f.push(puce(`Puissance ≥ ${c.puissance_min} ch`, "puissance"));
+      if (state.verifOnly) f.push(puce("Seulement vérifiées", "verif"));
+      if (state.hideMerguez && state.annonces.some(a => a.merguez)) f.push(puce("Véhicules à risque exclus", "risque"));
+      const aucuneSurSites = !state.annonces.length;
+      return `<div class="reveal col-span-full rounded-3xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-14 text-center">
+        <div class="mx-auto grid size-12 place-items-center rounded-2xl bg-amber-400/10 text-amber-300">
+          <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg></div>
+        <p class="mt-4 text-lg font-semibold">Aucune annonce ne correspond — vérifiez vos filtres</p>
+        <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">${aucuneSurSites
+          ? "Les sites n'ont renvoyé aucune annonce pour ces critères. Vérifiez la marque, le modèle, le prix maximum, le kilométrage et l'année, ou élargissez-les."
+          : `${state.annonces.length} annonce(s) trouvée(s), mais aucune ne passe tous vos filtres. Un équipement n'existe souvent que chez certaines marques : par exemple le son Focal équipe surtout les Peugeot et DS, Harman Kardon les BMW et Mini. En cas de doute, cochez <b class="text-zinc-200">« Toutes marques »</b> pour le son.`}</p>
+        ${f.length ? `<div class="mt-5 flex flex-wrap justify-center gap-2">${f.join("")}</div><p class="mt-3 text-xs text-zinc-500">Cliquez sur un filtre pour le retirer.</p>` : ""}
+        <a href="/faq.html#bien-chercher" class="mt-5 inline-block text-sm text-accent-soft underline-offset-4 hover:underline">Comment bien faire sa recherche →</a></div>`;
+    }
+    $("#grid").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      const act = b.dataset.act;
+      if (act === "opts") { state.opts.clear(); renderChips(); return lancer(); }
+      if (act === "carbus") { state.carbus.clear(); renderChips(); return lancer(); }
+      if (act === "puissance") { $("#puissance_min").value = ""; return lancer(); }
+      if (act === "depuis") { state.depuis = 0; peindreDepuis(); return retrier(); }
+      if (act === "verif") { state.verifOnly = false; store.set("live.verifOnly", "0"); }
+      if (act === "risque") { state.hideMerguez = false; store.set("live.hideMerguez", "0"); }
+      renderChips(); render(false);
+    });
 
     function renderBar() {
       const c = state.crit || {};
@@ -809,8 +1014,8 @@
         const d = await (await fetch("/api/statut")).json();
         if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) $("#lienBase")?.remove();   // base locale : sur PC seulement
         let retire = false;
-        for (const k of Object.keys(SOURCES)) if (!(k in d.sources)) { delete SOURCES[k]; state.sources.delete(k); retire = true; }
-        if (retire) { if (!state.sources.size) state.sources = new Set(Object.keys(SOURCES)); renderChips(); }
+        for (const k of Object.keys(CHIPS)) if (!(CHIPS[k].via in d.sources)) { delete CHIPS[k]; state.sources.delete(k); retire = true; }
+        if (retire) { if (!state.sources.size) state.sources = new Set(Object.keys(CHIPS)); renderChips(); }
       } catch {}
     }
 
@@ -824,13 +1029,14 @@
 
     /* ---------- Démarrage ---------- */
     (async function init() {
+      majNbFavoris(); afficherVue();
       renderChips();
       statut();
       const p = new URLSearchParams(location.search);
       (p.get("options") || "").split(",").filter(o => OPTIONS[o]).forEach(o => state.opts.add(o));
       (p.get("carburants") || "").split(",").filter(c => CARBURANTS.includes(c)).forEach(c => state.carbus.add(c));
-      if (p.get("sources")) state.sources = new Set(p.get("sources").split(",").filter(s => SOURCES[s]));
-      if (!state.sources.size) state.sources = new Set(Object.keys(SOURCES));
+      if (p.get("sources")) state.sources = new Set(p.get("sources").split(",").flatMap(s => s === "leparking" ? ["leboncoin", "lacentrale"] : [s]).filter(s => CHIPS[s]));
+      if (!state.sources.size) state.sources = new Set(Object.keys(CHIPS));
       renderChips();
       try { const g = await (await fetch("/api/options")).json(); if (g && Object.keys(g).length) { GROUPES = g; construireOptions(); } } catch {}
       state.opts = new Set([...state.opts].filter(o => OPTIONS[o])); renderChips();
@@ -839,7 +1045,7 @@
       if (p.get("marque")) {
         $("#marque").value = p.get("marque");
         await chargerModeles(p.get("marque"), p.get("modele"));
-        for (const k of ["prix_max", "km_max", "annee_min"]) if (p.get(k)) $("#" + k).value = p.get(k);
+        for (const k of ["prix_max", "km_max", "annee_min", "puissance_min"]) if (p.get(k)) $("#" + k).value = p.get(k);
         lancer();
       }
     })();

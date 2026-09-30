@@ -27,7 +27,23 @@
     a { color: #fff; text-underline-offset: 3px; }
     .card { border: 1px solid var(--line); background: rgba(255,255,255,.02); border-radius: 16px; padding: 18px 20px; }
     .todo { color: #fbbf24; }
-    .card p { margin: 0; }
+    details { border: 1px solid var(--line); background: rgba(255,255,255,.02); border-radius: 14px; margin: 10px 0; transition: background .2s, border-color .2s; }
+    details[open] { background: rgba(255,255,255,.035); border-color: rgba(255,255,255,.14); }
+    summary { cursor: pointer; list-style: none; padding: 16px 48px 16px 18px; color: #fff; font-weight: 500; position: relative; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--dim); font-size: 20px; transition: transform .3s; }
+    details[open] summary::after { transform: translateY(-50%) rotate(45deg); color: var(--accent); }
+    details > div { padding: 0 18px 14px; }
+    details p, details li { margin: .4em 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 4px; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--dim); font: 500 11px/1.4 "Geist Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+    td:first-child { color: #fff; white-space: nowrap; } td { color: var(--muted); }
+    .sommaire { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+    .sommaire a { font-size: 13px; text-decoration: none; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+    .sommaire a:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+    kbd, .ui { font: 500 12.5px/1 "Geist Mono", monospace; color: #fff; background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+    h2 { scroll-margin-top: 20px; }
     footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
     footer a { color: var(--muted); text-decoration: none; } footer a:hover { color: #fff; }
   </style>
@@ -52,7 +68,7 @@
 
     <h2>Informations affichées</h2>
     <p>Les annonces proviennent de sites tiers. Autoradar ne garantit ni leur exactitude, ni leur disponibilité, ni la
-    réalité des véhicules proposés. La détection des « merguez » (véhicules en panne, accidentés, pour pièces…) et des
+    réalité des véhicules proposés. La détection des « véhicules à risque » (en panne, accidentés, pour pièces…) et des
     options est automatique et peut se tromper dans les deux sens. Lisez toujours l'annonce complète, faites vérifier
     le véhicule et méfiez-vous des arnaques (paiement à distance, prix anormalement bas).</p>
 
@@ -65,9 +81,10 @@
     absent des résultats s'il ne répond pas.</p>
 
     <h2>Contact</h2>
-    <p>Pour toute question ou demande de retrait : <span class="todo">[adresse e-mail de contact]</span>.</p>
+    <p>Pour toute question ou demande de retrait : <a href="mailto:spinmagic77@gmail.com">spinmagic77@gmail.com</a>.</p>
 
     <footer>
+      <a href="/faq.html">Aide &amp; FAQ</a>
       <a href="/mentions-legales.html">Mentions légales</a>
       <a href="/confidentialite.html">Confidentialité &amp; cookies</a>
       <a href="/conditions.html">Conditions d'utilisation</a>

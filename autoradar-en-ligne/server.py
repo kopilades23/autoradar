@@ -145,6 +145,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "marque_id": _q(qs, "marque"), "marque_label": _q(qs, "marque_label", ""),
                     "modele": _q(qs, "modele", ""), "modele_label": _q(qs, "modele_label", ""),
                     "prix_max": _q(qs, "prix_max"), "km_max": _q(qs, "km_max"), "annee_min": _q(qs, "annee_min"),
+                    "puissance_min": _q(qs, "puissance_min"),
                     "options": [o for o in (_q(qs, "options", "") or "").split(",") if o],
                     "carburants": [c for c in (_q(qs, "carburants", "") or "").split(",") if c],
                     "tri": _q(qs, "tri", "pertinence"), "page": _q(qs, "page", "1"),
