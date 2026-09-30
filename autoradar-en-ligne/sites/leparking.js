@@ -45,6 +45,7 @@ async (args) => {
       image: img && !/visuel_generique/.test(img) ? new URL(img, location.origin).href : null,
       plateforme: (ext?.getAttribute('name') || '').replace(/^www\./, '') || null,
       vendeur: parts.find(p => /^(particulier|professionnel)$/i.test(p)) || null,
+      date: (() => { for (const p of (iDet >= 0 ? parts.slice(0, iDet) : parts)) { const m = p.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if (m) return `${m[3]}-${m[2]}-${m[1]}`; } return null; })(),
     });
   }
   return { status: 200, annonces, total: num(j.context && j.context.nb_results) };

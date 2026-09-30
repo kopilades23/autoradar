@@ -49,7 +49,7 @@ AS24 = "https://www.autoscout24.fr"
 # Pré-filtres AutoScout24 (ids d'équipement de la taxonomie du site, relevés le 30/09/2026)
 AS24_EQ = {"Toit panoramique": 50, "Bose": 155, "Harman Kardon": 155, "Burmester": 155, "Focal": 155,
            "JBL": 155, "Bang & Olufsen": 155, "Meridian": 155}
-AS24_TRI = {"pertinence": ("standard", 0), "prix": ("price", 0)}
+AS24_TRI = {"pertinence": ("standard", 0), "prix": ("price", 0), "prix_desc": ("price", 1), "date": ("age", 0)}
 
 # fetch() + extraction exécutés DANS l'onglet du site ; seul le résultat (petit) revient à Python.
 FETCH_NEXT_JS = """async (url) => {
@@ -183,7 +183,7 @@ class TTLCache:
 
 
 def carte(source: str, **kw) -> dict:
-    base = dict(source=source, titre="", prix=None, annee=None, kilometrage=None, lien="", image=None,
+    base = dict(source=source, titre="", prix=None, annee=None, kilometrage=None, lien="", image=None, date=None,
                 ville=None, carburant=None, boite=None, puissance_ch=None, type_vendeur=None,
                 extrait=None, verifiee=False, merguez=False, motifs_merguez=[], options=[], plateforme=None)
     base.update({k: v for k, v in kw.items() if k in base})
@@ -233,6 +233,9 @@ def _paruvendu(q: dict, page: int, repli: bool) -> str:
     else:
         if kw: p["fulltext"] = kw
         m = slug(modele_propre(q["modele_label"]))
+        # tri côté site (le tri « prix croissant » de ParuVendu met en tête les annonces sans prix : pas utilisé)
+        if q.get("tri") == "prix_desc": p.update(tri="prix", ord="desc")
+        elif q.get("tri") == "date": p.update(tri="flagTeteListe", ord="desc")
         base = f"https://www.paruvendu.fr/a/voiture-occasion/{slug(q['marque_label'])}/" + (f"{m}/" if m else "")
     if page > 1: p["p"] = page
     return base + ("?" + urlencode(p) if p else "")
@@ -251,16 +254,11 @@ def _largus(q: dict, page: int, repli: bool) -> str:
         kw = " ".join(x for x in (modele_propre(q["modele_label"]), kw) if x)
         m = ""
     if kw: p["q"] = kw
+    t = {"prix": ("price", "asc"), "prix_desc": ("price", "desc"), "date": ("last_activity_at", "desc")}.get(q.get("tri") or "")
+    if t: p.update(sort=t[0], order=t[1])
     if page > 1: p["currentpage"] = page
     base = f"https://occasion.largus.fr/auto/{slug(q['marque_label'])}/" + (f"{m}/" if m else "")
     return base + ("?" + urlencode(p) if p else "")
-
-
-def _spoticar(q: dict, page: int, repli: bool) -> str:
-    p = {"page": page}
-    if q.get("prix_max"): p["sort"] = "price_asc"  # les filtres ne passent pas par l'URL : on trie par prix
-    m = "" if repli else slug(modele_propre(q["modele_label"]))
-    return f"https://www.spoticar.fr/voitures-occasion/{slug(q['marque_label'])}" + (f"/{m}" if m else "") + "?" + urlencode(p)
 
 
 def _autosphere(q: dict, page: int, repli: bool) -> str:
@@ -281,6 +279,8 @@ def _autoselection(q: dict, page: int, repli: bool) -> str:
     c = _un_carburant(q)
     if c: p["energie"] = {"Électrique": "electrique"}.get(c, slug(c))
     if "Boîte automatique" in (q.get("options") or []): p["boite"] = "automatique"
+    t = {"prix": "prix-asc", "prix_desc": "prix-desc"}.get(q.get("tri") or "")   # défaut du site : plus récentes
+    if t: p["tri"] = t
     if page > 1: p["page"] = page
     m = "" if repli else slug(modele_propre(q["modele_label"]))
     return f"https://www.auto-selection.com/voiture-occasion/{slug(q['marque_label'])}" + (f"/{m}" if m else "") + ("?" + urlencode(p) if p else "")
@@ -294,7 +294,8 @@ def _autohero(q: dict, page: int, repli: bool) -> str:
     if q.get("km_max"): p["mileageMax"] = q["km_max"]
     if q.get("annee_min"): p["yearMin"] = q["annee_min"]
     if _un_carburant(q) == "Diesel": p["fuelType"] = "diesel"
-    if q.get("tri") == "prix": p["sort"] = "price_asc"
+    t = {"prix": "price_asc", "prix_desc": "price_desc"}.get(q.get("tri") or "")   # défaut du site : plus récentes
+    if t: p["sort"] = t
     return "https://www.autohero.com/fr/search/?" + urlencode(p)
 
 
@@ -305,6 +306,9 @@ def _renew(q: dict, page: int, repli: bool) -> str:
     if q.get("km_max"): p["mileage"] = f"0-{q['km_max']}"
     c = _un_carburant(q)
     if c: p["energy.groupLabel.raw"] = {"Électrique": "electrique", "Hybride": "hybride "}.get(c, slug(c))
+    t = {"prix": ("prices.customerDisplayPrice", "+"), "prix_desc": ("prices.customerDisplayPrice", "-"),
+         "date": ("publicationDate", "-")}.get(q.get("tri") or "")
+    if t: p.update(sortKey=t[0], sortOrder=t[1])
     if page > 1: p["page"] = page
     return "https://fr.renew.auto/achat-vehicules-occasions.html?" + urlencode(p)
 
@@ -324,14 +328,12 @@ SITES: dict[str, Site] = {
                      r"/fr/[a-z0-9-]+/id/[0-9a-f-]{36}/?$", _autohero, 19, pages_max=1),
     "renew": Site("renew", "Renew", "https://fr.renew.auto", "/",
                   r"details\.html\?productId=", _renew, 23),
-    "spoticar": Site("spoticar", "Spoticar", "https://www.spoticar.fr", "/",
-                     r"/voitures-occasion/[a-z0-9-]+-\d{8,}$", _spoticar, 12, tri_prix_local=True),
     "autosphere": Site("autosphere", "Autosphere", "https://www.autosphere.fr", "/",
                        r"/fiche[^/]*/auto-occasion-[a-z0-9-]+-\d{3,}$", _autosphere, 22, pages_max=1),
 }
 TOUTES_SOURCES = ["autoscout24", "leparking", *SITES]
 LEPARKING_ENERGIE = {"Essence": "3", "Diesel": "1", "Hybride": "7", "Électrique": "2"}
-LEPARKING_TRI = {"prix": "prix_croissant"}
+LEPARKING_TRI = {"prix": "prix_croissant", "prix_desc": "prix_decroissant", "date": "date"}
 PLATEFORMES = {"leboncoin.fr": "Leboncoin", "lacentrale.fr": "La Centrale", "autoscout24.fr": "AutoScout24",
                "paruvendu.fr": "ParuVendu", "autohero.com": "Autohero", "spoticar.fr": "Spoticar",
                "aramisauto.com": "Aramis Auto", "autosphere.fr": "Autosphere", "zoomcar.fr": "Zoomcar",
@@ -600,6 +602,13 @@ class Moteur:
     async def fiches(self, source: str, liens: list[str]) -> dict:
         """Lit (doucement) les fiches d'annonces déjà affichées et renvoie les mises à jour."""
         cartes = [self.attente[l][1] for l in liens if l in self.attente and self.attente[l][0] == source]
+        if source == "leparking":
+            if "largus" not in self.sources:
+                return {"maj": []}
+            await self._verifier_toutes(cartes, self._via_largus)
+            for c in cartes:
+                self.attente.pop(c["lien"], None)
+            return {"maj": [publique(c) for c in cartes], "freine": self.freine("largus")}
         if source not in SITES:
             return {"maj": []}
         await self._verifier_toutes(cartes, self._lecteur_fiche(SITES[source]))
@@ -610,13 +619,36 @@ class Moteur:
                 self.attente.pop(c["lien"], None)
         return {"maj": [publique(c) for c in cartes if c.get("verifiee") or not freine], "freine": freine}
 
+    async def _via_largus(self, c: dict) -> Optional[dict]:
+        """Annonce Leboncoin / La Centrale vue sur LeParking : L'argus republie une partie de ces annonces avec
+        leur description. On la cherche (même prix exact, même année, km proche), puis on lit sa fiche."""
+        q, site = c.get("_q") or {}, SITES["largus"]
+        prix, km, annee = c.get("prix"), c.get("kilometrage"), c.get("annee")
+        if not (q.get("marque_label") and prix and km and annee):
+            return None
+        m = slug(modele_propre(q.get("modele_label") or ""))
+        url = (f"{site.origine}/auto/{slug(q['marque_label'])}/" + (f"{m}/" if m else "") + "?" +
+               urlencode({"price_min": prix * 100, "price_max": prix * 100, "year_min": annee, "year_max": annee,
+                          "mileage_min": max(0, km - 1500), "mileage_max": km + 1500}))
+        res = await self._eval("largus", "liste", [url, site.lien_re, q["marque_label"]], "liste:" + url) or {}
+        b = next((b for b in res.get("annonces") or [] if b.get("prix") == prix and b.get("annee") in (None, annee)
+                  and (b.get("km") is None or abs(b["km"] - km) <= 1500)), None)
+        if not b:
+            return None
+        f = await self._lecteur_fiche(site)({"lien": b["lien"]})
+        if not f or f.get("miroir") != c.get("plateforme"):   # ce n'est pas la même annonce
+            return None
+        return {"description": f.get("description") or "", "equipements": f.get("equipements") or [],
+                "image": f.get("image"), "date": f.get("date"), "lien_origine": f.get("miroir_lien")}
+
     def _lecteur_fiche(self, site: Site):
         async def lire(c):
             r = await self._eval(site.cle, "fiche", c["lien"], "fiche:" + c["lien"])
             if not r or r.get("status", 0) >= 400:
                 return None
             return {"description": r.get("description") or "", "equipements": r.get("equipements") or [],
-                    "miroir": r.get("miroir"), "miroir_lien": r.get("miroir_lien"), "image": r.get("image")}
+                    "miroir": r.get("miroir"), "miroir_lien": r.get("miroir_lien"), "image": r.get("image"),
+                    "date": r.get("date")}
         return lire
 
     async def _verifier_toutes(self, cartes: list[dict], lire) -> None:
@@ -633,6 +665,10 @@ class Moteur:
             c["_miroir_lien"] = (cached or {}).get("miroir_lien")
             if (cached or {}).get("image") and not c.get("image"):   # photo absente de la liste : celle de la fiche
                 c["image"] = cached["image"]
+            if (cached or {}).get("date") and not c.get("date"):
+                c["date"] = cached["date"]
+            if (cached or {}).get("lien_origine"):
+                c["lien_origine"] = cached["lien_origine"]
             infos = {k: v for k, v in (cached or {}).items() if k in ("description", "equipements", "accident", "dommages")}
             verifier(c, **infos) if cached and cached.get("description") is not None else verifier(c, None)
         await asyncio.gather(*(une(c) for c in cartes))
@@ -671,9 +707,12 @@ class Moteur:
 
         async def lire(c):
             res = await self._eval("autoscout24", "next", c["lien"], "json:" + c["lien"])
-            f = as24.parse_fiche(json.loads(res["json"])) if res and res.get("json") else None
+            data = json.loads(res["json"]) if res and res.get("json") else None
+            f = as24.parse_fiche(data) if data else None
+            cree = as24._find_key(data, "createdTimestampWithOffset", str) if data else None
             return None if not f else {"description": f["description"] or "", "equipements": f["equipements"],
-                                       "accident": f["accident_declare"], "dommages": f["dommages"]}
+                                       "accident": f["accident_declare"], "dommages": f["dommages"],
+                                       "date": (cree or "")[:10] or None}
 
         await self._verifier_toutes(cartes, lire)
         return {"annonces": cartes, "total_site": pp.get("numberOfResults"), "page": page,
@@ -701,7 +740,7 @@ class Moteur:
         res = await self._eval("leparking", "leparking", [ctx], "lp:" + json.dumps(ctx, sort_keys=True)) or {}
         prix_max, km_max, annee_min = (int(q[k]) if q.get(k) else None for k in ("prix_max", "km_max", "annee_min"))
         carbus = set(q.get("carburants") or [])
-        cartes = []
+        cartes, a_verifier = [], []
         for b in res.get("annonces") or []:
             if (prix_max and b.get("prix") and b["prix"] > prix_max) or (km_max and b.get("km") and b["km"] > km_max) \
                     or (annee_min and b.get("annee") and b["annee"] < annee_min):
@@ -715,10 +754,16 @@ class Moteur:
                       type_vendeur=(b.get("vendeur") or "").capitalize() or None,
                       plateforme=PLATEFORMES.get(pf, pf or None))
             c["_sous_titre"] = b.get("version")
+            c["date"] = b.get("date")
             verifier(c, None)             # LeParking ne publie ni description ni équipements : titre + version
+            if c.get("plateforme") in ("Leboncoin", "La Centrale") and c.get("prix") and c.get("kilometrage") and c.get("annee"):
+                # L'argus republie une partie de ces annonces avec leur description : on la cherchera après l'affichage
+                c["_q"] = {"marque_label": q.get("marque_label") or "", "modele_label": q.get("modele_label") or ""}
+                self.attente[c["lien"]] = ("leparking", c)
+                a_verifier.append(c["lien"])
             cartes.append(c)
         total = res.get("total")
-        return {"annonces": cartes, "total_site": total, "page": page,
+        return {"annonces": cartes, "total_site": total, "page": page, "a_verifier": a_verifier,
                 "suite": bool(res.get("annonces")) and page * 27 < (total or 0) and page < 40,
                 "lien_site": f"{LEPARKING}/voiture-occasion/{slug(q.get('marque_label'))}"
                              + (f"-{slug(modele_propre(q.get('modele_label') or ''))}" if q.get("modele_label") else "") + ".html"}

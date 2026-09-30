@@ -40,17 +40,25 @@ python server.py --navigateur     # ancien mode : Chrome piloté en arrière-pla
 | Source | Filtré par le site | Détails lus (options, merguez) |
 |---|---|---|
 | AutoScout24 | modèle, prix, km, année, carburant, toit pano, hi-fi | fiche complète (JSON) |
-| **LeParking** | texte (modèle + option), prix, km, année, carburant, France | titre + version seulement (voir plus bas) |
+| **LeParking** | texte (modèle + option), prix, km, année, carburant, France | titre + version ; pour Leboncoin / La Centrale, description retrouvée sur L'argus quand il republie l'annonce |
 | ParuVendu | modèle, prix, km, année, mot-clé | fiches lues après l'affichage, une à la fois |
 | L'argus Occasion | modèle, prix, km, année, carburant, mot-clé | fiche ; **ses copies d'annonces Leboncoin sont affichées comme « Leboncoin »** avec leur description, lien vers l'annonce Leboncoin |
 | Auto-Sélection | modèle, prix, km, année, carburant, boîte auto | fiche |
 | Autohero | modèle, prix, km, année, diesel | fiche (1re page seulement) |
 | Renew (Renault) | modèle, km, carburant | fiche + équipements du JSON embarqué |
-| Spoticar | modèle (tri par prix) | fiche |
 | Autosphere | modèle (1re page) | fiche |
 | Zoomcar (ex-Ouest-France Auto) | modèle | sur PC seulement (refuse les serveurs) |
 | Leboncoin, La Centrale, Aramis Auto | liens « Ouvrir aussi » pré-remplis | — |
 
+- **Tri** : « Prix croissant / décroissant » et « Mises en ligne récemment » sont demandés à chaque site
+  (tri côté site), donc on voit vraiment les moins chères de tous les sites, pas seulement parmi les
+  annonces déjà chargées. Km / année : tri des annonces affichées.
+- **Date de mise en ligne** (filtre 24 h / 3 j / 7 j / 30 j) : LeParking (Leboncoin, La Centrale…),
+  AutoScout24, L'argus, Autohero, Renew. ParuVendu, Auto-Sélection et Autosphere ne la donnent pas :
+  leurs annonces sont masquées quand le filtre est actif.
+- **Seulement vérifiées** : n'affiche que les annonces dont la description a été lue.
+- Pages `mentions-legales.html`, `confidentialite.html`, `conditions.html` (dans `static/`) : remplacez
+  les champs en jaune [Prénom Nom], [adresse e-mail de contact].
 - Photos : image de la carte, sinon celle trouvée dans le JSON de la page (sites React comme
   Renew), sinon celle de la fiche.
 - Une même voiture publiée sur plusieurs sites (même prix, km, année) n'apparaît qu'une fois

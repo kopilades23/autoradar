@@ -17,6 +17,22 @@
     }
     return [];
   };
+  // Date de mise en ligne (AAAA-MM-JJ) : « Publiée le 08/09/2026 », JSON-LD, ou JSON embarqué près de l'identifiant
+  const datePublication = () => {
+    let m = (html || '').match(/publi[ée]e?\s+le(?:\s|&nbsp;|<[^>]{0,200}>)*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);
+    if (m) return `${m[3]}-${String(+m[2]).padStart(2, '0')}-${String(+m[1]).padStart(2, '0')}`;
+    const u = (html || '').replace(/\\"/g, '"').replace(/\\u002F/g, '/');
+    m = u.match(/"datePublished"\s*:\s*"(\d{4}-\d{2}-\d{2})/); if (m) return m[1];
+    const id = (lien || '').match(/[?&]productId=([^&#]+)/) || (lien || '').match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
+    if (!id) return null;
+    const CLES = /"(?:publicationDateTime|publicationDate|datePublished|createdTimestampWithOffset|created|createdAt|firstPublicationDate|first_publication_date)"\s*:\s*"(\d{4}-\d{2}-\d{2})/g;
+    let meilleur = null, dist = 5001;
+    for (let i = u.indexOf(id[1]); i >= 0; i = u.indexOf(id[1], i + 1)) {
+      const debut = Math.max(0, i - 5000), zone = u.slice(debut, i + 5000);
+      for (const d of zone.matchAll(CLES)) { const e = Math.abs(debut + d.index - i); if (e < dist) { meilleur = d[1]; dist = e; } }
+    }
+    return meilleur;
+  };
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const txt = (el) => (el.textContent || '').replace(/[  ]/g, ' ').replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
   let ld = '', image = null;
@@ -61,5 +77,5 @@
   if (best) { const c = best.cloneNode(true); c.querySelectorAll('h1,h2,h3,h4,h5,h6,button').forEach(e => e.remove()); corps = txt(c); }
   const description = [ld, corps].filter(Boolean).join('\n').slice(0, 12000);
   equip.push(...equipementsJson());
-  return { description, equipements: [...new Set(equip)].slice(0, 300), miroir, miroir_lien, image };
+  return { description, equipements: [...new Set(equip)].slice(0, 300), miroir, miroir_lien, image, date: datePublication() };
 }

@@ -265,6 +265,34 @@ def equipements_json(h: str, lien: str) -> list[str]:
     return []
 
 
+CLES_DATE = re.compile(r'"(?:publicationDateTime|publicationDate|datePublished|createdTimestampWithOffset|created|createdAt|'
+                       r'firstPublicationDate|first_publication_date)"\s*:\s*"(\d{4}-\d{2}-\d{2})')
+
+
+def date_publication(h: str, lien: str = "") -> Optional[str]:
+    """Date de mise en ligne (AAAA-MM-JJ) si la fiche la donne : « Publiée le 08/09/2026 » (L'argus),
+    JSON-LD datePublished, ou clé de date dans le JSON embarqué au plus près de l'identifiant de l'annonce."""
+    m = re.search(r"publi[ée]e?\s+le(?:\s|&nbsp;|<[^>]{0,200}>)*(\d{1,2})/(\d{1,2})/(\d{4})", h or "", re.I)
+    if m:
+        return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+    u = (h or "").replace('\\"', '"').replace("\\u002F", "/")
+    m = re.search(r'"datePublished"\s*:\s*"(\d{4}-\d{2}-\d{2})', u)
+    if m:
+        return m.group(1)
+    ident = re.search(r"[?&]productId=([^&#]+)", lien or "") or \
+        re.search(r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})", lien or "")
+    if not ident:
+        return None
+    meilleur, dist = None, 5001
+    i = u.find(ident.group(1))
+    while i >= 0:
+        for d in CLES_DATE.finditer(u, max(0, i - 5000), i + 5000):
+            if abs(d.start() - i) < dist:
+                meilleur, dist = d.group(1), abs(d.start() - i)
+        i = u.find(ident.group(1), i + 1)
+    return meilleur
+
+
 def lire_fiche(h: str, lien: str = "") -> dict:
     doc = _doc(h)
     ld, image = "", None
@@ -311,7 +339,7 @@ def lire_fiche(h: str, lien: str = "") -> dict:
     body = doc.body
     if body is None:
         return {"description": ld[:12000], "equipements": equipements_json(h, lien), "miroir": miroir,
-                "miroir_lien": miroir_lien, "image": image}
+                "miroir_lien": miroir_lien, "image": image, "date": date_publication(h, lien)}
     for e in _desc(body, "p,div,li,br,h1,h2,h3,h4,h5,h6,section,article,tr,dt,dd"):
         e.insert_child("\n")      # sauts de ligne entre blocs, sinon « Description » et le texte se collent
     best, best_score = None, 0.0
@@ -344,7 +372,7 @@ def lire_fiche(h: str, lien: str = "") -> dict:
     description = "\n".join(x for x in (ld, corps) if x)[:12000]
     equip += equipements_json(h, lien)
     return {"description": description, "equipements": list(dict.fromkeys(equip))[:300],
-            "miroir": miroir, "miroir_lien": miroir_lien, "image": image}
+            "miroir": miroir, "miroir_lien": miroir_lien, "image": image, "date": date_publication(h, lien)}
 
 
 # --------------------------------------------------------------------------- #
@@ -396,6 +424,8 @@ def leparking(texte: str, origine: str = "https://www.leparking.fr") -> dict:
             "image": urljoin(origine, img) if img and "visuel_generique" not in img else None,
             "plateforme": re.sub(r"^www\.", "", _attr(ext, "name") or "") or None,
             "vendeur": next((p for p in parts if re.match(r"^(particulier|professionnel)$", p, re.I)), None),
+            "date": next((f"{m.group(3)}-{m.group(2)}-{m.group(1)}" for p in (parts[:i_det] if i_det >= 0 else parts)
+                          for m in [re.match(r"^(\d{2})/(\d{2})/(\d{4})$", p)] if m), None),
         })
         if annonces[-1]["prix"] == 0:
             annonces[-1]["prix"] = None
