@@ -44,7 +44,6 @@ python server.py --navigateur     # ancien mode : Chrome piloté en arrière-pla
 | ParuVendu | modèle, prix, km, année, mot-clé | fiches lues après l'affichage, une à la fois |
 | L'argus Occasion | modèle, prix, km, année, carburant, mot-clé | fiche ; **ses copies d'annonces Leboncoin sont affichées comme « Leboncoin »** avec leur description, lien vers l'annonce Leboncoin |
 | Auto-Sélection | modèle, prix, km, année, carburant, boîte auto | fiche |
-| Autohero | modèle, prix, km, année, diesel | fiche (1re page seulement) |
 | Renew (Renault) | modèle, km, carburant | fiche + équipements du JSON embarqué |
 | Autosphere | modèle (1re page) | fiche |
 | Zoomcar (ex-Ouest-France Auto) | modèle | sur PC seulement (refuse les serveurs) |
@@ -54,7 +53,7 @@ python server.py --navigateur     # ancien mode : Chrome piloté en arrière-pla
   (tri côté site), donc on voit vraiment les moins chères de tous les sites, pas seulement parmi les
   annonces déjà chargées. Km / année : tri des annonces affichées.
 - **Date de mise en ligne** (filtre 24 h / 3 j / 7 j / 30 j) : LeParking (Leboncoin, La Centrale…),
-  AutoScout24, L'argus, Autohero, Renew. ParuVendu, Auto-Sélection et Autosphere ne la donnent pas :
+  AutoScout24, L'argus, Renew. ParuVendu, Auto-Sélection et Autosphere ne la donnent pas :
   leurs annonces sont masquées quand le filtre est actif.
 - **Seulement vérifiées** : n'affiche que les annonces dont la description a été lue.
 - **Audio premium** : plusieurs marques cochées = « au moins une » (bouton « Toutes marques »).
@@ -87,7 +86,7 @@ concessions…). Par contre les fiches LeParking ne contiennent **ni description
 **interdits aux robots** dans son robots.txt (ce sont ses clics facturés aux partenaires) : on ne les
 suit donc pas automatiquement — seulement quand vous cliquez « Voir l'annonce ». Pour ces annonces,
 options et merguez sont repérés sur le titre + la version (petite icône ⓘ). Beaucoup d'entre elles
-sont aussi sur une source directe (L'argus pour Leboncoin, AutoScout24, Autohero…) : c'est alors la
+sont aussi sur une source directe (L'argus pour Leboncoin, AutoScout24…) : c'est alors la
 version complète qui s'affiche.
 
 ## Anti-blocage

@@ -28,10 +28,10 @@
 
     /* ---------- Fond : aurora + grille ---------- */
     .aurora { position: fixed; inset: -20vmax; z-index: 0; pointer-events: none; opacity: .5; } /* dégradés radiaux déjà flous : pas de filter:blur coûteux */
-    .aurora span { position: absolute; border-radius: 9999px; mix-blend-mode: screen; will-change: transform; animation: drift 28s ease-in-out infinite alternate; }
+    .aurora span { position: absolute; border-radius: 9999px; animation: drift 60s ease-in-out infinite alternate; }
     .aurora span:nth-child(1) { width: 42vmax; height: 42vmax; left: 10%; top: 0%;  background: radial-gradient(circle, #ff6a2b 0%, transparent 65%); }
-    .aurora span:nth-child(2) { width: 38vmax; height: 38vmax; right: 5%; top: 10%; background: radial-gradient(circle, #6d4aff 0%, transparent 65%); animation-duration: 34s; animation-delay: -8s; }
-    .aurora span:nth-child(3) { width: 30vmax; height: 30vmax; left: 40%; top: 35%; background: radial-gradient(circle, #1fb6ff 0%, transparent 65%); opacity: .5; animation-duration: 40s; animation-delay: -16s; }
+    .aurora span:nth-child(2) { width: 38vmax; height: 38vmax; right: 5%; top: 10%; background: radial-gradient(circle, #6d4aff 0%, transparent 65%); animation-duration: 70s; animation-delay: -8s; }
+    .aurora span:nth-child(3) { width: 30vmax; height: 30vmax; left: 40%; top: 35%; background: radial-gradient(circle, #1fb6ff 0%, transparent 65%); opacity: .5; animation-duration: 80s; animation-delay: -16s; }
     @keyframes drift {
       0%   { transform: translate3d(0,0,0) scale(1); }
       50%  { transform: translate3d(6vmax,4vmax,0) scale(1.12); }
@@ -51,25 +51,26 @@
     }
 
     /* ---------- Entrées animées ---------- */
-    .reveal { opacity: 0; transform: translateY(18px); filter: blur(8px);
-      animation: reveal .9s var(--ease-out-expo, cubic-bezier(.16,1,.3,1)) forwards; animation-delay: var(--d, 0ms); }
-    @keyframes reveal { to { opacity: 1; transform: none; filter: blur(0); } }
+    .reveal { opacity: 0; transform: translateY(14px);
+      animation: reveal .8s var(--ease-out-expo, cubic-bezier(.16,1,.3,1)) forwards; animation-delay: var(--d, 0ms); }
+    @keyframes reveal { to { opacity: 1; transform: none; } }
 
-    .word { display: inline-block; opacity: 0; transform: translateY(60%) rotate(4deg); filter: blur(10px);
+    .word { display: inline-block; opacity: 0; transform: translateY(60%) rotate(4deg);
       animation: word 1s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--d, 0ms); }
-    @keyframes word { to { opacity: 1; transform: none; filter: blur(0); } }
+    @keyframes word { to { opacity: 1; transform: none; } }
 
     .shimmer-text {
       background: linear-gradient(100deg, #fff 20%, var(--color-accent-soft, #ffb08a) 40%, #fff 60%);
       background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
-      animation: shimmer 6s linear infinite;
+      animation: shimmer 3.5s ease-out 1.2s 2 both;
     }
     @keyframes shimmer { from { background-position: 150% 0; } to { background-position: -100% 0; } }
 
     /* ---------- Cartes ---------- */
-    .card { --x: 50%; --y: 50%; --rx: 0deg; --ry: 0deg;
-      transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
-      transition: transform .5s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .5s; }
+    .card { --x: 50%; --y: 50%; --rx: 0deg; --ry: 0deg; background-color: #101014;
+      transition: transform .5s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .5s;
+      content-visibility: auto; contain-intrinsic-size: auto 560px; }   /* cartes hors écran : pas de rendu */
+    .card.tilt { transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)); }
     .card:hover { box-shadow: 0 30px 80px -30px rgba(255,106,43,.35), 0 0 0 1px rgba(255,255,255,.08); }
     .card::before { /* spotlight suivant le curseur */
       content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
@@ -92,7 +93,7 @@
     .card[data-merguez="1"] .photo { filter: grayscale(.85) contrast(.95) brightness(.8); transition: transform 1.2s cubic-bezier(.16,1,.3,1), filter .6s; }
     .card[data-merguez="1"]:hover .photo { filter: grayscale(.2); }
     .card[data-merguez="1"]:hover { box-shadow: 0 30px 80px -30px rgba(239,68,68,.35), 0 0 0 1px rgba(239,68,68,.2); }
-    .merguez-badge { animation: pulse-red 2.4s ease-in-out infinite; }
+    .merguez-badge { animation: pulse-red 2.4s ease-in-out 2; }
     @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.45); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
 
     /* ---------- Badges options premium : reflet au survol ---------- */
@@ -120,7 +121,7 @@
     :root { view-transition-name: none; } /* seules les cartes sont capturées : transition plus légère */
     ::view-transition-group(*) { animation-duration: .55s; animation-timing-function: cubic-bezier(.16,1,.3,1); }
 
-    .live-dot { box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: ping 2s infinite; }
+    .live-dot { box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: ping 2s 4; }
     @keyframes ping { 70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
 
     /* ---------- Logo : radar qui balaie ---------- */
@@ -129,9 +130,10 @@
     .logo-mark svg { position: absolute; inset: 0; width: 100%; height: 100%; }
     .logo-sweep { position: absolute; inset: -30%; border-radius: 50%;
       background: conic-gradient(from 0deg, rgba(255,255,255,0) 0deg, rgba(255,255,255,0) 290deg, rgba(255,255,255,.55) 360deg);
-      animation: sweep 4.5s linear infinite; mix-blend-mode: soft-light; }
+      animation: sweep 2.2s cubic-bezier(.45,.05,.55,.95) 2; opacity: .6; }
+    .logo-mark.scan .logo-sweep { animation: sweep 1.4s linear infinite; }
     @keyframes sweep { to { transform: rotate(360deg); } }
-    .logo-blip { animation: blip 4.5s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+    .logo-blip { animation: blip 2.2s ease-out 2; transform-origin: center; transform-box: fill-box; }
     @keyframes blip { 0%, 58% { opacity: 0; transform: scale(.4); } 62% { opacity: 1; transform: scale(1.3); } 100% { opacity: .15; transform: scale(1); } }
     .wordmark { background: linear-gradient(180deg, #fff 0%, #d4d4d8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
@@ -187,6 +189,21 @@
     .fav.pop { animation: pop .5s cubic-bezier(.16,1,.3,1); }
     @keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
     .compteur { transition: transform .4s cubic-bezier(.16,1,.3,1); } .compteur.bump { transform: scale(1.35); }
+
+    /* ---------- Économie d'énergie ----------
+       Onglet caché, ou partie animée hors de l'écran : tout est mis en pause. */
+    .en-pause *, .en-pause *::before, .en-pause *::after { animation-play-state: paused !important; }
+    .hors-hero .hero-radar *, .hors-hero .marquee-track, .hors-hero .aurora span { animation-play-state: paused !important; }
+    /* Téléphones, tablettes, écrans tactiles : décor fixe (pas d'animation en boucle, pas de flou d'arrière-plan) */
+    @media (hover: none), (pointer: coarse), (max-width: 900px) {
+      .aurora span, .hero-radar .beam, .hero-radar .dot, .marquee-track, .logo-sweep, .logo-blip, .live-dot { animation: none !important; }
+      .hero-radar .dot:nth-of-type(-n+3) { opacity: .7; }
+      .grain { display: none; }
+      .marquee { overflow-x: auto; scrollbar-width: none; } .marquee::-webkit-scrollbar { display: none; }
+      .backdrop-blur-xl, .backdrop-blur-md, .dd-menu { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+      header.sticky { background: #0d0d10 !important; }
+      .logo-mark.scan .logo-sweep { animation: sweep 1.4s linear infinite !important; }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -261,11 +278,11 @@
       </p>
       <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
       <p class="reveal relative mt-5 max-w-2xl text-lg text-zinc-400" style="--d:650ms">
-        Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu, Auto-Sélection, Autohero, Renew, Autosphere et des centaines de concessions,
+        Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu, Auto-Sélection, Renew, Autosphere et des centaines de concessions,
         interrogés en direct. Les annonces douteuses sont repérées pour vous.
       </p>
 
-      <form id="form" class="reveal relative z-20 mt-10 rounded-3xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl sm:p-5" style="--d:800ms" autocomplete="off">
+      <form id="form" class="reveal relative z-20 mt-10 rounded-3xl border border-white/10 bg-[#0c0c0f]/90 p-4 sm:p-5" style="--d:800ms" autocomplete="off">
         <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
           <label class="col-span-2 md:col-span-1"><span class="lbl">Marque</span>
             <select id="marque" class="field" required><option value="">Chargement…</option></select></label>
@@ -326,6 +343,7 @@
         </div>
       </div>
       <main id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></main>
+      <div id="sentinelle" class="hidden h-px"></div>
       <div class="mt-10 flex flex-col items-center gap-3">
         <button id="plus" class="hidden rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10 active:scale-95">Charger plus d'annonces</button>
         <p id="plusInfo" class="font-mono text-[11px] text-zinc-600"></p>
@@ -386,18 +404,18 @@
   </footer>
 
   <template id="cardTpl">
-    <article class="card reveal group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm">
+    <article class="card reveal group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08]">
       <a class="absolute inset-0 z-[4]" target="_blank" rel="noopener noreferrer" data-link aria-label="Voir l'annonce"></a>
       <div class="relative aspect-[4/3] overflow-hidden bg-zinc-900">
-        <img class="photo size-full object-cover" loading="lazy" referrerpolicy="no-referrer" alt="" data-img />
+        <img class="photo size-full object-cover" loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer" alt="" data-img />
         <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/0 to-black/25"></div>
         <div class="absolute left-3 top-3 flex flex-col items-start gap-1.5">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md" data-source></span>
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[11px] font-medium text-white" data-source></span>
           <span class="merguez-badge hidden items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-semibold text-white" data-merguez-badge>
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
             <span>À risque</span></span>
         </div>
-        <button type="button" class="fav absolute right-3 top-3 z-[5] grid size-9 place-items-center rounded-full border border-white/15 bg-black/45 text-white backdrop-blur-md" data-fav aria-pressed="false" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">
+        <button type="button" class="fav absolute right-3 top-3 z-[5] grid size-9 place-items-center rounded-full border border-white/15 bg-black/60 text-white" data-fav aria-pressed="false" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">
           <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg></button>
         <span class="absolute bottom-3.5 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[11px] font-medium text-black" data-year></span>
         <p class="absolute bottom-3 left-4 text-[28px] font-semibold leading-none tracking-tight tabular-nums text-white drop-shadow" data-price></p>
@@ -440,7 +458,6 @@
       largus:        { nom: "L'argus",       dot: "#3b82f6" },
       zoomcar:       { nom: "Zoomcar (Ouest-France Auto)", court: "Zoomcar", dot: "#f472b6" },
       autoselection: { nom: "Auto-Sélection", dot: "#fb923c" },
-      autohero:      { nom: "Autohero",      dot: "#34d399" },
       renew:         { nom: "Renew",         dot: "#facc15" },
       autosphere:    { nom: "Autosphere",    dot: "#a3e635" },
     };
@@ -556,6 +573,7 @@
     // (km, année, pertinence : triés sur place ; prix et date : on redemande aux sites leurs annonces dans cet ordre)
     const triSite = (t = state.tri) => ["prix", "prix_desc", "date"].includes(t) ? t : (state.depuis ? "date" : "pertinence");
     const retrier = () => {
+      limite = PAS;
       const voulu = triSite();
       if (state.crit && voulu !== "pertinence" && voulu !== state.triCharge) lancer(); else if (state.crit) render(false);
     };
@@ -604,7 +622,7 @@
       state.opts.clear(); state.carbus.clear(); state.sources = new Set(Object.keys(CHIPS)); state.tri = "pertinence"; $("#tri").value = "pertinence";
       state.depuis = 0; peindreDepuis();
       if (location.hash === "#favoris") history.replaceState(null, "", location.pathname), afficherVue();
-      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: null });
+      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: null }); viderRendu();
       history.replaceState(null, "", location.pathname);
       $("#resultats").classList.add("hidden"); $("#accueil").classList.remove("hidden"); $("#grid").innerHTML = "";
       renderChips(); window.scrollTo({ top: 0, behavior: "smooth" }); $("#marque").focus();
@@ -680,7 +698,7 @@
       const c = criteres();
       if (!c.marque) { $("#marque").focus(); return; }
       const run = ++state.run;
-      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c, triCharge: triSite() });
+      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c, triCharge: triSite() }); viderRendu();
       const url = new URL(location.href); url.search = new URLSearchParams({ ...c, sources: [...state.sources].join(",") }).toString();
       url.hash = "";
       history.replaceState(null, "", url);
@@ -749,7 +767,7 @@
         if (run !== state.run) return;
         const maj = new Map(((d && d.maj) || []).map(m => [m.lien, m]));
         for (const l of lot) {
-          const a = state.annonces.find(x => x.lien === l); if (!a) continue;
+          const a = parLien.get(l) || state.annonces.find(x => x.lien === l); if (!a) continue;
           const m = maj.get(l);
           if (m) Object.assign(a, { merguez: m.merguez, motifs_merguez: m.motifs_merguez, options: m.options, extrait: m.extrait, verifiee: m.verifiee,
                                     lien_origine: m.lien_origine || a.lien_origine, plateforme: m.plateforme || a.plateforme, image: a.image || m.image,
@@ -910,14 +928,17 @@
     window.addEventListener("hashchange", afficherVue);
     window.addEventListener("storage", (e) => { if (e.key === CLE_FAV) { try { FAV = JSON.parse(e.newValue || "{}") || {}; } catch {} majNbFavoris(); if (location.hash === "#favoris") renderFavoris(); else render(false); } });
     $("#retourRecherche").addEventListener("click", (e) => { e.preventDefault(); history.pushState(null, "", location.pathname + location.search); afficherVue(); });
+    const SOURIS = matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;
     function attachTilt(card) {
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches || matchMedia("(hover: none)").matches) return;
+      if (!SOURIS) return;
+      card.addEventListener("pointerenter", () => card.classList.add("tilt"));
       card.addEventListener("pointermove", (e) => {
         const r = card.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
         card.style.setProperty("--x", `${px * 100}%`); card.style.setProperty("--y", `${py * 100}%`);
         card.style.setProperty("--rx", `${(0.5 - py) * 5}deg`); card.style.setProperty("--ry", `${(px - 0.5) * 7}deg`);
       });
-      card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); });
+      card.addEventListener("pointerleave", () => { card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg");
+        setTimeout(() => { if (!card.matches(":hover")) card.classList.remove("tilt"); }, 500); });
     }
 
     let deja = new Set();
@@ -932,7 +953,20 @@
       $("#plus").classList.toggle("hidden", !suite || enCours);
       $("#plusInfo").textContent = enCours ? "Recherche en cours…" : suite ? "Charge la page suivante de chaque site" : (state.annonces.length ? "Toutes les pages disponibles ont été parcourues" : "");
     }
+    // Rendu économe : plusieurs mises à jour rapprochées = un seul rendu ; les cartes déjà affichées sont
+    // réutilisées (pas de reconstruction ni de nouveau décodage des photos) ; les cartes arrivent par paquets.
+    const PAS = matchMedia("(max-width: 900px)").matches ? 18 : 36;
+    let limite = PAS, rendu = null, animEnAttente = false;
+    const noeuds = new Map();      // lien -> { node, sig, a }
+    const signature = (a) => [a.merguez ? 1 : 0, (a.options || []).join("|"), a.verifiee ? 1 : 0, a.image || "", a.date || "", a._enAttente ? 1 : 0,
+      (a.aussi || []).join("|"), a.lien_origine || "", a.extrait || "", a.plateforme || "", a.puissance_ch || "", FAV[a.lien] ? 1 : 0].join("¦");
     function render(animNouveaux) {
+      animEnAttente = animEnAttente || !!animNouveaux;
+      if (rendu) return;
+      rendu = setTimeout(() => { rendu = null; const an = animEnAttente; animEnAttente = false; rendreMaintenant(an); }, 90);
+    }
+    function viderRendu() { noeuds.clear(); limite = PAS; deja = new Set(); }
+    function rendreMaintenant(animNouveaux) {
       const list = trier(visibles()), grid = $("#grid");
       const enCours = Object.values(state.src).some(s => s.charge);
       majCompteurs(list.length, enCours);
@@ -942,12 +976,26 @@
         deja = new Set();
         return;
       }
-      grid.innerHTML = "";
-      const frag = document.createDocumentFragment();
-      list.forEach((a, i) => frag.appendChild(buildCard(a, i, animNouveaux && !deja.has(a.lien))));
-      grid.appendChild(frag);
-      deja = new Set(list.map(a => a.lien));
+      const affichees = list.slice(0, limite);
+      for (const el of [...grid.children]) if (!el.classList.contains("card")) el.remove();   // squelettes, messages
+      affichees.forEach((a, i) => {
+        const sig = signature(a); let e = noeuds.get(a.lien);
+        if (!e || e.sig !== sig || e.a !== a) {
+          const n = buildCard(a, i, animNouveaux && !deja.has(a.lien));
+          if (e && e.node.isConnected) e.node.replaceWith(n);
+          e = { node: n, sig, a }; noeuds.set(a.lien, e);
+        }
+        const actuel = grid.children[i];
+        if (actuel !== e.node) grid.insertBefore(e.node, actuel || null);
+      });
+      while (grid.children.length > affichees.length) grid.lastElementChild.remove();
+      affichees.forEach(a => deja.add(a.lien));
+      $("#sentinelle").classList.toggle("hidden", list.length <= limite);
     }
+    // Paquet suivant quand on approche du bas de la liste
+    new IntersectionObserver((es) => {
+      if (es.some(e => e.isIntersecting) && state.crit && visibles().length > limite) { limite += PAS; rendreMaintenant(true); }
+    }, { rootMargin: "900px 0px" }).observe(document.getElementById("sentinelle"));
 
     function messageVide() {
       const c = state.crit || {}, f = [];
@@ -982,6 +1030,7 @@
     });
 
     function renderBar() {
+      document.querySelector(".logo-mark")?.classList.toggle("scan", Object.values(state.src).some(s => s.charge || (s.fichesTotal && s.fichesFaites < s.fichesTotal && !s.freine)));
       const c = state.crit || {};
       const pill = (k) => {
         const s = state.src[k], S = SOURCES[k];
@@ -1021,11 +1070,16 @@
 
     /* ---------- Bandeau des sites + année ---------- */
     (function () {
-      const noms = ["Leboncoin", "La Centrale", "AutoScout24", "L'argus", "ParuVendu", "Auto-Sélection", "Autohero", "Renew", "Autosphere", "Carizy", "Ayvens", "Concessions"];
+      const noms = ["Leboncoin", "La Centrale", "AutoScout24", "L'argus", "ParuVendu", "Auto-Sélection", "Renew", "Autosphere", "Carizy", "Ayvens", "Concessions"];
       const bloc = noms.map(n => `<span class="whitespace-nowrap text-lg">${n}</span><span class="text-zinc-700">✦</span>`).join("");
       $("#marquee").innerHTML = bloc + bloc;   // deux fois : défilement sans couture
       $("#annee").textContent = new Date().getFullYear();
     })();
+
+    /* ---------- Économie d'énergie ---------- */
+    document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("en-pause", document.hidden));
+    new IntersectionObserver(([e]) => document.body.classList.toggle("hors-hero", !e.isIntersecting))
+      .observe(document.getElementById("recherche"));
 
     /* ---------- Démarrage ---------- */
     (async function init() {

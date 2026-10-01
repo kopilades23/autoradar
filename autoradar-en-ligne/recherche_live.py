@@ -2,7 +2,7 @@
 Moteur de recherche EN DIRECT, multi-sites : rien n'est téléchargé à l'avance ni stocké.
 
 Sources : AutoScout24 (JSON embarqué), LeParking (agrégateur : Leboncoin, La Centrale…), ParuVendu,
-L'argus (dont les copies d'annonces Leboncoin, avec leur description), Auto-Sélection, Autohero,
+L'argus (dont les copies d'annonces Leboncoin, avec leur description), Auto-Sélection,
 Renew, Spoticar, Autosphere, Zoomcar (sur PC seulement : le site refuse les hébergeurs).
 
 Principe : pour chaque site on ne lit qu'UNE page de résultats à la fois (filtrée par le site
@@ -320,19 +320,6 @@ def _autoselection(q: dict, page: int, repli: bool) -> str:
     return f"https://www.auto-selection.com/voiture-occasion/{slug(q['marque_label'])}" + (f"/{m}" if m else "") + ("?" + urlencode(p) if p else "")
 
 
-def _autohero(q: dict, page: int, repli: bool) -> str:
-    p = {"brand0": slug(q["marque_label"])}
-    m = slug(modele_propre(q["modele_label"]))
-    if m and not repli: p["models0"] = m
-    if q.get("prix_max"): p["priceMax"] = q["prix_max"]
-    if q.get("km_max"): p["mileageMax"] = q["km_max"]
-    if q.get("annee_min"): p["yearMin"] = q["annee_min"]
-    if _un_carburant(q) == "Diesel": p["fuelType"] = "diesel"
-    t = {"prix": "price_asc", "prix_desc": "price_desc"}.get(q.get("tri") or "")   # défaut du site : plus récentes
-    if t: p["sort"] = t
-    return "https://www.autohero.com/fr/search/?" + urlencode(p)
-
-
 def _renew(q: dict, page: int, repli: bool) -> str:
     p = {"brand.label.raw": sans_accents(q["marque_label"]).upper()}
     m = modele_propre(q["modele_label"])
@@ -358,14 +345,13 @@ SITES: dict[str, Site] = {
     "autoselection": Site("autoselection", "Auto-Sélection", "https://www.auto-selection.com", "/",
                           r"/voiture-occasion/[a-z0-9-]+/[a-z0-9-]+/[a-z0-9-]{6,}$", _autoselection, 20,
                           concurrence=3, rythme=0.3),
-    "autohero": Site("autohero", "Autohero", "https://www.autohero.com", "/fr/",
-                     r"/fr/[a-z0-9-]+/id/[0-9a-f-]{36}/?$", _autohero, 19, pages_max=1),
     "renew": Site("renew", "Renew", "https://fr.renew.auto", "/",
                   r"details\.html\?productId=", _renew, 23),
     "autosphere": Site("autosphere", "Autosphere", "https://www.autosphere.fr", "/",
                        r"/fiche[^/]*/auto-occasion-[a-z0-9-]+-\d{3,}$", _autosphere, 22, pages_max=1),
 }
 TOUTES_SOURCES = ["autoscout24", "leparking", *SITES]
+PLATEFORMES_EXCLUES = {"autohero.com", "spoticar.fr"}
 LEPARKING_ENERGIE = {"Essence": "3", "Diesel": "1", "Hybride": "7", "Électrique": "2"}
 LEPARKING_TRI = {"prix": "prix_croissant", "prix_desc": "prix_decroissant", "date": "date"}
 PLATEFORMES = {"leboncoin.fr": "Leboncoin", "lacentrale.fr": "La Centrale", "autoscout24.fr": "AutoScout24",
@@ -785,6 +771,8 @@ class Moteur:
             if carbus and carbu and carbu not in carbus:
                 continue
             pf = b.get("plateforme") or ""
+            if pf in PLATEFORMES_EXCLUES:   # sites retirés d'Autoradar, même vus via LeParking
+                continue
             c = carte("LeParking", titre=b["titre"], prix=b.get("prix"), annee=b.get("annee"), kilometrage=b.get("km"),
                       lien=b["lien"], image=b.get("image"), carburant=carbu, boite=b.get("boite"),
                       type_vendeur=(b.get("vendeur") or "").capitalize() or None,
