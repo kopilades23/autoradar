@@ -60,7 +60,7 @@ python server.py --navigateur     # ancien mode : Chrome piloté en arrière-pla
 - **Puissance min** : lue sur le site ou dans le titre (« 130 ch », « PureTech 110 ») ; AutoScout24 filtre lui-même.
 - **Favoris** : cœur sur chaque annonce, page « Favoris » ; gardés dans le navigateur (localStorage).
 - **Aide & FAQ** : `static/faq.html`.
-- Pages `mentions-legales.html`, `confidentialite.html`, `conditions.html` (dans `static/`) : éditeur : Lipiany.
+- Pages `mentions-legales.html`, `confidentialite.html`, `conditions.html` (dans `static/`) : éditeur : Sodeev, contact@labonneoccaz.fr.
 - Photos : image de la carte, sinon celle trouvée dans le JSON de la page (sites React comme
   Renew), sinon celle de la fiche.
 - Une même voiture publiée sur plusieurs sites (même prix, km, année) n'apparaît qu'une fois
