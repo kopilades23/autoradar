@@ -239,10 +239,16 @@ def extraire_liste(h: str, base: str, re_src: str, marque: str = "") -> dict:
 # --------------------------------------------------------------------------- #
 # Fiche annonce — cf. sites/fiche.js
 # --------------------------------------------------------------------------- #
+_BLANCS = re.compile(r"[ \t]+")
+_LIGNES = re.compile(r"\s*\n\s*")
+
+
+def _normaliser(t: str) -> str:
+    return _LIGNES.sub("\n", _BLANCS.sub(" ", ESPACES.sub(" ", t))).strip()
+
+
 def _txt(el) -> str:
-    t = ESPACES.sub(" ", _texte(el))
-    t = re.sub(r"[ \t]+", " ", t)
-    return re.sub(r"\s*\n\s*", "\n", t).strip()
+    return _normaliser(_texte(el))
 
 
 def equipements_json(h: str, lien: str) -> list[str]:
@@ -344,7 +350,10 @@ def lire_fiche(h: str, lien: str = "") -> dict:
         e.insert_child("\n")      # sauts de ligne entre blocs, sinon « Description » et le texte se collent
     best, best_score = None, 0.0
     for el in _desc(body, "div,section,article,p"):
-        t = _txt(el)
+        brut = _texte(el)
+        if len(brut) < 120 or len(brut) > 40000:   # trop court, ou conteneur de toute la page : inutile de normaliser
+            continue
+        t = _normaliser(brut)
         if len(t) < 120 or len(t) > 15000:
             continue
         lt = sum(len(_texte(a)) for a in _desc(el, "a"))

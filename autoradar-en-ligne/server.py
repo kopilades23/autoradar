@@ -150,6 +150,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "carburants": [c for c in (_q(qs, "carburants", "") or "").split(",") if c],
                     "tri": _q(qs, "tri", "pertinence"), "page": _q(qs, "page", "1"),
                     "_repli": _q(qs, "repli") == "1",
+                    "_differe": _q(qs, "differe") == "1",
                 }
                 return self._json(MOTEUR.run(MOTEUR.rechercher(_q(qs, "source", ""), q)))
         except Exception as e:  # erreur lisible côté interface
@@ -157,7 +158,7 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if not self._autorise() or self._limite():
+        if not self._autorise():      # lecture des fiches : non comptée (elle découle d'une recherche déjà comptée)
             return
         u = urlparse(self.path)
         try:

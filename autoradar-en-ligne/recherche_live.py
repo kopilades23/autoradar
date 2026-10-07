@@ -554,7 +554,8 @@ class Moteur:
                     continue
                 if self.http and source in self.statut:
                     self.statut[source] = "ok"
-                self.cache_pages.set(cle_cache, res)
+                if genre != "next":       # JSON bruts (centaines de Ko) : on ne garde que ce qui en est extrait
+                    self.cache_pages.set(cle_cache, res)
                 return res
         return None
 
@@ -629,9 +630,12 @@ class Moteur:
             for c in cartes:
                 self.attente.pop(c["lien"], None)
             return {"maj": [publique(c) for c in cartes], "freine": self.freine("largus")}
-        if source not in SITES:
+        if source == "autoscout24":
+            await self._verifier_toutes(cartes, self._lire_as24)
+        elif source in SITES:
+            await self._verifier_toutes(cartes, self._lecteur_fiche(SITES[source]))
+        else:
             return {"maj": []}
-        await self._verifier_toutes(cartes, self._lecteur_fiche(SITES[source]))
         _marquer_miroirs(cartes)
         freine = self.freine(source)
         for c in cartes:   # une fiche non lue parce que le site freine pourra être relue plus tard
@@ -727,18 +731,25 @@ class Moteur:
             c["_sous_titre"] = a.get("_sous_titre")
             cartes.append(c)
 
-        async def lire(c):
-            res = await self._eval("autoscout24", "next", c["lien"], "json:" + c["lien"])
-            data = json.loads(res["json"]) if res and res.get("json") else None
-            f = as24.parse_fiche(data) if data else None
-            cree = as24._find_key(data, "createdTimestampWithOffset", str) if data else None
-            return None if not f else {"description": f["description"] or "", "equipements": f["equipements"],
-                                       "accident": f["accident_declare"], "dommages": f["dommages"],
-                                       "date": (cree or "")[:10] or None}
-
-        await self._verifier_toutes(cartes, lire)
-        return {"annonces": cartes, "total_site": pp.get("numberOfResults"), "page": page,
+        a_verifier = []
+        if q.get("_differe"):          # liste affichée tout de suite, fiches lues ensuite (/api/fiches)
+            for c in cartes:
+                verifier(c, None)
+                self.attente[c["lien"]] = ("autoscout24", c)
+                a_verifier.append(c["lien"])
+        else:
+            await self._verifier_toutes(cartes, self._lire_as24)
+        return {"annonces": cartes, "total_site": pp.get("numberOfResults"), "page": page, "a_verifier": a_verifier,
                 "suite": page < (pp.get("numberOfPages") or 1), "lien_site": url}
+
+    async def _lire_as24(self, c: dict) -> Optional[dict]:
+        res = await self._eval("autoscout24", "next", c["lien"], "json:" + c["lien"])
+        data = json.loads(res["json"]) if res and res.get("json") else None
+        f = as24.parse_fiche(data) if data else None
+        cree = as24._find_key(data, "createdTimestampWithOffset", str) if data else None
+        return None if not f else {"description": f["description"] or "", "equipements": f["equipements"],
+                                   "accident": f["accident_declare"], "dommages": f["dommages"],
+                                   "date": (cree or "")[:10] or None}
 
     async def _leparking(self, q: dict) -> dict:
         """Agrégateur : une seule requête renvoie des annonces de Leboncoin, La Centrale, etc.
@@ -823,7 +834,7 @@ class Moteur:
 
         lire = self._lecteur_fiche(site)
         a_verifier = []
-        if site.differe or self.freine(site.cle):
+        if site.differe or q.get("_differe") or self.freine(site.cle):
             for c in cartes:          # affichées tout de suite ; fiches lues ensuite, au rythme du site
                 verifier(c, None)
                 self.attente[c["lien"]] = (site.cle, c)
