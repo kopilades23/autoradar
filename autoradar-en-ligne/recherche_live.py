@@ -260,6 +260,7 @@ def _paruvendu(q: dict, page: int, repli: bool) -> str:
     if q.get("prix_max"): p["px1"] = q["prix_max"]
     if q.get("km_max"): p["km1"] = q["km_max"]
     if q.get("annee_min"): p["a0"] = q["annee_min"]
+    if q.get("annee_max"): p["a1"] = q["annee_max"]
     kw = mot_cle(q.get("options") or [])
     if repli:  # modèle non reconnu dans l'URL : recherche texte « marque modèle »
         p.update(r="VO", fulltext=" ".join(x for x in (q["marque_label"], modele_propre(q["modele_label"]), kw) if x))
@@ -280,6 +281,7 @@ def _largus(q: dict, page: int, repli: bool) -> str:
     if q.get("prix_max"): p["price_max"] = int(q["prix_max"]) * 100  # le site attend des centimes
     if q.get("km_max"): p["mileage_max"] = q["km_max"]
     if q.get("annee_min"): p["year_min"] = q["annee_min"]
+    if q.get("annee_max"): p["year_max"] = q["annee_max"]
     c = _un_carburant(q)
     if c: p["energy"] = {"Électrique": "electrique"}.get(c, slug(c))
     kw = mot_cle(q.get("options") or [])
@@ -310,6 +312,7 @@ def _autoselection(q: dict, page: int, repli: bool) -> str:
     if q.get("prix_max"): p["price_max"] = q["prix_max"]
     if q.get("km_max"): p["km_max"] = q["km_max"]
     if q.get("annee_min"): p["annee_min"] = q["annee_min"]
+    if q.get("annee_max"): p["annee_max"] = q["annee_max"]
     c = _un_carburant(q)
     if c: p["energie"] = {"Électrique": "electrique"}.get(c, slug(c))
     if "Boîte automatique" in (q.get("options") or []): p["boite"] = "automatique"
@@ -352,6 +355,62 @@ SITES: dict[str, Site] = {
 }
 TOUTES_SOURCES = ["autoscout24", "leparking", *SITES]
 PLATEFORMES_EXCLUES = {"autohero.com", "spoticar.fr"}
+# Régions : identifiant LeParking (filtre côté site) + départements (filtre local par code postal)
+REGIONS = {
+    "auvergne-rhone-alpes": ("Auvergne-Rhône-Alpes", [1269], "01 03 07 15 26 38 42 43 63 69 73 74"),
+    "bourgogne-franche-comte": ("Bourgogne-Franche-Comté", [1270], "21 25 39 58 70 71 89 90"),
+    "bretagne": ("Bretagne", [14], "22 29 35 56"),
+    "centre-val-de-loire": ("Centre-Val de Loire", [1271], "18 28 36 37 41 45"),
+    "corse": ("Corse", [29], "20"),
+    "grand-est": ("Grand Est", [1276], "08 10 51 52 54 55 57 67 68 88"),
+    "hauts-de-france": ("Hauts-de-France", [1272], "02 59 60 62 80"),
+    "ile-de-france": ("Île-de-France", [47], "75 77 78 91 92 93 94 95"),
+    "normandie": ("Normandie", [1274], "14 27 50 61 76"),
+    "nouvelle-aquitaine": ("Nouvelle-Aquitaine", [1273], "16 17 19 23 24 33 40 47 64 79 86 87"),
+    "occitanie": ("Occitanie", [1268], "09 11 12 30 31 32 34 46 48 65 66 81 82"),
+    "pays-de-la-loire": ("Pays de la Loire", [89], "44 49 53 72 85"),
+    "provence-alpes-cote-d-azur": ("Provence-Alpes-Côte d'Azur", [92], "04 05 06 13 83 84"),
+    "outre-mer": ("Outre-mer", [39, 78, 42, 94, 79], "971 972 973 974 976"),
+}
+REGIONS_LOCALES = {"autoscout24", "leparking"}   # sources qui indiquent le lieu du véhicule
+DEPARTEMENTS = dict(x.split(":") for x in (
+    "01:Ain 02:Aisne 03:Allier 04:Alpes-de-Haute-Provence 05:Hautes-Alpes 06:Alpes-Maritimes 07:Ardèche 08:Ardennes "
+    "09:Ariège 10:Aube 11:Aude 12:Aveyron 13:Bouches-du-Rhône 14:Calvados 15:Cantal 16:Charente 17:Charente-Maritime "
+    "18:Cher 19:Corrèze 20:Corse 21:Côte-d'Or 22:Côtes-d'Armor 23:Creuse 24:Dordogne 25:Doubs 26:Drôme 27:Eure "
+    "28:Eure-et-Loir 29:Finistère 30:Gard 31:Haute-Garonne 32:Gers 33:Gironde 34:Hérault 35:Ille-et-Vilaine 36:Indre "
+    "37:Indre-et-Loire 38:Isère 39:Jura 40:Landes 41:Loir-et-Cher 42:Loire 43:Haute-Loire 44:Loire-Atlantique 45:Loiret "
+    "46:Lot 47:Lot-et-Garonne 48:Lozère 49:Maine-et-Loire 50:Manche 51:Marne 52:Haute-Marne 53:Mayenne "
+    "54:Meurthe-et-Moselle 55:Meuse 56:Morbihan 57:Moselle 58:Nièvre 59:Nord 60:Oise 61:Orne 62:Pas-de-Calais "
+    "63:Puy-de-Dôme 64:Pyrénées-Atlantiques 65:Hautes-Pyrénées 66:Pyrénées-Orientales 67:Bas-Rhin 68:Haut-Rhin "
+    "69:Rhône 70:Haute-Saône 71:Saône-et-Loire 72:Sarthe 73:Savoie 74:Haute-Savoie 75:Paris 76:Seine-Maritime "
+    "77:Seine-et-Marne 78:Yvelines 79:Deux-Sèvres 80:Somme 81:Tarn 82:Tarn-et-Garonne 83:Var 84:Vaucluse 85:Vendée "
+    "86:Vienne 87:Haute-Vienne 88:Vosges 89:Yonne 90:Territoire-de-Belfort 91:Essonne 92:Hauts-de-Seine "
+    "93:Seine-Saint-Denis 94:Val-de-Marne 95:Val-d'Oise 971:Guadeloupe 972:Martinique 973:Guyane 974:Réunion "
+    "976:Mayotte").split(" "))
+
+
+def departement(cp) -> Optional[str]:
+    cp = re.sub(r"\D", "", str(cp or ""))
+    if len(cp) != 5:
+        return None
+    return cp[:3] if cp.startswith("97") else cp[:2]
+
+
+def dans_region(cp, region: Optional[str]) -> bool:
+    """Sans région choisie : tout passe. Avec : seulement les codes postaux de la région (lieu inconnu = exclu)."""
+    if not region or region not in REGIONS:
+        return True
+    d = departement(cp)
+    return bool(d) and d in REGIONS[region][2].split()
+
+
+def lieu(ville, cp) -> Optional[str]:
+    d = departement(cp)
+    if not d:
+        return ville or None
+    return f"{ville} ({d})" if ville else f"{DEPARTEMENTS.get(d, d)} ({d})"
+
+
 LEPARKING_ENERGIE = {"Essence": "3", "Diesel": "1", "Hybride": "7", "Électrique": "2"}
 LEPARKING_TRI = {"prix": "prix_croissant", "prix_desc": "prix_decroissant", "date": "date"}
 PLATEFORMES = {"leboncoin.fr": "Leboncoin", "lacentrale.fr": "La Centrale", "autoscout24.fr": "AutoScout24",
@@ -596,6 +655,8 @@ class Moteur:
         t0 = time.perf_counter()
         if source in TOUTES_SOURCES and source not in self.sources:
             return {"source": source, "erreur": "indisponible", "annonces": []}
+        if q.get("region") in REGIONS and source not in REGIONS_LOCALES:
+            return {"source": source, "annonces": [], "suite": False, "hors_region": True, "page": 1}
         try:
             if source == "autoscout24":
                 res = await self._as24(q)
@@ -710,7 +771,10 @@ class Moteur:
         if q.get("km_max"): params["kmto"] = q["km_max"]
         if q.get("puissance_min"):   # le site attend des kW (1 kW = 1,36 ch)
             params.update(powerfrom=int(int(q["puissance_min"]) / 1.36), powertype="kw")
+        if q.get("puissance_max"):
+            params.update(powerto=int(int(q["puissance_max"]) / 1.36) + 1, powertype="kw")
         if q.get("annee_min"): params["fregfrom"] = q["annee_min"]
+        if q.get("annee_max"): params["fregto"] = q["annee_max"]
         fuels = sorted({v for c in q.get("carburants") or [] for v in {"Essence": ["B"], "Diesel": ["D"],
                         "Hybride": ["2", "3"], "Électrique": ["E"]}.get(c, [])})
         if fuels: params["fuel"] = ",".join(fuels)
@@ -727,6 +791,9 @@ class Moteur:
                 continue
             c = carte("AutoScout24", **{k: a.get(k) for k in ("titre", "prix", "annee", "kilometrage", "lien",
                                                                "image", "ville", "carburant", "boite", "puissance_ch")})
+            if not dans_region(a.get("code_postal"), q.get("region")):
+                continue
+            c["ville"] = lieu(a.get("ville"), a.get("code_postal"))
             c["type_vendeur"] = {"Dealer": "Pro", "Private": "Particulier"}.get(a.get("type_vendeur") or "", a.get("type_vendeur"))
             c["_sous_titre"] = a.get("_sous_titre")
             cartes.append(c)
@@ -762,6 +829,8 @@ class Moteur:
         texte = " ".join(x for x in (q.get("marque_label"), modele_propre(q.get("modele_label") or ""),
                                      mot_cle(q.get("options") or [])) if x)
         critere = {"id_pays": ["18"]}  # France
+        if q.get("region") in REGIONS:
+            critere["id_region"] = [str(i) for i in REGIONS[q["region"]][1]]
         energies = [LEPARKING_ENERGIE[c] for c in q.get("carburants") or [] if c in LEPARKING_ENERGIE]
         if energies:
             critere["id_energie"] = energies
@@ -769,17 +838,23 @@ class Moteur:
                "query": sans_accents(texte).lower(), "critere": critere, "req_num": page,
                "sliders": {"prix": sl("prix", 1, 400000, 1, q.get("prix_max") or 400000),
                            "km": sl("km", 1, 500000, 1, q.get("km_max") or 500000),
-                           "millesime": sl("millesime", 1910, 2027, q.get("annee_min") or 1910, 2027)}}
+                           "millesime": sl("millesime", 1910, 2027, q.get("annee_min") or 1910, q.get("annee_max") or 2027)}}
         res = await self._eval("leparking", "leparking", [ctx], "lp:" + json.dumps(ctx, sort_keys=True)) or {}
-        prix_max, km_max, annee_min = (int(q[k]) if q.get(k) else None for k in ("prix_max", "km_max", "annee_min"))
+        prix_max, km_max, annee_min, annee_max = (int(q[k]) if q.get(k) else None
+                                                  for k in ("prix_max", "km_max", "annee_min", "annee_max"))
         carbus = set(q.get("carburants") or [])
         cartes, a_verifier = [], []
         for b in res.get("annonces") or []:
             if (prix_max and b.get("prix") and b["prix"] > prix_max) or (km_max and b.get("km") and b["km"] > km_max) \
-                    or (annee_min and b.get("annee") and b["annee"] < annee_min):
+                    or (annee_min and b.get("annee") and b["annee"] < annee_min) \
+                    or (annee_max and b.get("annee") and b["annee"] > annee_max):
                 continue
             carbu = carburant_norm(b.get("carburant")) or carburant_de(b.get("titre"), b.get("version"))
             if carbus and carbu and carbu not in carbus:
+                continue
+            if b.get("pays") and b["pays"].upper() != "FRANCE":   # annonces étrangères (Allemagne…)
+                continue
+            if q.get("region") and not dans_region(b.get("cp"), q["region"]):
                 continue
             pf = b.get("plateforme") or ""
             if pf in PLATEFORMES_EXCLUES:   # sites retirés du site, même vus via LeParking
@@ -790,6 +865,7 @@ class Moteur:
                       plateforme=PLATEFORMES.get(pf, pf or None))
             c["_sous_titre"] = b.get("version")
             c["date"] = b.get("date")
+            c["ville"] = lieu(None, b.get("cp"))
             verifier(c, None)             # LeParking ne publie ni description ni équipements : titre + version
             if c.get("plateforme") in ("Leboncoin", "La Centrale") and c.get("prix") and c.get("kilometrage") and c.get("annee"):
                 # L'argus republie une partie de ces annonces avec leur description : on la cherchera après l'affichage
@@ -812,7 +888,8 @@ class Moteur:
         # Modèle introuvable dans l'URL du site (404 ou 0 annonce) : repli sur la marque + filtrage du titre
         if page == 1 and not repli and not brutes and q.get("modele_label"):
             return await self._html(site, {**q, "_repli": True})
-        prix_max, km_max, annee_min = (int(q[k]) if q.get(k) else None for k in ("prix_max", "km_max", "annee_min"))
+        prix_max, km_max, annee_min, annee_max = (int(q[k]) if q.get(k) else None
+                                                  for k in ("prix_max", "km_max", "annee_min", "annee_max"))
         cible = norm(modele_propre(q.get("modele_label") or ""))
         carbus = set(q.get("carburants") or [])
         cartes, fin_prix = [], False
@@ -821,7 +898,8 @@ class Moteur:
                 fin_prix = True  # résultats triés par prix : inutile d'aller plus loin
                 continue
             if (prix_max and b.get("prix") and b["prix"] > prix_max) or (km_max and b.get("km") and b["km"] > km_max) \
-                    or (annee_min and b.get("annee") and b["annee"] < annee_min):
+                    or (annee_min and b.get("annee") and b["annee"] < annee_min) \
+                    or (annee_max and b.get("annee") and b["annee"] > annee_max):
                 continue
             if (repli or site.filtre_modele_local) and cible and cible not in norm(b.get("titre")):
                 continue

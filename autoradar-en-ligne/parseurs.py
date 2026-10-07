@@ -10,7 +10,7 @@ import json
 import re
 import unicodedata
 from typing import Any, Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from selectolax.lexbor import LexborHTMLParser   # moteur HTML5 (Lexbor) : même découpage que Chrome
 
@@ -399,6 +399,14 @@ def leparking(texte: str, origine: str = "https://www.leparking.fr") -> dict:
     if not isinstance(j, dict):
         return {"status": 403}
     doc = _doc(j.get("#lists") or "")
+    lieux = {}   # chemin de la fiche -> (code postal, pays), lus dans les blocs schema.org « Vehicle »
+    for sc in doc.css('script[type="application/ld+json"]'):
+        t = _texte(sc)
+        u = re.search(r'"url"\s*:\s*"([^"]+)"', t)
+        if u:
+            cp = re.search(r'"postalCode"\s*:\s*"\s*([^"]*?)\s*"', t)
+            pays = re.search(r'"addressCountry"\s*:\s*\{[^}]*"name"\s*:\s*"([^"]+)"', t)
+            lieux[urlparse(u.group(1)).path] = ((cp.group(1) if cp else "") or None, pays.group(1) if pays else None)
     annonces = []
     for li in doc.css("li.li-result"):
         parts = _parts(li)
@@ -436,6 +444,7 @@ def leparking(texte: str, origine: str = "https://www.leparking.fr") -> dict:
             "date": next((f"{m.group(3)}-{m.group(2)}-{m.group(1)}" for p in (parts[:i_det] if i_det >= 0 else parts)
                           for m in [re.match(r"^(\d{2})/(\d{2})/(\d{4})$", p)] if m), None),
         })
+        annonces[-1]["cp"], annonces[-1]["pays"] = lieux.get(urlparse(urljoin(origine, detail)).path, (None, None)) if detail else (None, None)
         if annonces[-1]["prix"] == 0:
             annonces[-1]["prix"] = None
     ctx = j.get("context") or {}
