@@ -1,6 +1,6 @@
 {
-  "name": "Autoradar — Toutes les occasions, une recherche",
-  "short_name": "Autoradar",
+  "name": "La Bonne Occaz — Toutes les occasions, une recherche",
+  "short_name": "La Bonne Occaz",
   "description": "Les annonces de voitures d'occasion de tous les grands sites, en une seule recherche.",
   "lang": "fr",
   "start_url": "/",
@@ -9,8 +9,15 @@
   "background_color": "#08080a",
   "theme_color": "#08080a",
   "icons": [
-    { "src": "/icone-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icone-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

@@ -1,4 +1,4 @@
-# Autoradar — recherche d'occasions en direct
+# La Bonne Occaz — recherche d'occasions en direct (labonneoccaz.fr)
 
 ## Mettre le site en ligne gratuitement (Render)
 
@@ -80,7 +80,7 @@ sites lui envoient** — il leur apporte des visiteurs, ils ont intérêt à se 
 on arrive à chaque recherche avec des dizaines de requêtes d'un coup : c'est ce profil que
 ParuVendu, Auto-Sélection (Cloudflare) ou Leboncoin (DataDome) bloquent.
 
-Ce qu'Autoradar en tire : la recherche LeParking (une requête = Leboncoin, La Centrale, Carizy,
+Ce que La Bonne Occaz en tire : la recherche LeParking (une requête = Leboncoin, La Centrale, Carizy,
 concessions…). Par contre les fiches LeParking ne contiennent **ni description ni équipements**
 (seulement prix, année, km, énergie, boîte), et ses liens vers le site d'origine (`/tools/…`) sont
 **interdits aux robots** dans son robots.txt (ce sont ses clics facturés aux partenaires) : on ne les
@@ -93,7 +93,7 @@ version complète qui s'affiche.
 
 - Chaque site a sa cadence : ParuVendu une fiche à la fois (~1,6 s d'écart), lues **après**
   l'affichage des résultats (les cartes se complètent : « fiches 6/25… »).
-- Si un site renvoie son captcha (« antiaspiration », Cloudflare, DataDome…), Autoradar arrête de
+- Si un site renvoie son captcha (« antiaspiration », Cloudflare, DataDome…), La Bonne Occaz arrête de
   le solliciter **15 min** au lieu d'insister.
 - Gardez le site **privé** (mot de passe obligatoire en ligne) : republier au public les annonces
   d'autres sites pose des problèmes juridiques (droit des bases de données, conditions d'utilisation).

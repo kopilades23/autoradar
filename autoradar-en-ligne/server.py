@@ -1,5 +1,5 @@
 """
-Serveur d'Autoradar (sur votre PC ou en ligne).
+Serveur de La Bonne Occaz (sur votre PC ou en ligne).
 
     python server.py              -> http://localhost:8000  (requêtes directes, sans navigateur)
     python server.py --navigateur -> ancien mode : Chrome piloté en arrière-plan (Playwright)
@@ -12,6 +12,10 @@ En ligne (Render, Docker…), tout se règle par variables d'environnement :
     AUTORADAR_MOT_DE_PASSE=...      protège tout le site (identifiant au choix)
     AUTORADAR_PUBLIC=1              site ouvert à tous, sans mot de passe (limite de requêtes par visiteur)
     AUTORADAR_MODE=http|navigateur  http par défaut
+    AUTORADAR_DOMAINE=labonneoccaz.fr   nom de domaine officiel (par défaut labonneoccaz.fr) : le site n'est
+                                    proposé à Google, Bing et aux IA que lorsqu'il est ouvert à cette adresse
+    AUTORADAR_REDIRECTION=1         renvoie les visiteurs de l'adresse onrender.com vers le nom de domaine
+                                    (à activer une fois le domaine branché et fonctionnel)
 
 Pages :
     /             recherche en direct (10 sources) + liens Leboncoin, La Centrale, Aramis Auto
@@ -45,6 +49,9 @@ MOT_DE_PASSE = os.environ.get("AUTORADAR_MOT_DE_PASSE", "")
 PUBLIC = os.environ.get("AUTORADAR_PUBLIC") == "1"
 # Limite par visiteur (site public) : évite qu'un robot ou un curieux fasse bloquer le serveur par les sites
 LIMITE_MINUTE = int(os.environ.get("AUTORADAR_LIMITE_MINUTE", "90"))
+DOMAINE = os.environ.get("AUTORADAR_DOMAINE", "labonneoccaz.fr").strip().lower()
+REDIRECTION = os.environ.get("AUTORADAR_REDIRECTION") == "1"
+PAGES_PUBLIQUES = ["/", "/faq.html"]   # pages à référencer (les pages légales sont en noindex)
 _appels: dict[str, deque] = defaultdict(deque)
 _verrou = threading.Lock()
 
@@ -85,14 +92,45 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception:
                 pass
         self.send_response(401)
-        self.send_header("WWW-Authenticate", 'Basic realm="Autoradar", charset="UTF-8"')
+        self.send_header("WWW-Authenticate", 'Basic realm="La Bonne Occaz", charset="UTF-8"')
         self.send_header("Content-Length", "0")
         self.end_headers()
         return False
 
+    def _hote(self) -> str:
+        return (self.headers.get("Host") or "").split(":")[0].strip().lower()
+
+    def _officiel(self) -> bool:
+        """Référencement seulement sur le vrai nom de domaine (pas sur onrender.com ni en local : pas de doublon)."""
+        h = self._hote()
+        return bool(DOMAINE) and h in (DOMAINE, "www." + DOMAINE)
+
     def end_headers(self):
-        self.send_header("X-Robots-Tag", "noindex, nofollow")   # pas de référencement par Google & co
+        if not self._officiel() or self.path.startswith(("/api/", "/base.html")):
+            self.send_header("X-Robots-Tag", "noindex, nofollow")
         super().end_headers()
+
+    def _texte(self, body: str, ctype: str) -> None:
+        b = body.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", ctype + "; charset=utf-8")
+        self.send_header("Cache-Control", "public, max-age=3600")
+        self.send_header("Content-Length", str(len(b)))
+        self.end_headers()
+        self.wfile.write(b)
+
+    def _rediriger(self) -> bool:
+        """onrender.com ou www. -> https://labonneoccaz.fr (même chemin), en 301."""
+        h = self._hote()
+        if not DOMAINE or self.path == "/healthz":
+            return False
+        if h == "www." + DOMAINE or (REDIRECTION and h.endswith(".onrender.com")):
+            self.send_response(301)
+            self.send_header("Location", f"https://{DOMAINE}{self.path}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return True
+        return False
 
     def _ip(self) -> str:
         return (self.headers.get("X-Forwarded-For") or self.client_address[0]).split(",")[0].strip()
@@ -115,13 +153,23 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/healthz":   # contrôle de santé de l'hébergeur (sans mot de passe, ne révèle rien)
             return self._json({"ok": True})
+        if self._rediriger():
+            return
         if self.path == "/robots.txt":
-            body = b"User-agent: *\nDisallow: /\n"
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            return self.wfile.write(body)
+            if not self._officiel():   # adresse technique (onrender.com, PC) : rien à référencer
+                return self._texte("User-agent: *\nDisallow: /\n", "text/plain")
+            # Moteurs de recherche ET assistants IA (Googlebot, Bingbot, OAI-SearchBot, GPTBot, PerplexityBot…) bienvenus
+            return self._texte("User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /base.html\n\n"
+                               f"Sitemap: https://{DOMAINE}/sitemap.xml\n", "text/plain")
+        if self.path == "/sitemap.xml" and self._officiel():
+            jour = time.strftime("%Y-%m-%d", time.gmtime(max((STATIC_DIR / (p.strip("/") or "index.html")).stat().st_mtime
+                                                               for p in PAGES_PUBLIQUES)))
+            urls = "".join(f"  <url><loc>https://{DOMAINE}{p}</loc><lastmod>{jour}</lastmod>"
+                           f"<priority>{'1.0' if p == '/' else '0.6'}</priority></url>\n"
+                           for p in PAGES_PUBLIQUES)
+            return self._texte('<?xml version="1.0" encoding="UTF-8"?>\n'
+                               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n",
+                               "application/xml")
         if not self._autorise():
             return
         if self.path.startswith(("/api/recherche", "/api/modeles")) and self._limite():
@@ -198,7 +246,7 @@ def main() -> None:
 
     url = f"http://localhost:{args.port}"
     server = ThreadingHTTPServer((args.hote, args.port), Handler)
-    print(f"Autoradar sur {url}  — {MOTEUR.navigateur}  (Ctrl+C pour arrêter)", flush=True)
+    print(f"La Bonne Occaz sur {url}  — {MOTEUR.navigateur}  (Ctrl+C pour arrêter)", flush=True)
     if not args.no_browser and args.hote in ("127.0.0.1", "localhost"):
         webbrowser.open(url)
     try:

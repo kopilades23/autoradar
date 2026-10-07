@@ -782,7 +782,7 @@ class Moteur:
             if carbus and carbu and carbu not in carbus:
                 continue
             pf = b.get("plateforme") or ""
-            if pf in PLATEFORMES_EXCLUES:   # sites retirés d'Autoradar, même vus via LeParking
+            if pf in PLATEFORMES_EXCLUES:   # sites retirés du site, même vus via LeParking
                 continue
             c = carte("LeParking", titre=b["titre"], prix=b.get("prix"), annee=b.get("annee"), kilometrage=b.get("km"),
                       lien=b["lien"], image=b.get("image"), carburant=carbu, boite=b.get("boite"),
