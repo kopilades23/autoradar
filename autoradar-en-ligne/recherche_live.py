@@ -372,7 +372,6 @@ REGIONS = {
     "provence-alpes-cote-d-azur": ("Provence-Alpes-Côte d'Azur", [92], "04 05 06 13 83 84"),
     "outre-mer": ("Outre-mer", [39, 78, 42, 94, 79], "971 972 973 974 976"),
 }
-REGIONS_LOCALES = {"autoscout24", "leparking"}   # sources qui indiquent le lieu du véhicule
 DEPARTEMENTS = dict(x.split(":") for x in (
     "01:Ain 02:Aisne 03:Allier 04:Alpes-de-Haute-Provence 05:Hautes-Alpes 06:Alpes-Maritimes 07:Ardèche 08:Ardennes "
     "09:Ariège 10:Aube 11:Aude 12:Aveyron 13:Bouches-du-Rhône 14:Calvados 15:Cantal 16:Charente 17:Charente-Maritime "
@@ -396,16 +395,88 @@ def departement(cp) -> Optional[str]:
     return cp[:3] if cp.startswith("97") else cp[:2]
 
 
-def dans_region(cp, region: Optional[str]) -> bool:
+def dans_region(cp, region: Optional[str], dep: Optional[str] = None) -> bool:
     """Sans région choisie : tout passe. Avec : seulement les codes postaux de la région (lieu inconnu = exclu)."""
     if not region or region not in REGIONS:
         return True
-    d = departement(cp)
+    d = dep or departement(cp)
     return bool(d) and d in REGIONS[region][2].split()
 
 
-def lieu(ville, cp) -> Optional[str]:
-    d = departement(cp)
+def _nom_lieu(t: str) -> str:
+    t = (t or "").replace("œ", "oe").replace("Œ", "OE").replace("æ", "ae").replace("Æ", "AE")
+    t = re.sub(r"[^a-z0-9]+", " ", sans_accents(t).lower()).strip()
+    return re.sub(r"\bst\b", "saint", re.sub(r"\bste\b", "sainte", t))
+
+
+_COMMUNES: Optional[dict] = None
+_DEP_PAR_NOM = {_nom_lieu(v): k for k, v in DEPARTEMENTS.items()}
+_DEP_PAR_NOM.update({"corse du sud": "20", "haute corse": "20", "reunion": "974", "la reunion": "974"})
+_PAS_UNE_VILLE = set("renault dacia peugeot citroen ds opel fiat nissan toyota volkswagen vw audi bmw mercedes ford kia "
+                     "hyundai skoda seat cupra mini volvo jeep alfa romeo mazda suzuki honda mg byd tesla groupe garage "
+                     "auto autos automobile automobiles occasion occasions centre agence concession sas sarl site "
+                     "garantie mois annexe potentiellement voir details les la le des du de sur".split())
+
+
+def commune_dep(nom: str) -> Optional[str]:
+    """Département d'une commune (la plus peuplée de ce nom), d'après la table Etalab embarquée."""
+    global _COMMUNES
+    if _COMMUNES is None:
+        try:
+            _COMMUNES = json.loads(Path(__file__).with_name("communes.json").read_text(encoding="utf-8"))
+        except Exception:
+            _COMMUNES = {}
+    return _COMMUNES.get(_nom_lieu(nom))
+
+
+def ville_dans(texte: str) -> tuple[Optional[str], Optional[str]]:
+    """Cherche une commune dans un libellé (« RENAULT ISTRES - GROUPE AUTOSPHERE » -> Istres)."""
+    for bout in re.split(r"\s[-–|]\s|,", texte or ""):
+        mots = _nom_lieu(bout).split()
+        for n in range(min(len(mots), 6), 0, -1):          # suites de mots, les plus longues d'abord
+            for i in range(len(mots) - n + 1):
+                if mots[i] in _PAS_UNE_VILLE or mots[i + n - 1] in _PAS_UNE_VILLE:
+                    continue                               # « RENAULT », « GROUPE »… ne commencent/finissent pas une ville
+                cand = " ".join(mots[i:i + n])
+                if len(cand) >= 3 and (d := commune_dep(cand)):
+                    return cand.title(), d
+    return None, None
+
+
+def localiser(texte: str, site: str) -> tuple[Optional[str], Optional[str]]:
+    """(ville, département) depuis le texte d'une carte de liste. Formats rencontrés :
+    ParuVendu « Blois (41000) », L'argus « Chassieu (Rhône) », Auto-Sélection « Bethune | ( | 62 | ) » ou
+    « 63500 | ( | LE | ) », Autosphere : ville seule après la boîte, Renew : nom de la concession."""
+    P = [p.strip() for p in (texte or "").split(" | ")]
+    for k, p in enumerate(P):
+        m = re.match(r"^(.{2,50}?)\s*\((\d{5})\)$", p)                       # Blois (41000)
+        if m and departement(m.group(2)):
+            return m.group(1), departement(m.group(2))
+        m = re.match(r"^(.{2,50}?)\s*\(\s*(2[AB]|\d{2,3})\s*\)$", p)           # Bethune (62)
+        if m and (m.group(2) in DEPARTEMENTS or m.group(2) in ("2A", "2B")):
+            return m.group(1), "20" if m.group(2) in ("2A", "2B") else m.group(2)
+        m = re.match(r"^(.{2,50}?)\s*\(([^()\d]{3,30})\)$", p)                  # Chassieu (Rhône)
+        if m and (d := _DEP_PAR_NOM.get(_nom_lieu(m.group(2)))):
+            return m.group(1), d
+        if p == "(" and 0 < k and k + 2 < len(P) and P[k + 2] == ")":             # Bethune | ( | 62 | )
+            avant, dedans = P[k - 1], P[k + 1]
+            if re.match(r"^\d{5}$", avant) and departement(avant):
+                return None, departement(avant)
+            if dedans in DEPARTEMENTS or dedans in ("2A", "2B"):
+                return avant, "20" if dedans in ("2A", "2B") else dedans
+    if site == "autosphere":           # ville seule, juste après la boîte de vitesses
+        i = next((k for k, p in enumerate(P) if re.match(r"^(manuelle|automatique)$", p, re.I)), -1)
+        if 0 <= i < len(P) - 1 and (d := commune_dep(P[i + 1])):
+            return P[i + 1], d
+    if site == "renew":                # « RENAULT ISTRES - GROUPE AUTOSPHERE » après « voir les détails »
+        i = next((k for k, p in enumerate(P) if re.match(r"^voir les d[ée]tails$", p, re.I)), -1)
+        if 0 <= i < len(P) - 1:
+            return ville_dans(P[i + 1])
+    return None, None
+
+
+def lieu(ville, cp, dep: Optional[str] = None) -> Optional[str]:
+    d = dep or departement(cp)
     if not d:
         return ville or None
     return f"{ville} ({d})" if ville else f"{DEPARTEMENTS.get(d, d)} ({d})"
@@ -655,8 +726,6 @@ class Moteur:
         t0 = time.perf_counter()
         if source in TOUTES_SOURCES and source not in self.sources:
             return {"source": source, "erreur": "indisponible", "annonces": []}
-        if q.get("region") in REGIONS and source not in REGIONS_LOCALES:
-            return {"source": source, "annonces": [], "suite": False, "hors_region": True, "page": 1}
         try:
             if source == "autoscout24":
                 res = await self._as24(q)
@@ -906,9 +975,12 @@ class Moteur:
             carbu = carburant_norm(b.get("carburant")) or carburant_de(b.get("titre"), b.get("texte"))
             if carbus and carbu and carbu not in carbus:
                 continue
+            ville, dep = localiser(b.get("texte") or "", site.cle)
+            if q.get("region") and not dans_region(None, q["region"], dep):
+                continue
             cartes.append(carte(site.nom, titre=b.get("titre") or "Annonce", prix=b.get("prix"), annee=b.get("annee"),
                                 kilometrage=b.get("km"), lien=b["lien"], image=b.get("image"),
-                                carburant=carbu, boite=b.get("boite")))
+                                carburant=carbu, boite=b.get("boite"), ville=lieu((ville or "").title() or None, None, dep)))
 
         lire = self._lecteur_fiche(site)
         a_verifier = []

@@ -232,7 +232,7 @@ def extraire_liste(h: str, base: str, re_src: str, marque: str = "") -> dict:
                         titre = titre + " " + v
         res.append({"lien": href, "titre": re.sub(r"\s*\|\s*", " ", titre)[:140], "prix": prix, "km": km,
                     "annee": annee, "carburant": carburant, "boite": boite, "image": image,
-                    "texte": " | ".join(P)[:600]})
+                    "texte": " | ".join(P)[:900]})
     return {"annonces": res}
 
 
