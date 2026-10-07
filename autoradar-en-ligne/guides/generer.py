@@ -1,0 +1,504 @@
+"""Génère les pages statiques du guide d'achat dans static/guide/ (HTML pur, lisible par Google et les IA).
+
+    python guides/generer.py
+
+Les adresses sont « propres » : /guide/, /guide/peugeot-208, /guide/voiture-jeune-permis
+(le serveur ajoute .html tout seul). Le plan du site (sitemap.xml) les liste automatiquement.
+"""
+from __future__ import annotations
+
+import html
+import json
+import sys
+from pathlib import Path
+from urllib.parse import urlencode
+
+sys.path.insert(0, str(Path(__file__).parent))
+from donnees import CLASSEMENTS, MAJ, MAJ_TEXTE, MODELES  # noqa: E402
+
+DOMAINE = "https://labonneoccaz.fr"
+SORTIE = Path(__file__).resolve().parent.parent / "static" / "guide"
+PAR_SLUG = {m["slug"]: m for m in MODELES}
+e = html.escape
+
+# --------------------------------------------------------------------------- silhouettes (dessins originaux)
+CARROSSERIES = {
+    "citadine": ("M20 74 L20 60 Q20 54 26 52 L40 50 L66 28 Q70 25 76 25 L140 25 Q148 25 154 30 L180 50 L210 55 Q222 57 222 66 L222 74 Q222 80 216 80 L26 80 Q20 80 20 74 Z",
+                 ["M48 48 L68 31 Q71 29 75 29 L104 29 L104 48 Z", "M110 29 L139 29 Q145 29 149 33 L168 48 L110 48 Z"], (62, 180), 15),
+    "compacte": ("M14 74 L14 60 Q14 54 20 52 L38 49 L68 27 Q72 24 78 24 L150 24 Q158 24 164 29 L192 49 L224 54 Q236 56 236 66 L236 74 Q236 80 230 80 L20 80 Q14 80 14 74 Z",
+                 ["M46 47 L70 30 Q73 28 78 28 L112 28 L112 47 Z", "M118 28 L150 28 Q155 28 159 32 L181 47 L118 47 Z"], (60, 194), 16),
+    "suv": ("M14 76 L14 50 Q14 44 20 42 L36 40 L56 20 Q60 16 68 16 L158 16 Q166 16 172 22 L192 40 L222 46 Q234 48 234 58 L234 76 Q234 82 228 82 L20 82 Q14 82 14 76 Z",
+            ["M42 39 L60 22 Q62 20 66 20 L110 20 L110 39 Z", "M116 20 L158 20 Q163 20 167 24 L184 39 L116 39 Z"], (60, 192), 18),
+    "berline": ("M12 74 L12 62 Q12 56 18 55 L44 52 L74 30 Q78 27 84 27 L146 27 Q154 27 160 32 L184 50 L222 55 Q234 57 234 66 L234 74 Q234 80 228 80 L18 80 Q12 80 12 74 Z",
+                ["M58 50 L77 32 Q80 30 84 30 L116 30 L116 50 Z", "M122 30 L146 30 Q151 30 155 34 L173 50 L122 50 Z"], (58, 192), 16),
+}
+
+
+def silhouette(carrosserie: str, couleur: str, uid: str, classe: str = "car") -> str:
+    corps, vitres, roues, r = CARROSSERIES[carrosserie]
+    rails = '<path d="M62 12 L160 12" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"/>' if carrosserie == "suv" else ""
+    v = "".join(f'<path d="{p}" fill="url(#v{uid})"/>' for p in vitres)
+    w = "".join(f'<circle cx="{x}" cy="{80 if carrosserie != "suv" else 82}" r="{r}" fill="#0b0b0e"/>'
+                f'<circle cx="{x}" cy="{80 if carrosserie != "suv" else 82}" r="{r * .5:.0f}" fill="#3f3f46"/>'
+                f'<circle cx="{x}" cy="{80 if carrosserie != "suv" else 82}" r="{r * .18:.0f}" fill="#a1a1aa"/>' for x in roues)
+    return (f'<svg class="{classe}" viewBox="0 0 250 104" role="img" aria-hidden="true">'
+            f'<defs><linearGradient id="c{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{couleur}"/>'
+            f'<stop offset="1" stop-color="{couleur}" stop-opacity=".55"/></linearGradient>'
+            f'<linearGradient id="v{uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2533"/><stop offset="1" stop-color="#0b0f16"/></linearGradient></defs>'
+            f'<ellipse cx="125" cy="{94 if carrosserie == "suv" else 92}" rx="112" ry="6" fill="rgba(0,0,0,.45)"/>'
+            f'{rails}<path d="{corps}" fill="url(#c{uid})"/>{v}'
+            f'<path d="M24 64 L230 64" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>{w}</svg>')
+
+
+# --------------------------------------------------------------------------- briques communes
+def url_recherche(m: dict, prix_max=None, options=None) -> str:
+    p = {"marque": m["marque_id"], "marque_label": m["marque"], "modele": m["modele_cle"], "modele_label": m["modele"]}
+    if prix_max:
+        p["prix_max"] = prix_max
+    if options:
+        p["options"] = ",".join(options)
+    return "/?" + urlencode(p)
+
+
+def fiabilite(n: int) -> str:
+    pts = "".join(f'<i class="{"on" if k < n else ""}"></i>' for k in range(5))
+    return f'<span class="fiab" title="Fiabilité : {n}/5" aria-label="Fiabilité {n} sur 5">{pts}</span>'
+
+
+LOGO = ('<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">'
+        '<stop offset="0" stop-color="#ff7a3d"/><stop offset="1" stop-color="#ff3d6e"/></linearGradient></defs>'
+        '<rect width="64" height="64" rx="18" fill="url(#lg)"/><g transform="translate(-2 3)"><path d="M8 41.5 v-6.5 c0-2.6 1.7-4.5 4.2-5 l5.8-9.6 c1.1-1.7 2.6-2.5 4.6-2.5 h18.8 c2 0 3.5.8 4.6 2.5 l5.8 9.6 c2.5.5 4.2 2.4 4.2 5 v6.5 c0 1.6-1.1 2.7-2.7 2.7 h-42.6 c-1.6 0-2.7-1.1-2.7-2.7z" fill="white"/>'
+        '<path d="M19.5 30 l4.6-7.6 c.5-.8 1.2-1.2 2.1-1.2 h11.6 c.9 0 1.6.4 2.1 1.2 l4.6 7.6z" fill="#ff5f50"/>'
+        '<rect x="11.5" y="43" width="9" height="6.5" rx="2.2" fill="white"/><rect x="43.5" y="43" width="9" height="6.5" rx="2.2" fill="white"/></g>'
+        '<circle cx="50" cy="15" r="9.5" fill="white"/><path d="M45.6 15.2 l3.1 3.1 l5.8-6" fill="none" stroke="#ff4d5a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+UMAMI = ('<script defer src="https://cloud.umami.is/script.js" data-website-id="d5a85375-aefc-4f50-9d56-38882c7c00f2" '
+         'data-domains="labonneoccaz.fr,www.labonneoccaz.fr"></script>')
+
+
+def page(chemin: str, titre: str, description: str, corps: str, jsonld: list, image: str = "/icone-512.png") -> str:
+    url = DOMAINE + chemin
+    ld = "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in jsonld)
+    return f"""<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{e(titre)}</title>
+  <meta name="description" content="{e(description)}" />
+  <link rel="canonical" href="{url}" />
+  <meta name="theme-color" content="#08080a" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="La Bonne Occaz" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:title" content="{e(titre)}" />
+  <meta property="og:description" content="{e(description)}" />
+  <meta property="og:url" content="{url}" />
+  <meta property="og:image" content="{DOMAINE}{image}" />
+  <link rel="icon" href="/icone-192.png" />
+  <link rel="apple-touch-icon" href="/icone-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/guide/guide.css" />
+  {UMAMI}
+  {ld}
+</head>
+<body>
+  <div class="halo" aria-hidden="true"></div>
+  <header class="top">
+    <a class="brand" href="/">{LOGO}<span>La Bonne <b>Occaz</b></span></a>
+    <nav aria-label="Navigation principale">
+      <a href="/guide/">Guide<span class="hide-sm"> d'achat</span></a>
+      <a href="/faq.html" class="hide-sm">Aide</a>
+      <a href="/" class="btn-top">Rechercher</a>
+    </nav>
+  </header>
+  <main>
+{corps}
+  </main>
+  <footer class="pied">
+    <div>
+      <p class="brand-pied">La Bonne <b>Occaz</b></p>
+      <p>Moteur de recherche de voitures d'occasion : Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu et d'autres sites en une seule recherche.</p>
+    </div>
+    <nav aria-label="Guides">
+      <p class="titre-pied">Guides</p>
+      {"".join(f'<a href="/guide/{c["slug"]}">{e(c["court"])}</a>' for c in CLASSEMENTS)}
+      <a href="/guide/">Toutes les fiches modèles</a>
+    </nav>
+    <nav aria-label="Informations">
+      <p class="titre-pied">Informations</p>
+      <a href="/faq.html">Aide &amp; FAQ</a><a href="/mentions-legales.html">Mentions légales</a>
+      <a href="/confidentialite.html">Confidentialité</a><a href="/conditions.html">Conditions d'utilisation</a>
+    </nav>
+  </footer>
+</body>
+</html>
+"""
+
+
+def fil(*etapes) -> tuple[str, dict]:
+    """Fil d'Ariane visible + données structurées BreadcrumbList."""
+    items = [("Accueil", "/")] + list(etapes)
+    visible = " <span>/</span> ".join(f'<a href="{u}">{e(n)}</a>' if u else f'<span aria-current="page">{e(n)}</span>' for n, u in items)
+    ld = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": i + 1, "name": n, **({"item": DOMAINE + u} if u else {})} for i, (n, u) in enumerate(items)]}
+    return f'<nav class="fil" aria-label="Fil d\'Ariane">{visible}</nav>', ld
+
+
+def article_ld(titre: str, description: str, chemin: str) -> dict:
+    org = {"@type": "Organization", "name": "La Bonne Occaz", "url": DOMAINE + "/",
+           "logo": {"@type": "ImageObject", "url": DOMAINE + "/icone-512.png"}}
+    return {"@context": "https://schema.org", "@type": "Article", "headline": titre, "description": description,
+            "inLanguage": "fr-FR", "datePublished": MAJ, "dateModified": MAJ, "mainEntityOfPage": DOMAINE + chemin,
+            "image": DOMAINE + "/icone-512.png", "author": org, "publisher": org}
+
+
+def faq_ld(faq: list) -> dict:
+    return {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": r}} for q, r in faq]}
+
+
+def carte_modele(m: dict, uid: str) -> str:
+    return f"""<a class="carte-mod" href="/guide/{m['slug']}" style="--c:{m['couleur']}">
+        <div class="carte-vis">{silhouette(m['carrosserie'], m['couleur'], uid)}</div>
+        <div class="carte-txt"><p class="cat">{e(m['categorie'])}</p><h3>{e(m['marque'])} {e(m['modele'])}</h3>
+        <p class="ligne">{fiabilite(m['fiabilite'])}<span>{e(m['budget'])}</span></p></div></a>"""
+
+
+ICONES = {
+    "voiture-jeune-permis": '<path d="M4 18h16M6 18V9l6-4 6 4v9"/><path d="M10 18v-5h4v5"/>',
+    "voiture-occasion-moins-10000-euros": '<circle cx="12" cy="12" r="8"/><path d="M15 9.5a3.5 3.5 0 1 0 0 5M8 11h5M8 13h5"/>',
+    "voiture-occasion-moins-20000-euros": '<path d="M5 16l1.5-5A2 2 0 0 1 8.4 9.5h7.2a2 2 0 0 1 1.9 1.5L19 16"/><path d="M4 16h16v3H4zM7 19v1.5M17 19v1.5"/>',
+    "voiture-occasion-moins-30000-euros": '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
+    "voitures-occasion-les-plus-fiables": '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+}
+
+
+def carte_classement(c: dict) -> str:
+    return f"""<a class="carte-cl" href="/guide/{c['slug']}" style="--c:{c['couleur']}">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{ICONES[c['slug']]}</svg></span>
+        <span class="cl-txt"><b>{e(c['court'])}</b><small>{len(c['liste'])} modèles sélectionnés</small></span>
+        <svg class="fl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>"""
+
+
+# --------------------------------------------------------------------------- pages
+def page_modele(m: dict) -> str:
+    nom = f"{m['marque']} {m['modele']}"
+    chemin = f"/guide/{m['slug']}"
+    titre = f"{nom} d'occasion : moteurs fiables et à éviter"
+    desc = f"{nom} d'occasion : quels moteurs choisir, pannes connues et points à vérifier avant d'acheter. Guide {MAJ_TEXTE[-4:]}."
+    fil_html, fil_ld = fil(("Guide d'achat", "/guide/"), (nom, None))
+    gens = "".join(f'<li><b>{e(g)}</b><span>{e(t)}</span></li>' for g, t in m["generations"])
+    ok = "".join(f'<li><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg><div><b>{e(a)}</b><p>{e(b)}</p></div></li>' for a, b in m["conseilles"])
+    ko = "".join(f'<li><svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div><b>{e(a)}</b><p>{e(b)}</p></div></li>' for a, b in m["surveiller"])
+    chk = "".join(f'<li>{e(v)}</li>' for v in m["verifier"])
+    opts = "".join(f'<a class="puce" href="{e(url_recherche(m, options=[o]))}">{e(nom)} avec {e(o)}</a>' for o in m["options"])
+    faq = "".join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in m["faq"])
+    dans = [c for c in CLASSEMENTS if any(s == m["slug"] for s, _, _ in c["liste"])]
+    dans_html = "".join(carte_classement(c) for c in dans)
+    proches = [x for x in MODELES if x["slug"] != m["slug"] and x["carrosserie"] == m["carrosserie"]][:4] or MODELES[:4]
+    proches_html = "".join(carte_modele(x, f"p{i}") for i, x in enumerate(proches))
+    corps = f"""
+    {fil_html}
+    <section class="hero-mod" style="--c:{m['couleur']}">
+      <div class="hero-txt">
+        <p class="kicker">{e(m['categorie'])} · Guide d'achat</p>
+        <h1>{e(nom)} d'occasion : <span>quels moteurs choisir ?</span></h1>
+        <p class="lead">{e(m['resume'])}</p>
+        <div class="tuiles">
+          <div><small>Fiabilité (notre avis)</small>{fiabilite(m['fiabilite'])}</div>
+          <div><small>Budget courant</small><b>{e(m['budget'])}</b></div>
+          <div class="large"><small>Moteur conseillé</small><b>{e(m['conseilles'][0][0])}</b></div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{e(url_recherche(m))}">Voir les annonces {e(nom)} <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <span class="note">Leboncoin, La Centrale, AutoScout24… en une recherche</span>
+        </div>
+      </div>
+      <div class="hero-vis">{silhouette(m['carrosserie'], m['couleur'], 'h', 'car big')}</div>
+    </section>
+
+    <div class="grille-art">
+      <article class="contenu">
+        <h2>Les générations de {e(nom)}</h2>
+        <ul class="gens">{gens}</ul>
+
+        <h2>Les moteurs à privilégier</h2>
+        <ul class="avis ok">{ok}</ul>
+
+        <h2>Les points faibles à surveiller</h2>
+        <ul class="avis ko">{ko}</ul>
+
+        <h2>Que vérifier avant d'acheter une {e(nom)} ?</h2>
+        <ul class="check">{chk}</ul>
+
+        <h2>Trouver une {e(nom)} bien équipée</h2>
+        <p>La Bonne Occaz lit la description de chaque annonce pour repérer les options. Un clic lance la recherche :</p>
+        <div class="puces">{opts}</div>
+
+        <h2>Questions fréquentes</h2>
+        <div class="faq">{faq}</div>
+
+        <p class="avert">Ces conseils résument des tendances connues et des pannes fréquemment signalées : ils ne remplacent pas
+        l'inspection du véhicule. Demandez toujours les factures d'entretien et, au moindre doute, faites contrôler la voiture
+        par un professionnel. Mise à jour : {MAJ_TEXTE}.</p>
+      </article>
+      <aside class="cote">
+        <div class="box cta-box" style="--c:{m['couleur']}">
+          <p class="kicker">Annonces en direct</p>
+          <p class="cta-titre">{e(nom)} d'occasion</p>
+          <a class="btn plein" href="{e(url_recherche(m))}">Toutes les annonces</a>
+          <a class="lien" href="{e(url_recherche(m, prix_max=10000))}">Moins de 10 000 €</a>
+          <a class="lien" href="{e(url_recherche(m, prix_max=15000))}">Moins de 15 000 €</a>
+          <a class="lien" href="{e(url_recherche(m, prix_max=20000))}">Moins de 20 000 €</a>
+        </div>
+        {f'<div class="box"><p class="kicker">Dans nos classements</p><div class="pile">{dans_html}</div></div>' if dans else ''}
+      </aside>
+    </div>
+
+    <section class="bloc">
+      <h2 class="h-sec">Modèles similaires</h2>
+      <div class="grille-mod">{proches_html}</div>
+    </section>
+"""
+    return page(chemin, titre, desc, corps, [article_ld(titre, desc, chemin), fil_ld, faq_ld(m["faq"])])
+
+
+def page_classement(c: dict) -> str:
+    chemin = f"/guide/{c['slug']}"
+    titre = f"{c['titre']} ({MAJ_TEXTE[-4:]})"
+    fil_html, fil_ld = fil(("Guide d'achat", "/guide/"), (c["court"], None))
+    lignes = []
+    for i, (slug, version, pourquoi) in enumerate(c["liste"], 1):
+        m = PAR_SLUG[slug]
+        nom = f"{m['marque']} {m['modele']}"
+        lignes.append(f"""<li class="rang" style="--c:{m['couleur']}">
+          <span class="num">{i}</span>
+          <div class="rang-vis">{silhouette(m['carrosserie'], m['couleur'], f'r{i}')}</div>
+          <div class="rang-txt">
+            <h2><a href="/guide/{slug}">{e(nom)}</a></h2>
+            <p class="version">Version conseillée : <b>{e(version)}</b></p>
+            <p>{e(pourquoi)}</p>
+            <p class="ligne">{fiabilite(m['fiabilite'])}<span>{e(m['budget'])}</span></p>
+          </div>
+          <div class="rang-act">
+            <a class="btn petit" href="{e(url_recherche(m, prix_max=c['prix_max']))}">Voir les annonces{f" &lt; {c['prix_max'] // 1000} k€" if c['prix_max'] else ''}</a>
+            <a class="lien" href="/guide/{slug}">Lire la fiche</a>
+          </div>
+        </li>""")
+    criteres = "".join(f"<li>{e(x)}</li>" for x in c["criteres"])
+    autres = "".join(carte_classement(x) for x in CLASSEMENTS if x["slug"] != c["slug"])
+    corps = f"""
+    {fil_html}
+    <section class="hero-cl" style="--c:{c['couleur']}">
+      <p class="kicker">Classement · mis à jour en {MAJ_TEXTE}</p>
+      <h1>{e(c['titre'])}</h1>
+      <p class="lead">{e(c['intro'])}</p>
+      <div class="box crit"><p class="kicker">Nos critères</p><ul class="check">{criteres}</ul></div>
+    </section>
+    <ol class="classement">{''.join(lignes)}</ol>
+    <p class="avert">Classement indicatif établi à partir de la réputation des modèles et de leurs moteurs. Les prix varient selon
+    l'année, le kilométrage et l'état : les boutons « Voir les annonces » affichent les offres réelles du moment.</p>
+    <section class="bloc"><h2 class="h-sec">Autres classements</h2><div class="grille-cl">{autres}</div></section>
+"""
+    item_list = {"@context": "https://schema.org", "@type": "ItemList", "name": c["titre"], "itemListOrder": "https://schema.org/ItemListOrderAscending",
+                 "numberOfItems": len(c["liste"]), "itemListElement": [
+                     {"@type": "ListItem", "position": i, "name": f"{PAR_SLUG[s]['marque']} {PAR_SLUG[s]['modele']} – {v}",
+                      "url": f"{DOMAINE}/guide/{s}"} for i, (s, v, _) in enumerate(c["liste"], 1)]}
+    return page(chemin, titre, c["description"], corps, [article_ld(titre, c["description"], chemin), fil_ld, item_list])
+
+
+FAQ_GUIDE = [
+    ("Quelle est la voiture d'occasion la plus fiable ?", "Les hybrides Toyota (Yaris, Corolla, C-HR) sont régulièrement citées parmi les plus fiables. En diesel, les moteurs éprouvés comme le 1.5 dCi Renault/Dacia ou le 2.0 TDI Volkswagen ont aussi très bonne réputation."),
+    ("Quel kilométrage maximum pour une voiture d'occasion ?", "Il n'y a pas de limite absolue : un moteur bien entretenu à 150 000 km vaut mieux qu'un moteur négligé à 80 000 km. Exigez le carnet et les factures."),
+    ("Diesel ou essence en occasion ?", "Le diesel reste intéressant au-delà de 20 000 km par an et sur route. En ville et pour de petits trajets, préférez l'essence ou l'hybride, et vérifiez les restrictions des zones à faibles émissions (ZFE)."),
+    ("Comment éviter une voiture avec une panne cachée ?", "Lisez toute la description : La Bonne Occaz repère automatiquement les mentions comme « moteur HS », « turbo à changer » ou « pour pièces » et peut masquer ces véhicules."),
+]
+
+
+def page_index() -> str:
+    chemin = "/guide/"
+    titre = f"Guide d'achat voiture d'occasion {MAJ_TEXTE[-4:]} : modèles fiables"
+    desc = "Quelle voiture d'occasion acheter ? Moteurs fiables, pannes connues et classements : jeune permis, moins de 10 000 €, 20 000 €, 30 000 €."
+    fil_html, fil_ld = fil(("Guide d'achat", None))
+    cats = {}
+    for m in MODELES:
+        cats.setdefault({"citadine": "Citadines", "compacte": "Compactes", "suv": "SUV", "berline": "Familiales & électriques"}[m["carrosserie"]], []).append(m)
+    grilles = "".join(f'<h3 class="h-cat">{e(k)}</h3><div class="grille-mod">{"".join(carte_modele(m, f"{k[:2]}{i}") for i, m in enumerate(v))}</div>'
+                      for k, v in cats.items())
+    regles = [("Le moteur compte plus que le modèle", "Une même voiture peut être excellente ou à éviter selon sa motorisation : lisez la fiche avant d'acheter."),
+              ("Exigez les factures", "Carnet tamponné, factures de distribution, de vidange : sans historique, négociez fort ou passez votre chemin."),
+              ("Lisez toute l'annonce", "Les pannes se cachent souvent en bas de la description. La Bonne Occaz les repère pour vous."),
+              ("Comparez sur tous les sites", "Le même modèle peut coûter 2 000 € de moins sur un autre site : une seule recherche suffit ici."),
+              ("Essayez à froid", "Un démarrage moteur froid révèle bruits de chaîne, fumées et voyants.")]
+    regles_html = "".join(f'<li><span>{i}</span><div><b>{e(t)}</b><p>{e(d)}</p></div></li>' for i, (t, d) in enumerate(regles, 1))
+    faq = "".join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in FAQ_GUIDE)
+    vitrine = "".join(silhouette(m["carrosserie"], m["couleur"], f"v{i}", f"car v{i}") for i, m in
+                      enumerate([PAR_SLUG["toyota-yaris"], PAR_SLUG["peugeot-3008"], PAR_SLUG["volkswagen-golf"]]))
+    corps = f"""
+    {fil_html}
+    <section class="hero-guide">
+      <div>
+        <p class="kicker">Guide d'achat · {MAJ_TEXTE}</p>
+        <h1>Quelle voiture d'occasion <span>acheter ?</span></h1>
+        <p class="lead">Les bons modèles, les moteurs fiables, ceux qui posent problème et ce qu'il faut vérifier avant de signer.
+        Puis un clic pour voir toutes les annonces du moment, sur tous les sites.</p>
+        <div class="grille-cl">{''.join(carte_classement(c) for c in CLASSEMENTS)}</div>
+      </div>
+      <div class="vitrine" aria-hidden="true">{vitrine}</div>
+    </section>
+
+    <section class="bloc">
+      <h2 class="h-sec">Fiches modèles</h2>
+      <p class="sous">Générations, moteurs à privilégier, pannes connues : l'essentiel pour acheter sereinement.</p>
+      {grilles}
+    </section>
+
+    <section class="bloc deux">
+      <div>
+        <h2 class="h-sec">Les 5 règles d'or</h2>
+        <ol class="regles">{regles_html}</ol>
+      </div>
+      <div>
+        <h2 class="h-sec">Questions fréquentes</h2>
+        <div class="faq">{faq}</div>
+      </div>
+    </section>
+"""
+    coll = {"@context": "https://schema.org", "@type": "CollectionPage", "name": titre, "description": desc, "url": DOMAINE + chemin,
+            "inLanguage": "fr-FR", "dateModified": MAJ,
+            "hasPart": [{"@type": "Article", "name": f"{m['marque']} {m['modele']} d'occasion", "url": f"{DOMAINE}/guide/{m['slug']}"} for m in MODELES]
+                       + [{"@type": "Article", "name": c["titre"], "url": f"{DOMAINE}/guide/{c['slug']}"} for c in CLASSEMENTS]}
+    return page(chemin, titre, desc, corps, [coll, fil_ld, faq_ld(FAQ_GUIDE)])
+
+
+CSS = r"""
+:root{color-scheme:dark;--bg:#08080a;--fg:#e4e4e7;--mut:#a1a1aa;--dim:#71717a;--line:rgba(255,255,255,.08);--card:rgba(255,255,255,.03);--acc:#ff6a2b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 "Geist",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit}
+.halo{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(60vmax 40vmax at 90% -10%,rgba(255,106,43,.14),transparent 60%),radial-gradient(50vmax 40vmax at -10% 10%,rgba(109,74,255,.10),transparent 60%)}
+header.top,main,footer.pied{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-left:16px;padding-right:16px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding-top:16px;padding-bottom:8px}
+.brand{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;text-decoration:none;font-weight:600;letter-spacing:-.02em;font-size:17px;color:#fff}
+.brand b,.brand-pied b{background:linear-gradient(120deg,#ff8a4c,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+header nav{display:flex;align-items:center;gap:4px;font-size:14px}
+header nav a{color:var(--mut);text-decoration:none;padding:7px 12px;border-radius:10px;white-space:nowrap}
+header nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.btn-top{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff!important}
+.fil{font-size:13px;color:var(--dim);margin:18px 0 8px}.fil a{color:var(--mut);text-decoration:none}.fil a:hover{color:#fff}.fil span{margin:0 4px}
+.kicker{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
+h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.035em;margin:0 0 16px;color:#fff;font-weight:650}
+h1 span{background:linear-gradient(100deg,#fff 10%,#ffb08a 60%,#ff6a8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
+.lead{font-size:1.1rem;color:var(--mut);max-width:62ch;margin:0 0 22px}
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;color:#fff;padding:12px 18px;border-radius:14px;
+  background:linear-gradient(135deg,#ff7a3d,#ff3d6e);box-shadow:0 12px 30px -12px rgba(255,80,60,.7);transition:transform .2s}
+.btn:hover{transform:translateY(-1px)}.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.btn.petit{padding:9px 14px;font-size:14px;border-radius:12px}.btn.plein{width:100%;justify-content:center}
+.lien{display:block;color:var(--mut);text-decoration:none;font-size:14px;padding:6px 0}.lien:hover{color:#fff}
+.note{font-size:13px;color:var(--dim)}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.fiab{display:inline-flex;gap:4px;vertical-align:middle}.fiab i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.14)}
+.fiab i.on{background:linear-gradient(135deg,#7ae38a,#2fbf71);box-shadow:0 0 8px rgba(80,220,130,.45)}
+.car{width:100%;height:auto;display:block}
+/* Accueil du guide */
+.hero-guide{display:grid;grid-template-columns:1.25fr .75fr;gap:32px;align-items:center;padding:12px 0 24px}
+.vitrine{position:relative;min-height:320px}
+.vitrine .car{position:absolute;width:88%;filter:drop-shadow(0 20px 30px rgba(0,0,0,.5))}
+.vitrine .v0{top:0;left:12%;opacity:.55;transform:scale(.8)}.vitrine .v1{top:30%;left:0}.vitrine .v2{top:62%;left:16%;opacity:.8;transform:scale(.9)}
+.grille-cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.carte-cl{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;text-decoration:none;background:var(--card);border:1px solid var(--line);transition:border-color .2s,background .2s}
+.carte-cl:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 8%,transparent)}
+.carte-cl .ico{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.carte-cl .ico svg{width:20px;height:20px}.cl-txt{display:flex;flex-direction:column;line-height:1.25;flex:1}.cl-txt b{color:#fff;font-weight:600}.cl-txt small{color:var(--dim);font-size:12px}
+.carte-cl .fl{width:16px;height:16px;color:var(--dim)}
+.bloc{margin:56px 0}.h-sec{font-size:clamp(1.4rem,3vw,1.9rem);margin:0 0 6px}.sous{color:var(--mut);margin:0 0 18px}
+.h-cat{font-family:"Geist Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:26px 0 10px;font-weight:500}
+.grille-mod{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.carte-mod{display:block;text-decoration:none;border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--line);transition:transform .25s,border-color .25s}
+.carte-mod:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--c) 50%,transparent)}
+.carte-vis{padding:22px 18px 6px;background:radial-gradient(80% 90% at 50% 100%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%)}
+.carte-txt{padding:6px 16px 16px}.carte-txt h3{margin:0 0 6px;color:#fff;font-size:18px;letter-spacing:-.02em}
+.cat{font-family:"Geist Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--c);margin:0 0 2px}
+.ligne{display:flex;align-items:center;gap:10px;margin:0;font-size:13px;color:var(--mut)}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.regles{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}
+.regles li{display:flex;gap:14px;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.regles span{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,#ff7a3d,#ff3d6e)}
+.regles b{color:#fff}.regles p{margin:2px 0 0;color:var(--mut);font-size:14.5px}
+.faq details{border-bottom:1px solid var(--line);padding:12px 0}.faq summary{cursor:pointer;color:#fff;font-weight:600;list-style:none}
+.faq summary::-webkit-details-marker{display:none}.faq summary::after{content:"+";float:right;color:var(--dim)}.faq details[open] summary::after{content:"–"}
+.faq p{color:var(--mut);margin:8px 0 0}
+/* Fiche modèle */
+.hero-mod{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;padding:8px 0 10px}
+.hero-vis{position:relative;padding:20px}
+.hero-vis::before{content:"";position:absolute;inset:8% 0 0;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 35%,transparent),transparent);filter:blur(10px)}
+.hero-vis .car{position:relative;filter:drop-shadow(0 24px 30px rgba(0,0,0,.55))}
+.tuiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 22px}
+.tuiles div{padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.tuiles small{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.tuiles b{color:#fff;font-size:14.5px;line-height:1.3}
+.grille-art{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;margin-top:34px;align-items:start}
+.contenu h2{font-size:1.45rem;margin:38px 0 14px}.contenu h2:first-child{margin-top:0}
+.gens{list-style:none;padding:0;margin:0;border-left:2px solid var(--line)}
+.gens li{position:relative;padding:4px 0 14px 20px}.gens li::before{content:"";position:absolute;left:-7px;top:10px;width:12px;height:12px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px rgba(255,106,43,.18)}
+.gens b{display:block;color:#fff}.gens span{color:var(--mut)}
+.avis{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.avis li{display:flex;gap:12px;padding:14px;border-radius:16px;border:1px solid var(--line)}
+.avis svg{flex:none;width:22px;height:22px;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+.avis b{color:#fff}.avis p{margin:3px 0 0;color:var(--mut);font-size:15px}
+.avis.ok li{background:rgba(52,199,120,.06);border-color:rgba(52,199,120,.22)}.avis.ok svg{stroke:#4ade80}
+.avis.ko li{background:rgba(255,170,40,.06);border-color:rgba(255,170,40,.22)}.avis.ko svg{stroke:#fbbf24}
+.check{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.check li{position:relative;padding-left:30px;color:var(--fg)}
+.check li::before{content:"";position:absolute;left:0;top:3px;width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(255,255,255,.25)}
+.check li::after{content:"";position:absolute;left:6px;top:7px;width:6px;height:9px;border:solid var(--acc);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.puces{display:flex;flex-wrap:wrap;gap:8px}
+.puce{text-decoration:none;font-size:13.5px;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--fg)}
+.puce:hover{border-color:rgba(255,106,43,.5);color:#fff}
+.avert{margin-top:34px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.025);border:1px dashed var(--line);color:var(--dim);font-size:13.5px}
+.cote{position:sticky;top:16px;display:grid;gap:14px}
+.box{padding:18px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+.cta-box{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 18%,transparent),rgba(255,255,255,.02) 60%)}
+.cta-titre{color:#fff;font-weight:650;font-size:20px;letter-spacing:-.02em;margin:0 0 14px}
+.pile{display:grid;gap:8px}
+/* Classements */
+.hero-cl{padding:8px 0 10px;max-width:860px}.crit{margin-top:4px}
+.classement{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:14px}
+.rang{display:grid;grid-template-columns:54px 200px minmax(0,1fr) auto;gap:20px;align-items:center;padding:16px 20px;border-radius:22px;background:var(--card);border:1px solid var(--line)}
+.rang:hover{border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.num{font-size:34px;font-weight:700;letter-spacing:-.04em;background:linear-gradient(180deg,#fff,#71717a);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center}
+.rang-vis{padding:8px;border-radius:16px;background:radial-gradient(80% 90% at 50% 100%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%)}
+.rang-txt h2{margin:0 0 4px;font-size:1.3rem}.rang-txt h2 a{text-decoration:none}.rang-txt h2 a:hover{color:var(--acc)}
+.rang-txt p{margin:2px 0;color:var(--mut);font-size:15px}.version b{color:#fff;font-weight:600}
+.rang-act{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.pied{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;padding-top:36px!important;padding-bottom:40px!important;margin-top:40px!important;border-top:1px solid var(--line);color:var(--dim);font-size:14px}
+.pied a{display:block;color:var(--mut);text-decoration:none;padding:3px 0}.pied a:hover{color:#fff}
+.brand-pied{color:#fff;font-weight:600;font-size:16px;margin:0 0 6px}.titre-pied{color:#fff;font-weight:600;margin:0 0 6px}
+@media (max-width:900px){
+  .hero-guide,.hero-mod,.grille-art,.deux{grid-template-columns:1fr}
+  .vitrine{display:none}.hero-vis{order:-1;max-width:420px;margin:0 auto;padding:0}
+  .cote{position:static}.pied{grid-template-columns:1fr}
+  .rang{grid-template-columns:40px minmax(0,1fr);gap:12px;padding:14px}
+  .rang-vis{grid-column:2;max-width:240px}.rang-txt{grid-column:1/-1}.rang-act{grid-column:1/-1;align-items:flex-start;flex-direction:row;gap:14px}
+  .num{font-size:26px}
+}
+@media (max-width:560px){.tuiles{grid-template-columns:1fr 1fr}.tuiles .large{grid-column:1/-1}.hide-sm{display:none}}
+"""
+
+
+def main() -> None:
+    SORTIE.mkdir(parents=True, exist_ok=True)
+    (SORTIE / "guide.css").write_text(CSS.strip() + "\n", encoding="utf-8")
+    (SORTIE / "index.html").write_text(page_index(), encoding="utf-8")
+    for m in MODELES:
+        (SORTIE / f"{m['slug']}.html").write_text(page_modele(m), encoding="utf-8")
+    for c in CLASSEMENTS:
+        (SORTIE / f"{c['slug']}.html").write_text(page_classement(c), encoding="utf-8")
+    print(f"{len(MODELES) + len(CLASSEMENTS) + 1} pages écrites dans {SORTIE}")
+
+
+if __name__ == "__main__":
+    main()

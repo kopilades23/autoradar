@@ -190,3 +190,10 @@ Une base créée avec une ancienne version est migrée automatiquement (nouvelle
   puis se replie sur le contenu de la page.
 
 Pensez à respecter les conditions d'utilisation des sites et à garder un rythme de requêtes raisonnable (usage personnel).
+
+## Guide d'achat (pages /guide/)
+
+Pages statiques (HTML pur, idéales pour Google et les IA) : fiches modèles et classements.
+- Contenu : `guides/donnees.py` (modèles, moteurs conseillés / à surveiller, classements).
+- Génération : `python guides/generer.py` → écrit `static/guide/*.html` et `static/guide/guide.css`.
+- Adresses propres : `/guide/peugeot-208` (le serveur ajoute `.html`) ; elles sont ajoutées au `sitemap.xml` automatiquement.

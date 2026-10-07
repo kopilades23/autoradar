@@ -162,16 +162,28 @@ class Handler(SimpleHTTPRequestHandler):
             return self._texte("User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /base.html\n\n"
                                f"Sitemap: https://{DOMAINE}/sitemap.xml\n", "text/plain")
         if self.path == "/sitemap.xml" and self._officiel():
-            jour = time.strftime("%Y-%m-%d", time.gmtime(max((STATIC_DIR / (p.strip("/") or "index.html")).stat().st_mtime
-                                                               for p in PAGES_PUBLIQUES)))
-            urls = "".join(f"  <url><loc>https://{DOMAINE}{p}</loc><lastmod>{jour}</lastmod>"
-                           f"<priority>{'1.0' if p == '/' else '0.6'}</priority></url>\n"
-                           for p in PAGES_PUBLIQUES)
+            pages = [(p, STATIC_DIR / (p.strip("/") or "index.html"), "1.0" if p == "/" else "0.5") for p in PAGES_PUBLIQUES]
+            for f in sorted((STATIC_DIR / "guide").glob("*.html")):     # guide d'achat (pages statiques)
+                pages.append(("/guide/" if f.stem == "index" else f"/guide/{f.stem}", f, "0.9" if f.stem == "index" else "0.8"))
+            jour = lambda f: time.strftime("%Y-%m-%d", time.gmtime(f.stat().st_mtime))
+            urls = "".join(f"  <url><loc>https://{DOMAINE}{p}</loc><lastmod>{jour(f)}</lastmod>"
+                           f"<priority>{prio}</priority></url>\n" for p, f, prio in pages)
             return self._texte('<?xml version="1.0" encoding="UTF-8"?>\n'
                                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n",
                                "application/xml")
         if not self._autorise():
             return
+        # Guide d'achat : adresses propres (/guide/peugeot-208 -> peugeot-208.html) ; l'ancienne forme .html redirige
+        chemin, _, requete = self.path.partition("?")
+        if chemin.startswith("/guide/") and chemin.endswith(".html") and not chemin.endswith("/index.html"):
+            self.send_response(301)
+            self.send_header("Location", chemin[:-5] + (f"?{requete}" if requete else ""))
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if chemin.startswith("/guide/") and "." not in chemin.rsplit("/", 1)[-1] and not chemin.endswith("/") \
+                and (STATIC_DIR / (chemin.lstrip("/") + ".html")).is_file():
+            self.path = chemin + ".html" + (f"?{requete}" if requete else "")
         if self.path.startswith(("/api/recherche", "/api/modeles")) and self._limite():
             return
         u = urlparse(self.path)
