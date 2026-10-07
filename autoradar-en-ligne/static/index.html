@@ -6,6 +6,14 @@
   <title>Autoradar — Toutes les occasions, une recherche</title>
   <meta name="description" content="Autoradar réunit les annonces de voitures d'occasion de Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu et d'autres sites en une seule recherche." />
   <meta name="theme-color" content="#08080a" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icone-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Autoradar — Toutes les occasions, une recherche" />
+  <meta property="og:description" content="Leboncoin, La Centrale, AutoScout24 et d'autres sites réunis en une seule recherche, avec les véhicules à risque repérés." />
+  <meta property="og:image" content="/icone-512.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff7a3d'/%3E%3Cstop offset='1' stop-color='%23ff3d6e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-opacity='.45' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='4.5' fill='none' stroke='white' stroke-opacity='.7' stroke-width='1.6'/%3E%3Cpath d='M16 16 L23 9' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='21.5' cy='19.5' r='1.8' fill='white'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -273,8 +281,8 @@
         <span class="dot" style="left:26%;top:40%;animation-delay:6.7s"></span>
         <span class="dot" style="left:55%;top:18%;animation-delay:8.3s"></span>
       </div>
-      <p class="reveal relative mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-[11px] uppercase tracking-[.2em] text-zinc-400" style="--d:120ms">
-        <span class="live-dot size-1.5 rounded-full bg-emerald-400"></span> Tous les sites d'annonces<span class="hidden sm:inline">, en une fois</span>
+      <p class="reveal relative mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[.26em] text-zinc-400" style="--d:120ms">
+        <span class="h-px w-10 bg-gradient-to-r from-accent to-transparent"></span>Comparateur d'annonces automobiles
       </p>
       <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
       <p class="reveal relative mt-5 max-w-2xl text-lg text-zinc-400" style="--d:650ms">
@@ -334,6 +342,9 @@
           <h2 class="text-2xl font-semibold tracking-tight"><span id="nbAff" class="tabular-nums">0</span> annonce<span id="nbAffS">s</span></h2>
           <div class="flex flex-wrap items-center gap-3">
             <p id="resume" class="font-mono text-[11px] text-zinc-500"></p>
+            <button type="button" id="partager" title="Partager cette recherche" class="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+              <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>
+              <span data-lbl>Partager</span></button>
             <label class="inline-flex items-center gap-2 text-xs text-zinc-400"><span class="font-mono text-[10px] uppercase tracking-widest text-zinc-500">Trier</span>
               <select id="tri" class="field !w-auto !py-1.5 text-xs">
                 <option value="pertinence">Pertinence</option><option value="prix">Prix croissant</option><option value="prix_desc">Prix décroissant</option>
@@ -716,7 +727,7 @@
     async function chargerSource(s, run) {
       const st = state.src[s]; if (!st || st.charge || !st.suite) return;
       st.charge = true; renderBar();
-      const p = new URLSearchParams({ ...state.crit, source: s, page: st.page + 1, tri: triSite(), repli: st.repli ? "1" : "0" });
+      const p = new URLSearchParams({ ...state.crit, source: s, page: st.page + 1, tri: triSite(), repli: st.repli ? "1" : "0", differe: "1" });
       let d = null;
       try {
         const r = await fetch(`/api/recherche?${p}`); d = await r.json();
@@ -771,7 +782,7 @@
           const m = maj.get(l);
           if (m) Object.assign(a, { merguez: m.merguez, motifs_merguez: m.motifs_merguez, options: m.options, extrait: m.extrait, verifiee: m.verifiee,
                                     lien_origine: m.lien_origine || a.lien_origine, plateforme: m.plateforme || a.plateforme, image: a.image || m.image,
-                                    date: a.date || m.date });
+                                    date: a.date || m.date, puissance_ch: a.puissance_ch || m.puissance_ch });
           a._enAttente = false;
         }
         st.fichesFaites += lot.length; st.freine = !!(d && d.freine);
@@ -1075,6 +1086,17 @@
       $("#marquee").innerHTML = bloc + bloc;   // deux fois : défilement sans couture
       $("#annee").textContent = new Date().getFullYear();
     })();
+
+    /* ---------- Partager la recherche (le lien contient tous les critères) ---------- */
+    $("#partager").addEventListener("click", async () => {
+      const lbl = $("#partager [data-lbl]"), url = location.href.split("#")[0];
+      if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+        try { await navigator.share({ title: document.title, text: "Ma recherche de voiture d'occasion", url }); return; } catch { return; }
+      }
+      try { await navigator.clipboard.writeText(url); lbl.textContent = "Lien copié ✓"; }
+      catch { prompt("Copiez ce lien :", url); }
+      setTimeout(() => (lbl.textContent = "Partager"), 2200);
+    });
 
     /* ---------- Économie d'énergie ---------- */
     document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("en-pause", document.hidden));
