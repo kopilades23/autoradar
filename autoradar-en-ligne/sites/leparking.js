@@ -16,6 +16,13 @@ async (args) => {
   if (!j || typeof j !== 'object') return { status: 403 };
   const doc = new DOMParser().parseFromString(j['#lists'] || '', 'text/html');
   const num = (s) => +String(s || '').replace(/\D/g, '');
+  const lieux = {};   // chemin de la fiche -> [code postal, pays], lus dans les blocs schema.org « Vehicle »
+  for (const sc of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    const t = sc.textContent || '', u = t.match(/"url"\s*:\s*"([^"]+)"/);
+    if (!u) continue;
+    const cp = t.match(/"postalCode"\s*:\s*"\s*([^"]*?)\s*"/), pays = t.match(/"addressCountry"\s*:\s*\{[^}]*"name"\s*:\s*"([^"]+)"/);
+    try { lieux[new URL(u[1], location.origin).pathname] = [(cp && cp[1]) || null, pays ? pays[1] : null]; } catch (e) {}
+  }
   const annonces = [];
   for (const li of doc.querySelectorAll('li.li-result')) {
     const parts = []; const w = doc.createTreeWalker(li, NodeFilter.SHOW_TEXT); let n;
@@ -47,6 +54,8 @@ async (args) => {
       vendeur: parts.find(p => /^(particulier|professionnel)$/i.test(p)) || null,
       date: (() => { for (const p of (iDet >= 0 ? parts.slice(0, iDet) : parts)) { const m = p.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if (m) return `${m[3]}-${m[2]}-${m[1]}`; } return null; })(),
     });
+    const lp = detail ? (lieux[new URL(detail, location.origin).pathname] || [null, null]) : [null, null];
+    annonces[annonces.length - 1].cp = lp[0]; annonces[annonces.length - 1].pays = lp[1];
   }
   return { status: 200, annonces, total: num(j.context && j.context.nb_results) };
 }

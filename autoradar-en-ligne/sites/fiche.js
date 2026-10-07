@@ -62,6 +62,7 @@
   doc.body.querySelectorAll('p,div,li,br,h1,h2,h3,h4,h5,h6,section,article,tr,dt,dd').forEach(e => e.append('\n'));
   let best = null, bestScore = 0;
   for (const el of doc.body.querySelectorAll('div,section,article,p')) {
+    const brut = el.textContent || ''; if (brut.length < 120 || brut.length > 40000) continue;
     const t = txt(el); if (t.length < 120 || t.length > 15000) continue;
     const lt = [...el.querySelectorAll('a')].reduce((s, a) => s + (a.textContent || '').length, 0);
     const score = t.length - 4 * lt - 0.5 * el.querySelectorAll('div,section').length * 10;

@@ -90,7 +90,7 @@
       }
     }
     res.push({ lien: href, titre: titre.replace(/\s*\|\s*/g, ' ').slice(0, 140), prix, km, annee, carburant, boite,
-               image: src ? abs(src) : imageParId(href), texte: P.join(' | ').slice(0, 600) });
+               image: src ? abs(src) : imageParId(href), texte: P.join(' | ').slice(0, 900) });
   }
   return { annonces: res };
 }
