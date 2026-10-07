@@ -8,6 +8,8 @@
   <link rel="canonical" href="https://labonneoccaz.fr/" />
   <meta name="theme-color" content="#08080a" />
   <link rel="manifest" href="/manifest.json" />
+  <!-- Mesure d'audience Umami : anonyme, sans cookie (n'enregistre que sur labonneoccaz.fr) -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="d5a85375-aefc-4f50-9d56-38882c7c00f2" data-domains="labonneoccaz.fr,www.labonneoccaz.fr"></script>
   <link rel="apple-touch-icon" href="/icone-180.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -185,6 +187,8 @@
 
     /* ---------- Menu déroulant maison ---------- */
     .dd { position: relative; }
+    .dd-menu.dd-long { max-height: min(60vh, 420px); overflow-y: auto; overscroll-behavior: contain; }
+    #ddRegion .dd-menu { left: 0; right: auto; }
     .dd-btn { display: inline-flex; align-items: center; gap: .5rem; border-radius: .8rem; padding: .5rem .7rem .5rem .75rem;
       background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); color: #e4e4e7; font-size: .75rem; font-weight: 500;
       transition: background .25s, border-color .25s, box-shadow .25s; }
@@ -244,6 +248,8 @@
     select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right .7rem center; background-size: 1rem; padding-right: 2.2rem; }
     select.field option, select.field optgroup { background: #111114; color: #f4f4f5; }
+    .duo { display: grid; grid-template-columns: 1fr 1fr; gap: .375rem; }
+    .duo select.field { padding-left: .65rem; padding-right: 1.55rem; background-position: right .4rem center; background-size: .85rem; }
     .lbl { display: block; margin-bottom: .4rem; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #71717a; }
     .no-anim .opt { animation: none; opacity: 1; transform: none; }
     .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
@@ -310,11 +316,12 @@
             <select id="modele" class="field" disabled><option value="">Tous les modèles</option></select></label>
           <label><span class="lbl">Prix max (€)</span><input id="prix_max" class="field" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
           <label><span class="lbl">Km max</span><input id="km_max" class="field" type="number" min="0" step="5000" placeholder="Illimité" inputmode="numeric"></label>
-          <label><span class="lbl">Année min</span><select id="annee_min" class="field"><option value="">Toutes</option></select></label>
-          <label><span class="lbl">Puissance min</span><select id="puissance_min" class="field"><option value="">Toutes</option>
-            <option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option>
-            <option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option>
-            <option value="250">250 ch</option><option value="300">300 ch</option></select></label>
+          <div><span class="lbl">Année</span><div class="duo">
+            <select id="annee_min" class="field" aria-label="Année minimum"><option value="">Min</option></select>
+            <select id="annee_max" class="field" aria-label="Année maximum"><option value="">Max</option></select></div></div>
+          <div><span class="lbl">Puissance</span><div class="duo">
+            <select id="puissance_min" class="field" aria-label="Puissance minimum"><option value="">Min</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select>
+            <select id="puissance_max" class="field" aria-label="Puissance maximum"><option value="">Max</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select></div></div>
           <div class="flex items-end"><button id="go" type="submit" class="btn-go inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-[.72rem] text-sm font-semibold text-white">
             <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher</button></div>
         </div>
@@ -325,6 +332,14 @@
             <div id="srcChips" class="flex flex-wrap gap-1.5"></div>
           </div>
           <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
+            <div class="dd" id="ddRegion">
+              <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Région où se trouve le véhicule">
+                <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                <span data-dd-label>Toute la France</span>
+                <svg viewBox="0 0 24 24" class="chev size-3.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dd-menu dd-long" role="listbox"></div>
+            </div>
             <div class="dd" id="ddDepuis">
               <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Date de mise en ligne de l'annonce">
                 <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -350,6 +365,7 @@
     <section id="resultats" class="hidden pb-24">
       <div class="mb-5 flex flex-col gap-3">
         <div id="srcBar" class="flex flex-wrap gap-2"></div>
+        <p id="noteRegion" class="hidden rounded-xl border border-sky-400/20 bg-sky-400/[0.06] px-3 py-2 text-xs text-sky-100/90"></p>
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-2xl font-semibold tracking-tight"><span id="nbAff" class="tabular-nums">0</span> annonce<span id="nbAffS">s</span></h2>
           <div class="flex flex-wrap items-center gap-3">
@@ -524,12 +540,14 @@
     }
     construireOptions();
     const AUTO_PAGES = 4;       // si des options sont cochées : pages parcourues automatiquement par site
+    // Statistiques anonymes (Umami) : recherches lancées, annonces ouvertes, partages, favoris
+    const suivre = (nom, data) => { try { window.umami?.track(nom, data); } catch {} };
     const MIN_RESULTATS = 12;   // … tant qu'on n'a pas au moins ce nombre de résultats
 
     const state = {
       opts: new Set(), carbus: new Set(), sources: new Set(Object.keys(CHIPS)),
       hideMerguez: store.get("live.hideMerguez") !== "0", tri: "pertinence",
-      verifOnly: store.get("live.verifOnly") === "1", depuis: 0,
+      verifOnly: store.get("live.verifOnly") === "1", depuis: 0, region: "",
       run: 0, annonces: [], vus: new Set(), src: {},
     };
 
@@ -543,8 +561,13 @@
     })();
 
     /* ---------- Formulaire ---------- */
-    const annees = $("#annee_min");
-    for (let y = new Date().getFullYear(); y >= 1995; y--) annees.insertAdjacentHTML("beforeend", `<option value="${y}">${y}</option>`);
+    for (const id of ["annee_min", "annee_max"])
+      for (let y = new Date().getFullYear(); y >= 1995; y--) $("#" + id).insertAdjacentHTML("beforeend", `<option value="${y}">${y}</option>`);
+    // intervalles cohérents : si min > max, on ramène l'autre borne
+    for (const [a, b] of [["annee_min", "annee_max"], ["puissance_min", "puissance_max"]]) {
+      $("#" + a).addEventListener("change", () => { if ($("#" + b).value && +$("#" + a).value > +$("#" + b).value) $("#" + b).value = $("#" + a).value; });
+      $("#" + b).addEventListener("change", () => { if ($("#" + a).value && +$("#" + a).value > +$("#" + b).value) $("#" + a).value = $("#" + b).value; });
+    }
 
     function renderChips() {
       $("#optChips").innerHTML = Object.entries(GROUPES).map(([g, liste]) => `
@@ -630,9 +653,19 @@
       return peindre;
     }
     const peindreDepuis = menuDeroulant($("#ddDepuis"), DEPUIS, () => state.depuis, (v) => { state.depuis = +v || 0; retrier(); });
+    // Région : filtrée par les sites qui indiquent le lieu du véhicule (Leboncoin, La Centrale, AutoScout24)
+    const REGIONS = [["", "Toute la France"], ["auvergne-rhone-alpes", "Auvergne-Rhône-Alpes"], ["bourgogne-franche-comte", "Bourgogne-Franche-Comté"],
+      ["bretagne", "Bretagne"], ["centre-val-de-loire", "Centre-Val de Loire"], ["corse", "Corse"], ["grand-est", "Grand Est"],
+      ["hauts-de-france", "Hauts-de-France"], ["ile-de-france", "Île-de-France"], ["normandie", "Normandie"],
+      ["nouvelle-aquitaine", "Nouvelle-Aquitaine"], ["occitanie", "Occitanie"], ["pays-de-la-loire", "Pays de la Loire"],
+      ["provence-alpes-cote-d-azur", "Provence-Alpes-Côte d'Azur"], ["outre-mer", "Outre-mer"]].map(([k, l]) => [k, l, ""]);
+    const peindreRegion = menuDeroulant($("#ddRegion"), REGIONS, () => state.region || "", (v) => {
+      state.region = v || "";
+      if (state.crit && $("#marque").value) lancer();
+    });
 
     // Recherche déjà lancée : tout changement de critère relance la recherche automatiquement
-    for (const id of ["modele", "prix_max", "km_max", "annee_min", "puissance_min"])
+    for (const id of ["modele", "prix_max", "km_max", "annee_min", "annee_max", "puissance_min", "puissance_max"])
       $("#" + id).addEventListener("change", () => { if (state.crit && $("#marque").value) lancer(); });
     $("#verifOnly").addEventListener("click", () => {
       state.verifOnly = !state.verifOnly; store.set("live.verifOnly", state.verifOnly ? "1" : "0");
@@ -643,7 +676,7 @@
       state.run++;                                   // annule les recherches en cours
       $("#form").reset(); $("#modele").innerHTML = `<option value="">Tous les modèles</option>`; $("#modele").disabled = true;
       state.opts.clear(); state.carbus.clear(); state.sources = new Set(Object.keys(CHIPS)); state.tri = "pertinence"; $("#tri").value = "pertinence";
-      state.depuis = 0; peindreDepuis();
+      state.depuis = 0; peindreDepuis(); state.region = ""; peindreRegion();
       if (location.hash === "#favoris") history.replaceState(null, "", location.pathname), afficherVue();
       Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: null }); viderRendu();
       history.replaceState(null, "", location.pathname);
@@ -684,8 +717,10 @@
       return {
         marque: $("#marque").value, marque_label: txt($("#marque")),
         modele: $("#modele").value, modele_label: txt($("#modele")),
-        prix_max: $("#prix_max").value, km_max: $("#km_max").value, annee_min: $("#annee_min").value, puissance_min: $("#puissance_min").value,
+        prix_max: $("#prix_max").value, km_max: $("#km_max").value, annee_min: $("#annee_min").value, annee_max: $("#annee_max").value,
+        puissance_min: $("#puissance_min").value, puissance_max: $("#puissance_max").value,
         options: [...state.opts].join(","), carburants: [...state.carbus].join(","),
+        ...(state.region ? { region: state.region } : {}),
       };
     }
     const sansAcc = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s*\(tous\)/i, "").trim();
@@ -696,7 +731,7 @@
       if (c.modele_label) p.set("text", sansAcc(c.modele_label));
       if (c.prix_max) p.set("price", `min-${c.prix_max}`);
       if (c.km_max) p.set("mileage", `min-${c.km_max}`);
-      if (c.annee_min) p.set("regdate", `${c.annee_min}-max`);
+      if (c.annee_min || c.annee_max) p.set("regdate", `${c.annee_min || "min"}-${c.annee_max || "max"}`);
       const fu = { Essence: "1", Diesel: "2", "Électrique": "4", Hybride: "6" };
       const f = (c.carburants || "").split(",").filter(x => fu[x]).map(x => fu[x]);
       if (f.length) p.set("fuel", f.join(","));
@@ -712,6 +747,7 @@
       if (c.prix_max) p.set("priceMax", c.prix_max);
       if (c.km_max) p.set("mileageMax", c.km_max);
       if (c.annee_min) p.set("yearMin", c.annee_min);
+      if (c.annee_max) p.set("yearMax", c.annee_max);
       return "https://www.lacentrale.fr/listing?" + p.toString();
     }
 
@@ -734,6 +770,13 @@
       renderBar();
       $("#resultats").scrollIntoView({ behavior: "smooth", block: "start" });
       for (const s of sourcesAInterroger()) chargerSource(s, run);
+      const nomRegion = (REGIONS.find(r => r[0] === state.region) || [])[1];
+      $("#noteRegion").classList.toggle("hidden", !state.region);
+      if (state.region) $("#noteRegion").textContent = `Région ${nomRegion} : seules les annonces situées dans la région sont affichées `
+        + `(celles dont le lieu n'est pas indiqué sont mises de côté). Plus de pages sont parcourues automatiquement sur chaque site.`;
+      const cleSuivi = [c.marque_label, c.modele_label, state.region].join("|");   // une seule fois par véhicule/région recherchés
+      if (cleSuivi !== state.dernierSuivi) { state.dernierSuivi = cleSuivi;
+        suivre("recherche", { marque: c.marque_label, modele: c.modele_label || "tous", region: state.region || "france" }); }
     }
 
     async function chargerSource(s, run) {
@@ -772,7 +815,8 @@
       st.charge = false; render(true); renderBar();
       if (d && d.a_verifier && d.a_verifier.length) lireFiches(s, d.a_verifier, run);
       // Options cochées : on continue automatiquement quelques pages tant qu'il y a peu de résultats
-      if (state.opts.size && st.suite && st.page < AUTO_PAGES && visibles().length < MIN_RESULTATS) chargerSource(s, run);
+      if ((state.opts.size || state.region || state.crit?.annee_max || state.crit?.puissance_max)
+          && st.suite && st.page < (state.region ? 6 : AUTO_PAGES) && visibles().length < MIN_RESULTATS) chargerSource(s, run);
     }
     // Fiches lues après affichage (sites qui bloquent les rafales, annonces d'origine via LeParking) :
     // les cartes se mettent à jour au fur et à mesure (description, options, merguez).
@@ -819,10 +863,14 @@
     }
     const plateformeOk = (a) => a.plateforme === "Leboncoin" ? state.sources.has("leboncoin")
       : a.plateforme === "La Centrale" ? state.sources.has("lacentrale") : true;
-    const puissanceOk = (a) => { const m = +(state.crit?.puissance_min || 0); return !m || (a.puissance_ch && a.puissance_ch >= m); };
+    const puissanceOk = (a) => {
+      const m = +(state.crit?.puissance_min || 0), M = +(state.crit?.puissance_max || 0);
+      return (!m && !M) || (a.puissance_ch && (!m || a.puissance_ch >= m) && (!M || a.puissance_ch <= M));
+    };
+    const anneeOk = (a) => { const M = +(state.crit?.annee_max || 0); return !M || !a.annee || a.annee <= M; };
     function visibles() {
       return state.annonces.filter(a => !(state.hideMerguez && a.merguez) && !(state.verifOnly && !a.verifiee) && assezRecente(a)
-        && optionsOk(a) && plateformeOk(a) && puissanceOk(a));
+        && optionsOk(a) && plateformeOk(a) && puissanceOk(a) && anneeOk(a));
     }
     function trier(list) {
       const n = (v, d) => (typeof v === "number" ? v : d);
@@ -917,7 +965,7 @@
     }
     function basculerFavori(a) {
       if (FAV[a.lien]) delete FAV[a.lien];
-      else { const f = {}; for (const k of CHAMPS_FAV) if (a[k] != null) f[k] = a[k]; f._ajoute = Date.now(); FAV[a.lien] = f; }
+      else { const f = {}; for (const k of CHAMPS_FAV) if (a[k] != null) f[k] = a[k]; f._ajoute = Date.now(); FAV[a.lien] = f; suivre("favori"); }
       sauverFavoris();
     }
     function majNbFavoris(bump) {
@@ -969,7 +1017,7 @@
       const cachees = state.annonces.length - nb, nm = state.annonces.filter(a => a.merguez).length;
       $("#nbAff").textContent = fmt.format(nb); $("#nbAffS").textContent = nb > 1 ? "s" : "";
       const sansDate = state.depuis ? state.annonces.filter(a => !a.date).length : 0;
-      const sansPuissance = state.crit?.puissance_min ? state.annonces.filter(a => !a.puissance_ch).length : 0;
+      const sansPuissance = (state.crit?.puissance_min || state.crit?.puissance_max) ? state.annonces.filter(a => !a.puissance_ch).length : 0;
       $("#resume").textContent = `${state.annonces.length} trouvée(s)` + (cachees ? ` · ${cachees} écartée(s)` : "") + (nm ? ` · ${nm} à risque` : "")
         + (sansDate ? ` · ${sansDate} sans date` : "") + (sansPuissance ? ` · ${sansPuissance} sans puissance connue` : "");
       const suite = Object.values(state.src).some(s => s.suite && !s.erreur);
@@ -1025,8 +1073,12 @@
       const puce = (txt, act) => `<button type="button" data-act="${act}" class="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1.5 text-xs text-zinc-200 ring-1 ring-inset ring-white/10 transition hover:bg-white/10 hover:ring-white/25">${txt}<span class="text-zinc-500">✕</span></button>`;
       if (state.opts.size) f.push(puce(`Options : ${[...state.opts].slice(0, 4).join(", ")}${state.opts.size > 4 ? "…" : ""}`, "opts"));
       if (state.carbus.size) f.push(puce(`Carburant : ${[...state.carbus].join(", ")}`, "carbus"));
+      if (state.region) f.push(puce(`Région : ${(REGIONS.find(r => r[0] === state.region) || [])[1]}`, "region"));
       if (state.depuis) f.push(puce(`Mises en ligne : ${DEPUIS.find(d => d[0] === String(state.depuis))[1].toLowerCase()}`, "depuis"));
-      if (c.puissance_min) f.push(puce(`Puissance ≥ ${c.puissance_min} ch`, "puissance"));
+      if (c.puissance_min || c.puissance_max) f.push(puce(c.puissance_min && c.puissance_max ? `Puissance ${c.puissance_min}–${c.puissance_max} ch`
+        : c.puissance_min ? `Puissance ≥ ${c.puissance_min} ch` : `Puissance ≤ ${c.puissance_max} ch`, "puissance"));
+      if (c.annee_min || c.annee_max) f.push(puce(c.annee_min && c.annee_max ? `Année ${c.annee_min}–${c.annee_max}`
+        : c.annee_min ? `Année ≥ ${c.annee_min}` : `Année ≤ ${c.annee_max}`, "annee"));
       if (state.verifOnly) f.push(puce("Seulement vérifiées", "verif"));
       if (state.hideMerguez && state.annonces.some(a => a.merguez)) f.push(puce("Véhicules à risque exclus", "risque"));
       const aucuneSurSites = !state.annonces.length;
@@ -1045,8 +1097,10 @@
       const act = b.dataset.act;
       if (act === "opts") { state.opts.clear(); renderChips(); return lancer(); }
       if (act === "carbus") { state.carbus.clear(); renderChips(); return lancer(); }
-      if (act === "puissance") { $("#puissance_min").value = ""; return lancer(); }
+      if (act === "puissance") { $("#puissance_min").value = $("#puissance_max").value = ""; return lancer(); }
+      if (act === "annee") { $("#annee_min").value = $("#annee_max").value = ""; return lancer(); }
       if (act === "depuis") { state.depuis = 0; peindreDepuis(); return retrier(); }
+      if (act === "region") { state.region = ""; peindreRegion(); return lancer(); }
       if (act === "verif") { state.verifOnly = false; store.set("live.verifOnly", "0"); }
       if (act === "risque") { state.hideMerguez = false; store.set("live.hideMerguez", "0"); }
       renderChips(); render(false);
@@ -1099,8 +1153,14 @@
       $("#annee").textContent = new Date().getFullYear();
     })();
 
+    $("#grid").addEventListener("click", (e) => {
+      const a = e.target.closest("a[href]"); if (!a) return;
+      const carte = a.closest("article"); const src = carte?.querySelector("[data-source]")?.textContent?.trim();
+      suivre("voir-annonce", { site: src || "?" });
+    });
     /* ---------- Partager la recherche (le lien contient tous les critères) ---------- */
     $("#partager").addEventListener("click", async () => {
+      suivre("partage");
       const lbl = $("#partager [data-lbl]"), url = location.href.split("#")[0];
       if (navigator.share && matchMedia("(pointer: coarse)").matches) {
         try { await navigator.share({ title: document.title, text: "Ma recherche de voiture d'occasion", url }); return; } catch { return; }
@@ -1130,10 +1190,11 @@
       state.opts = new Set([...state.opts].filter(o => OPTIONS[o])); renderChips();
       try { await chargerMarques(); }
       catch { $("#marque").innerHTML = `<option value="">Catalogue indisponible — le serveur tourne-t-il ?</option>`; return; }
+      if (p.get("region") && REGIONS.some(r => r[0] === p.get("region"))) { state.region = p.get("region"); peindreRegion(); }
       if (p.get("marque")) {
         $("#marque").value = p.get("marque");
         await chargerModeles(p.get("marque"), p.get("modele"));
-        for (const k of ["prix_max", "km_max", "annee_min", "puissance_min"]) if (p.get(k)) $("#" + k).value = p.get(k);
+        for (const k of ["prix_max", "km_max", "annee_min", "annee_max", "puissance_min", "puissance_max"]) if (p.get(k)) $("#" + k).value = p.get(k);
         lancer();
       }
     })();
