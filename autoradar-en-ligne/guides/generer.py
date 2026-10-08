@@ -52,6 +52,16 @@ def silhouette(carrosserie: str, couleur: str, uid: str, classe: str = "car") ->
             f'<path d="M24 64 L230 64" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>{w}</svg>')
 
 
+TAILLES = {   # largeur d'affichage de chaque type d'image (le navigateur choisit le bon fichier, écrans Retina compris)
+    "ph": "(max-width: 600px) 92vw, 300px", "ph-hero": "(max-width: 900px) 92vw, 540px", "ph-rang": "(max-width: 900px) 92vw, 230px",
+    "ph-gen": "150px", "ph-cred": "120px", "ph v0": "380px", "ph v1": "380px", "ph v2": "380px",
+}
+
+
+def srcset(cle: str) -> str:
+    return f"/guide/photo/480/{cle}.webp 480w, /guide/photo/800/{cle}.webp 800w, /guide/photo/{cle}.webp 1280w"
+
+
 def photo(cle: str, alt: str, classe: str = "ph", credit: bool = False, prioritaire: bool = False) -> str:
     """Photo d'une génération précise, avec crédit (licences Creative Commons : auteur + licence + lien)."""
     p = PHOTOS.get(cle)
@@ -60,7 +70,8 @@ def photo(cle: str, alt: str, classe: str = "ph", credit: bool = False, priorita
     charge = 'fetchpriority="high"' if prioritaire else 'loading="lazy"'
     leg = (f'<p class="credit">Photo : <a href="{e(p["page"])}" rel="noopener nofollow" target="_blank">{e(p["auteur"])}</a>, '
            f'<a href="{e(p["licence_url"])}" rel="noopener nofollow license" target="_blank">{e(p["licence"])}</a> · Wikimedia Commons</p>') if credit else ""
-    return (f'<figure class="{classe}"><img src="/guide/photo/{cle}.webp" alt="{e(alt)}" width="1280" height="740" {charge} decoding="async"'
+    return (f'<figure class="{classe}"><img src="/guide/photo/800/{cle}.webp" srcset="{srcset(cle)}" sizes="{TAILLES.get(classe, "100vw")}"'
+            f' alt="{e(alt)}" width="1280" height="740" {charge} decoding="async"'
             f' title="Photo : {e(p["auteur"])} ({e(p["licence"])}, Wikimedia Commons)"></figure>{leg}')
 
 
@@ -433,7 +444,7 @@ figure img{display:block;width:100%;height:100%;object-fit:cover}
 .avert a{color:var(--mut)}
 .carte-vis figure.ph{aspect-ratio:16/10;border-radius:0}
 .carte-mod .carte-vis{padding:0;background:none}
-.carte-mod:hover figure img{transform:scale(1.04)}figure img{transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.carte-mod figure img{transition:transform .5s cubic-bezier(.16,1,.3,1)}.carte-mod:hover figure img{transform:scale(1.04)}
 figure.ph-hero{aspect-ratio:16/10;border-radius:26px;box-shadow:0 30px 60px -25px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.06)}
 figure.ph-rang{aspect-ratio:16/10;border-radius:14px}
 .gens li.avec-ph{display:flex;gap:14px;align-items:flex-start}
