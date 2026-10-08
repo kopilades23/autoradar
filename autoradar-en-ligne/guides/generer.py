@@ -58,10 +58,10 @@ def photo(cle: str, alt: str, classe: str = "ph", credit: bool = False, priorita
     if not p:
         return ""
     charge = 'fetchpriority="high"' if prioritaire else 'loading="lazy"'
-    leg = (f'<figcaption>Photo : <a href="{e(p["page"])}" rel="noopener nofollow" target="_blank">{e(p["auteur"])}</a>, '
-           f'<a href="{e(p["licence_url"])}" rel="noopener nofollow license" target="_blank">{e(p["licence"])}</a></figcaption>') if credit else ""
-    return (f'<figure class="{classe}"><img src="/guide/photo/{cle}.webp" alt="{e(alt)}" width="900" height="520" {charge} decoding="async"'
-            f' title="Photo : {e(p["auteur"])} ({e(p["licence"])}, Wikimedia Commons)">{leg}</figure>')
+    leg = (f'<p class="credit">Photo : <a href="{e(p["page"])}" rel="noopener nofollow" target="_blank">{e(p["auteur"])}</a>, '
+           f'<a href="{e(p["licence_url"])}" rel="noopener nofollow license" target="_blank">{e(p["licence"])}</a> · Wikimedia Commons</p>') if credit else ""
+    return (f'<figure class="{classe}"><img src="/guide/photo/{cle}.webp" alt="{e(alt)}" width="1280" height="740" {charge} decoding="async"'
+            f' title="Photo : {e(p["auteur"])} ({e(p["licence"])}, Wikimedia Commons)"></figure>{leg}')
 
 
 # --------------------------------------------------------------------------- briques communes
@@ -205,7 +205,7 @@ def page_modele(m: dict) -> str:
     desc = f"{nom} d'occasion : quels moteurs choisir, pannes connues et points à vérifier avant d'acheter. Guide {MAJ_TEXTE[-4:]}."
     fil_html, fil_ld = fil(("Guide d'achat", "/guide/"), (nom, None))
     def gen(x):
-        vignette = photo(x[2], f"{m['marque']} {x[0]}", "ph-gen", credit=True) if len(x) > 2 else ""
+        vignette = photo(x[2], f"{m['marque']} {x[0]}", "ph-gen") if len(x) > 2 else ""
         return f'<li class="{"avec-ph" if vignette else ""}">{vignette}<div><b>{e(x[0])}</b><span>{e(x[1])}</span></div></li>'
     gens = "".join(gen(x) for x in m["generations"])
     ok = "".join(f'<li><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg><div><b>{e(a)}</b><p>{e(b)}</p></div></li>' for a, b in m["conseilles"])
@@ -294,7 +294,7 @@ def page_classement(c: dict) -> str:
         nom = f"{m['marque']} {m['modele']}"
         lignes.append(f"""<li class="rang" style="--c:{m['couleur']}">
           <span class="num">{i}</span>
-          <div class="rang-vis">{photo(cle_ph, f"{nom} – {version}", "ph-rang", credit=True, prioritaire=i == 1) or silhouette(m['carrosserie'], m['couleur'], f'r{i}')}</div>
+          <div class="rang-vis">{photo(cle_ph, f"{nom} – {version}", "ph-rang", prioritaire=i == 1) or silhouette(m['carrosserie'], m['couleur'], f'r{i}')}</div>
           <div class="rang-txt">
             <h2><a href="/guide/{slug}">{e(nom)}</a></h2>
             <p class="version">Version conseillée : <b>{e(version)}</b></p>
@@ -318,7 +318,8 @@ def page_classement(c: dict) -> str:
     </section>
     <ol class="classement">{''.join(lignes)}</ol>
     <p class="avert">Classement indicatif établi à partir de la réputation des modèles et de leurs moteurs. Les prix varient selon
-    l'année, le kilométrage et l'état : les boutons « Voir les annonces » affichent les offres réelles du moment.</p>
+    l'année, le kilométrage et l'état : les boutons « Voir les annonces » affichent les offres réelles du moment.
+    Photos : Wikimedia Commons, licences libres (<a href="/guide/credits-photos">crédits</a>).</p>
     <section class="bloc"><h2 class="h-sec">Autres classements</h2><div class="grille-cl">{autres}</div></section>
 """
     item_list = {"@context": "https://schema.org", "@type": "ItemList", "name": c["titre"], "itemListOrder": "https://schema.org/ItemListOrderAscending",
@@ -345,7 +346,8 @@ def page_index() -> str:
     cats = {}
     for m in MODELES:
         cats.setdefault({"citadine": "Citadines", "compacte": "Compactes", "suv": "SUV", "berline": "Familiales & électriques"}[m["carrosserie"]], []).append(m)
-    grilles = "".join(f'<h3 class="h-cat">{e(k)}</h3><div class="grille-mod">{"".join(carte_modele(m, f"{k[:2]}{i}") for i, m in enumerate(v))}</div>'
+    grilles = "".join(f'<h3 class="h-cat"><span>{e(k)}</span><small>{len(v)} modèle{"s" if len(v) > 1 else ""}</small></h3>'
+                      f'<div class="grille-mod">{"".join(carte_modele(m, f"{k[:2]}{i}") for i, m in enumerate(v))}</div>'
                       for k, v in cats.items())
     regles = [("Le moteur compte plus que le modèle", "Une même voiture peut être excellente ou à éviter selon sa motorisation : lisez la fiche avant d'acheter."),
               ("Exigez les factures", "Carnet tamponné, factures de distribution, de vidange : sans historique, négociez fort ou passez votre chemin."),
@@ -373,6 +375,7 @@ def page_index() -> str:
       <h2 class="h-sec">Fiches modèles</h2>
       <p class="sous">Générations, moteurs à privilégier, pannes connues : l'essentiel pour acheter sereinement.</p>
       {grilles}
+      <p class="avert">Photos : Wikimedia Commons, licences libres Creative Commons (<a href="/guide/credits-photos">crédits photos</a>).</p>
     </section>
 
     <section class="bloc deux">
@@ -426,23 +429,23 @@ h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
 /* Photos */
 figure.ph,figure.ph-hero,figure.ph-gen,figure.ph-rang,figure.ph-cred{margin:0;position:relative;overflow:hidden;background:#141418}
 figure img{display:block;width:100%;height:100%;object-fit:cover}
-figure figcaption{position:absolute;right:6px;bottom:6px;font-size:10.5px;line-height:1.2;padding:3px 7px;border-radius:7px;background:rgba(0,0,0,.6);color:#d4d4d8;max-width:90%}
-figure figcaption a{color:inherit;text-decoration:none}figure figcaption a:hover{text-decoration:underline}
+.credit{margin:8px 4px 0;font-size:11.5px;color:var(--dim);text-align:right}.credit a{color:inherit;text-decoration:none}.credit a:hover{color:#fff;text-decoration:underline}
+.avert a{color:var(--mut)}
 .carte-vis figure.ph{aspect-ratio:16/10;border-radius:0}
 .carte-mod .carte-vis{padding:0;background:none}
 .carte-mod:hover figure img{transform:scale(1.04)}figure img{transition:transform .5s cubic-bezier(.16,1,.3,1)}
 figure.ph-hero{aspect-ratio:16/10;border-radius:26px;box-shadow:0 30px 60px -25px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.06)}
 figure.ph-rang{aspect-ratio:16/10;border-radius:14px}
 .gens li.avec-ph{display:flex;gap:14px;align-items:flex-start}
-figure.ph-gen{flex:none;width:150px;aspect-ratio:16/10;border-radius:12px}figure.ph-gen figcaption{display:none}
+figure.ph-gen{flex:none;width:150px;aspect-ratio:16/10;border-radius:12px}
 .credits{list-style:none;padding:0;margin:24px 0;display:grid;gap:10px}
 .credits li{display:flex;gap:14px;align-items:center;padding:10px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
 figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.credits b{color:#fff;font-size:14px;word-break:break-word}.credits p{margin:2px 0 0;color:var(--mut);font-size:13px}
 /* Accueil du guide */
 .hero-guide{display:grid;grid-template-columns:1.25fr .75fr;gap:32px;align-items:center;padding:12px 0 24px}
 .vitrine{position:relative;min-height:360px}
-.vitrine figure{position:absolute;width:72%;aspect-ratio:16/10;border-radius:20px;box-shadow:0 24px 50px -20px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.08)}
-.vitrine .v0{top:0;right:0;transform:rotate(3deg)}.vitrine .v1{top:30%;left:0;z-index:2;transform:rotate(-2deg)}.vitrine .v2{top:58%;right:4%;transform:rotate(2deg)}
+.vitrine figure{position:absolute;width:70%;aspect-ratio:16/10;border-radius:20px;box-shadow:0 24px 50px -20px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.08)}
+.vitrine .v0{top:0;right:0}.vitrine .v1{top:28%;left:0;z-index:2}.vitrine .v2{top:56%;right:2%}
 .grille-cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .carte-cl{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;text-decoration:none;background:var(--card);border:1px solid var(--line);transition:border-color .2s,background .2s}
 .carte-cl:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 8%,transparent)}
@@ -450,7 +453,11 @@ figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.cred
 .carte-cl .ico svg{width:20px;height:20px}.cl-txt{display:flex;flex-direction:column;line-height:1.25;flex:1}.cl-txt b{color:#fff;font-weight:600}.cl-txt small{color:var(--dim);font-size:12px}
 .carte-cl .fl{width:16px;height:16px;color:var(--dim)}
 .bloc{margin:56px 0}.h-sec{font-size:clamp(1.4rem,3vw,1.9rem);margin:0 0 6px}.sous{color:var(--mut);margin:0 0 18px}
-.h-cat{font-family:"Geist Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:26px 0 10px;font-weight:500}
+.h-cat{display:flex;align-items:center;gap:14px;margin:40px 0 14px;font-size:clamp(1.25rem,2.4vw,1.6rem);font-weight:650;letter-spacing:-.02em;color:#fff}
+.h-cat span{display:inline-flex;align-items:center;gap:10px}
+.h-cat span::before{content:"";width:6px;height:1.1em;border-radius:3px;background:linear-gradient(180deg,#ff7a3d,#ff3d6e)}
+.h-cat small{font-size:12px;font-weight:500;letter-spacing:.02em;color:var(--mut);padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.h-cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .grille-mod{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .carte-mod{display:block;text-decoration:none;border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--line);transition:transform .25s,border-color .25s}
 .carte-mod:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--c) 50%,transparent)}
