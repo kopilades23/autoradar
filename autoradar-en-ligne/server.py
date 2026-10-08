@@ -59,7 +59,7 @@ REDIRECTION = os.environ.get("AUTORADAR_REDIRECTION") == "1"
 PHOTOS_GUIDE = Path(__file__).with_name("guides") / "photos.json"
 CACHE_PHOTOS = Path(tempfile.gettempdir()) / "labonneoccaz-photos"
 AGENT_PHOTOS = "LaBonneOccaz/1.0 (https://labonneoccaz.fr; contact@labonneoccaz.fr) python-urllib"
-VERSION_PHOTOS = "v2"   # à changer pour forcer le re-téléchargement des photos
+VERSION_PHOTOS = "v3"   # à changer pour forcer le re-téléchargement des photos
 _photos_meta: dict = {}
 
 
@@ -72,43 +72,60 @@ def _meta_photos() -> dict:
     return _photos_meta
 
 
-def photo_en_cache(cle: str) -> tuple[bytes, str] | None:
-    """Renvoie (octets, type) de la photo, en la téléchargeant et la réduisant (WebP ~900 px) la première fois."""
-    meta = _meta_photos().get(cle)
-    if not meta:
-        return None
-    CACHE_PHOTOS.mkdir(parents=True, exist_ok=True)
-    for ext, ctype in (("webp", "image/webp"), ("jpg", "image/jpeg")):
-        f = CACHE_PHOTOS / f"{cle}-{VERSION_PHOTOS}.{ext}"
-        if f.is_file() and f.stat().st_size > 1000:
-            return f.read_bytes(), ctype
+LARGEURS_PHOTOS = (480, 800, 1280)       # tailles servies (le navigateur choisit selon l'écran : srcset)
+
+
+def _source_photo(cle: str, meta: dict) -> bytes:
+    """Photo d'origine (1280 px, Wikimedia), téléchargée une seule fois."""
+    src = CACHE_PHOTOS / f"{cle}-source.jpg"
+    if src.is_file() and src.stat().st_size > 1000:
+        return src.read_bytes()
     req = urllib.request.Request(meta["img"], headers={"User-Agent": AGENT_PHOTOS})
     with urllib.request.urlopen(req, timeout=20) as r:
         brut = r.read()
-    donnees, ext, ctype = brut, "jpg", "image/jpeg"
-    try:
-        from PIL import Image
-        im = Image.open(io.BytesIO(brut)).convert("RGB")
-        im.thumbnail((1280, 1280))              # pas d'agrandissement : nette sur écrans haute définition
-        out = io.BytesIO()
-        im.save(out, "WEBP", quality=86, method=5)
-        donnees, ext, ctype = out.getvalue(), "webp", "image/webp"
-    except Exception:
-        pass                                   # Pillow absent : photo d'origine (960 px)
     tmp = CACHE_PHOTOS / f".{cle}.{os.getpid()}.{threading.get_ident()}"
+    tmp.write_bytes(brut)
+    tmp.replace(src)
+    return brut
+
+
+def photo_en_cache(cle: str, largeur: int = 1280) -> tuple[bytes, str] | None:
+    """Renvoie (octets, type) de la photo à la largeur demandée. La réduction est faite ici, avec un filtre
+    de haute qualité (Lanczos + légère accentuation) : une grande photo réduite par le navigateur paraît pixélisée."""
+    meta = _meta_photos().get(cle)
+    if not meta or largeur not in LARGEURS_PHOTOS:
+        return None
+    CACHE_PHOTOS.mkdir(parents=True, exist_ok=True)
+    f = CACHE_PHOTOS / f"{cle}-{largeur}-{VERSION_PHOTOS}.webp"
+    if f.is_file() and f.stat().st_size > 1000:
+        return f.read_bytes(), "image/webp"
+    brut = _source_photo(cle, meta)
+    try:
+        from PIL import Image, ImageFilter
+        im = Image.open(io.BytesIO(brut)).convert("RGB")
+        if im.width > largeur:
+            im = im.resize((largeur, round(im.height * largeur / im.width)), Image.LANCZOS)
+            im = im.filter(ImageFilter.UnsharpMask(radius=0.8, percent=60, threshold=2))
+        out = io.BytesIO()
+        im.save(out, "WEBP", quality=88, method=6)
+        donnees = out.getvalue()
+    except Exception:
+        return brut, "image/jpeg"              # Pillow absent : photo d'origine
+    tmp = CACHE_PHOTOS / f".{cle}-{largeur}.{os.getpid()}.{threading.get_ident()}"
     tmp.write_bytes(donnees)
-    tmp.replace(CACHE_PHOTOS / f"{cle}-{VERSION_PHOTOS}.{ext}")
-    return donnees, ctype
+    tmp.replace(f)
+    return donnees, "image/webp"
 
 
 def prechauffer_photos() -> None:
     """Au démarrage, en arrière-plan : récupère les photos pour que les visiteurs ne les attendent pas."""
     def tache():
         for cle in list(_meta_photos()):
-            try:
-                photo_en_cache(cle)
-            except Exception:
-                pass
+            for largeur in LARGEURS_PHOTOS:
+                try:
+                    photo_en_cache(cle, largeur)
+                except Exception:
+                    pass
             time.sleep(1.5)                    # doucement, pour Wikimedia
     threading.Thread(target=tache, daemon=True).start()
 
@@ -239,9 +256,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         # Guide d'achat : adresses propres (/guide/peugeot-208 -> peugeot-208.html) ; l'ancienne forme .html redirige
         chemin, _, requete = self.path.partition("?")
-        m = re.fullmatch(r"/guide/photo/([a-z0-9-]{2,40})\.webp", chemin)
+        m = re.fullmatch(r"/guide/photo/(?:(\d{3,4})/)?([a-z0-9-]{2,40})\.webp", chemin)
         if m:
-            return self._photo(m.group(1))
+            return self._photo(m.group(2), int(m.group(1) or 1280))
         if chemin.startswith("/guide/") and chemin.endswith(".html") and not chemin.endswith("/index.html"):
             self.send_response(301)
             self.send_header("Location", chemin[:-5] + (f"?{requete}" if requete else ""))
@@ -285,15 +302,15 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json({"erreur": type(e).__name__, "message": str(e)[:300]}, 500)
         return super().do_GET()
 
-    def _photo(self, cle: str):
+    def _photo(self, cle: str, largeur: int = 1280):
         meta = _meta_photos().get(cle)
-        if not meta:
+        if not meta or largeur not in LARGEURS_PHOTOS:
             self.send_response(404)
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
         try:
-            donnees, ctype = photo_en_cache(cle)
+            donnees, ctype = photo_en_cache(cle, largeur)
         except Exception:                       # téléchargement impossible : on renvoie vers la photo d'origine
             self.send_response(302)
             self.send_header("Location", meta["img"])
