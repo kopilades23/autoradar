@@ -72,7 +72,7 @@ def _meta_photos() -> dict:
     return _photos_meta
 
 
-LARGEURS_PHOTOS = (480, 800, 1280)       # tailles servies (le navigateur choisit selon l'écran : srcset)
+LARGEURS_PHOTOS = (240, 480, 800, 1280)       # tailles servies (le navigateur choisit selon l'écran : srcset)
 
 
 def _source_photo(cle: str, meta: dict) -> bytes:
