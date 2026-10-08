@@ -34,7 +34,7 @@ figure img{display:block;width:100%;height:100%;object-fit:cover}
 .avert a{color:var(--mut)}
 .carte-vis figure.ph{aspect-ratio:16/10;border-radius:0}
 .carte-mod .carte-vis{padding:0;background:none}
-.carte-mod:hover figure img{transform:scale(1.04)}figure img{transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.carte-mod figure img{transition:transform .5s cubic-bezier(.16,1,.3,1)}.carte-mod:hover figure img{transform:scale(1.04)}
 figure.ph-hero{aspect-ratio:16/10;border-radius:26px;box-shadow:0 30px 60px -25px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.06)}
 figure.ph-rang{aspect-ratio:16/10;border-radius:14px}
 .gens li.avec-ph{display:flex;gap:14px;align-items:flex-start}
