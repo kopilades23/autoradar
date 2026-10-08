@@ -1,3 +1,4 @@
 # Site (local ou en ligne) : requêtes directes, sans navigateur
 curl_cffi>=0.7
 selectolax>=0.4.10
+Pillow>=10

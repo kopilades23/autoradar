@@ -17,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from donnees import CLASSEMENTS, MAJ, MAJ_TEXTE, MODELES  # noqa: E402
 
 DOMAINE = "https://labonneoccaz.fr"
+# Photos libres de droits (Wikimedia Commons), servies par le site : /guide/photo/<cle>.webp
+PHOTOS = json.loads((Path(__file__).with_name("photos.json")).read_text(encoding="utf-8"))
 SORTIE = Path(__file__).resolve().parent.parent / "static" / "guide"
 PAR_SLUG = {m["slug"]: m for m in MODELES}
 e = html.escape
@@ -48,6 +50,18 @@ def silhouette(carrosserie: str, couleur: str, uid: str, classe: str = "car") ->
             f'<ellipse cx="125" cy="{94 if carrosserie == "suv" else 92}" rx="112" ry="6" fill="rgba(0,0,0,.45)"/>'
             f'{rails}<path d="{corps}" fill="url(#c{uid})"/>{v}'
             f'<path d="M24 64 L230 64" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>{w}</svg>')
+
+
+def photo(cle: str, alt: str, classe: str = "ph", credit: bool = False, prioritaire: bool = False) -> str:
+    """Photo d'une génération précise, avec crédit (licences Creative Commons : auteur + licence + lien)."""
+    p = PHOTOS.get(cle)
+    if not p:
+        return ""
+    charge = 'fetchpriority="high"' if prioritaire else 'loading="lazy"'
+    leg = (f'<figcaption>Photo : <a href="{e(p["page"])}" rel="noopener nofollow" target="_blank">{e(p["auteur"])}</a>, '
+           f'<a href="{e(p["licence_url"])}" rel="noopener nofollow license" target="_blank">{e(p["licence"])}</a></figcaption>') if credit else ""
+    return (f'<figure class="{classe}"><img src="/guide/photo/{cle}.webp" alt="{e(alt)}" width="900" height="520" {charge} decoding="async"'
+            f' title="Photo : {e(p["auteur"])} ({e(p["licence"])}, Wikimedia Commons)">{leg}</figure>')
 
 
 # --------------------------------------------------------------------------- briques communes
@@ -125,6 +139,7 @@ def page(chemin: str, titre: str, description: str, corps: str, jsonld: list, im
       <p class="titre-pied">Guides</p>
       {"".join(f'<a href="/guide/{c["slug"]}">{e(c["court"])}</a>' for c in CLASSEMENTS)}
       <a href="/guide/">Toutes les fiches modèles</a>
+      <a href="/guide/credits-photos">Crédits photos</a>
     </nav>
     <nav aria-label="Informations">
       <p class="titre-pied">Informations</p>
@@ -146,12 +161,12 @@ def fil(*etapes) -> tuple[str, dict]:
     return f'<nav class="fil" aria-label="Fil d\'Ariane">{visible}</nav>', ld
 
 
-def article_ld(titre: str, description: str, chemin: str) -> dict:
+def article_ld(titre: str, description: str, chemin: str, cle_photo: str = None) -> dict:
     org = {"@type": "Organization", "name": "La Bonne Occaz", "url": DOMAINE + "/",
            "logo": {"@type": "ImageObject", "url": DOMAINE + "/icone-512.png"}}
     return {"@context": "https://schema.org", "@type": "Article", "headline": titre, "description": description,
             "inLanguage": "fr-FR", "datePublished": MAJ, "dateModified": MAJ, "mainEntityOfPage": DOMAINE + chemin,
-            "image": DOMAINE + "/icone-512.png", "author": org, "publisher": org}
+            "image": DOMAINE + (f"/guide/photo/{cle_photo}.webp" if cle_photo else "/icone-512.png"), "author": org, "publisher": org}
 
 
 def faq_ld(faq: list) -> dict:
@@ -161,7 +176,7 @@ def faq_ld(faq: list) -> dict:
 
 def carte_modele(m: dict, uid: str) -> str:
     return f"""<a class="carte-mod" href="/guide/{m['slug']}" style="--c:{m['couleur']}">
-        <div class="carte-vis">{silhouette(m['carrosserie'], m['couleur'], uid)}</div>
+        <div class="carte-vis">{photo(m['photo'], f"{m['marque']} {m['modele']} d'occasion") or silhouette(m['carrosserie'], m['couleur'], uid)}</div>
         <div class="carte-txt"><p class="cat">{e(m['categorie'])}</p><h3>{e(m['marque'])} {e(m['modele'])}</h3>
         <p class="ligne">{fiabilite(m['fiabilite'])}<span>{e(m['budget'])}</span></p></div></a>"""
 
@@ -189,13 +204,16 @@ def page_modele(m: dict) -> str:
     titre = f"{nom} d'occasion : moteurs fiables et à éviter"
     desc = f"{nom} d'occasion : quels moteurs choisir, pannes connues et points à vérifier avant d'acheter. Guide {MAJ_TEXTE[-4:]}."
     fil_html, fil_ld = fil(("Guide d'achat", "/guide/"), (nom, None))
-    gens = "".join(f'<li><b>{e(g)}</b><span>{e(t)}</span></li>' for g, t in m["generations"])
+    def gen(x):
+        vignette = photo(x[2], f"{m['marque']} {x[0]}", "ph-gen", credit=True) if len(x) > 2 else ""
+        return f'<li class="{"avec-ph" if vignette else ""}">{vignette}<div><b>{e(x[0])}</b><span>{e(x[1])}</span></div></li>'
+    gens = "".join(gen(x) for x in m["generations"])
     ok = "".join(f'<li><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg><div><b>{e(a)}</b><p>{e(b)}</p></div></li>' for a, b in m["conseilles"])
     ko = "".join(f'<li><svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div><b>{e(a)}</b><p>{e(b)}</p></div></li>' for a, b in m["surveiller"])
     chk = "".join(f'<li>{e(v)}</li>' for v in m["verifier"])
     opts = "".join(f'<a class="puce" href="{e(url_recherche(m, options=[o]))}">{e(nom)} avec {e(o)}</a>' for o in m["options"])
     faq = "".join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in m["faq"])
-    dans = [c for c in CLASSEMENTS if any(s == m["slug"] for s, _, _ in c["liste"])]
+    dans = [c for c in CLASSEMENTS if any(x[0] == m["slug"] for x in c["liste"])]
     dans_html = "".join(carte_classement(c) for c in dans)
     proches = [x for x in MODELES if x["slug"] != m["slug"] and x["carrosserie"] == m["carrosserie"]][:4] or MODELES[:4]
     proches_html = "".join(carte_modele(x, f"p{i}") for i, x in enumerate(proches))
@@ -216,7 +234,7 @@ def page_modele(m: dict) -> str:
           <span class="note">Leboncoin, La Centrale, AutoScout24… en une recherche</span>
         </div>
       </div>
-      <div class="hero-vis">{silhouette(m['carrosserie'], m['couleur'], 'h', 'car big')}</div>
+      <div class="hero-vis">{photo(m['photo'], f"{nom} d'occasion", "ph-hero", credit=True, prioritaire=True) or silhouette(m['carrosserie'], m['couleur'], 'h', 'car big')}</div>
     </section>
 
     <div class="grille-art">
@@ -262,7 +280,8 @@ def page_modele(m: dict) -> str:
       <div class="grille-mod">{proches_html}</div>
     </section>
 """
-    return page(chemin, titre, desc, corps, [article_ld(titre, desc, chemin), fil_ld, faq_ld(m["faq"])])
+    return page(chemin, titre, desc, corps, [article_ld(titre, desc, chemin, m["photo"]), fil_ld, faq_ld(m["faq"])],
+                image=f"/guide/photo/{m['photo']}.webp")
 
 
 def page_classement(c: dict) -> str:
@@ -270,12 +289,12 @@ def page_classement(c: dict) -> str:
     titre = f"{c['titre']} ({MAJ_TEXTE[-4:]})"
     fil_html, fil_ld = fil(("Guide d'achat", "/guide/"), (c["court"], None))
     lignes = []
-    for i, (slug, version, pourquoi) in enumerate(c["liste"], 1):
+    for i, (slug, version, pourquoi, cle_ph) in enumerate(c["liste"], 1):
         m = PAR_SLUG[slug]
         nom = f"{m['marque']} {m['modele']}"
         lignes.append(f"""<li class="rang" style="--c:{m['couleur']}">
           <span class="num">{i}</span>
-          <div class="rang-vis">{silhouette(m['carrosserie'], m['couleur'], f'r{i}')}</div>
+          <div class="rang-vis">{photo(cle_ph, f"{nom} – {version}", "ph-rang", credit=True, prioritaire=i == 1) or silhouette(m['carrosserie'], m['couleur'], f'r{i}')}</div>
           <div class="rang-txt">
             <h2><a href="/guide/{slug}">{e(nom)}</a></h2>
             <p class="version">Version conseillée : <b>{e(version)}</b></p>
@@ -305,8 +324,9 @@ def page_classement(c: dict) -> str:
     item_list = {"@context": "https://schema.org", "@type": "ItemList", "name": c["titre"], "itemListOrder": "https://schema.org/ItemListOrderAscending",
                  "numberOfItems": len(c["liste"]), "itemListElement": [
                      {"@type": "ListItem", "position": i, "name": f"{PAR_SLUG[s]['marque']} {PAR_SLUG[s]['modele']} – {v}",
-                      "url": f"{DOMAINE}/guide/{s}"} for i, (s, v, _) in enumerate(c["liste"], 1)]}
-    return page(chemin, titre, c["description"], corps, [article_ld(titre, c["description"], chemin), fil_ld, item_list])
+                      "url": f"{DOMAINE}/guide/{s}", "image": f"{DOMAINE}/guide/photo/{ph}.webp"} for i, (s, v, _, ph) in enumerate(c["liste"], 1)]}
+    return page(chemin, titre, c["description"], corps, [article_ld(titre, c["description"], chemin, c["liste"][0][3]), fil_ld, item_list],
+                image=f"/guide/photo/{c['liste'][0][3]}.webp")
 
 
 FAQ_GUIDE = [
@@ -334,8 +354,8 @@ def page_index() -> str:
               ("Essayez à froid", "Un démarrage moteur froid révèle bruits de chaîne, fumées et voyants.")]
     regles_html = "".join(f'<li><span>{i}</span><div><b>{e(t)}</b><p>{e(d)}</p></div></li>' for i, (t, d) in enumerate(regles, 1))
     faq = "".join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in FAQ_GUIDE)
-    vitrine = "".join(silhouette(m["carrosserie"], m["couleur"], f"v{i}", f"car v{i}") for i, m in
-                      enumerate([PAR_SLUG["toyota-yaris"], PAR_SLUG["peugeot-3008"], PAR_SLUG["volkswagen-golf"]]))
+    vitrine = "".join(photo(k, alt, f"ph v{i}", prioritaire=True) for i, (k, alt) in
+                      enumerate([("yaris-4", "Toyota Yaris hybride"), ("3008-2", "Peugeot 3008"), ("golf-7", "Volkswagen Golf 7")]))
     corps = f"""
     {fil_html}
     <section class="hero-guide">
@@ -346,7 +366,7 @@ def page_index() -> str:
         Puis un clic pour voir toutes les annonces du moment, sur tous les sites.</p>
         <div class="grille-cl">{''.join(carte_classement(c) for c in CLASSEMENTS)}</div>
       </div>
-      <div class="vitrine" aria-hidden="true">{vitrine}</div>
+      <div class="vitrine">{vitrine}</div>
     </section>
 
     <section class="bloc">
@@ -375,7 +395,7 @@ def page_index() -> str:
 
 CSS = r"""
 :root{color-scheme:dark;--bg:#08080a;--fg:#e4e4e7;--mut:#a1a1aa;--dim:#71717a;--line:rgba(255,255,255,.08);--card:rgba(255,255,255,.03);--acc:#ff6a2b}
-*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;overflow-x:clip}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 "Geist",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
 a{color:inherit}
 .halo{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(60vmax 40vmax at 90% -10%,rgba(255,106,43,.14),transparent 60%),radial-gradient(50vmax 40vmax at -10% 10%,rgba(109,74,255,.10),transparent 60%)}
@@ -403,11 +423,26 @@ h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
 .fiab{display:inline-flex;gap:4px;vertical-align:middle}.fiab i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.14)}
 .fiab i.on{background:linear-gradient(135deg,#7ae38a,#2fbf71);box-shadow:0 0 8px rgba(80,220,130,.45)}
 .car{width:100%;height:auto;display:block}
+/* Photos */
+figure.ph,figure.ph-hero,figure.ph-gen,figure.ph-rang,figure.ph-cred{margin:0;position:relative;overflow:hidden;background:#141418}
+figure img{display:block;width:100%;height:100%;object-fit:cover}
+figure figcaption{position:absolute;right:6px;bottom:6px;font-size:10.5px;line-height:1.2;padding:3px 7px;border-radius:7px;background:rgba(0,0,0,.6);color:#d4d4d8;max-width:90%}
+figure figcaption a{color:inherit;text-decoration:none}figure figcaption a:hover{text-decoration:underline}
+.carte-vis figure.ph{aspect-ratio:16/10;border-radius:0}
+.carte-mod .carte-vis{padding:0;background:none}
+.carte-mod:hover figure img{transform:scale(1.04)}figure img{transition:transform .5s cubic-bezier(.16,1,.3,1)}
+figure.ph-hero{aspect-ratio:16/10;border-radius:26px;box-shadow:0 30px 60px -25px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.06)}
+figure.ph-rang{aspect-ratio:16/10;border-radius:14px}
+.gens li.avec-ph{display:flex;gap:14px;align-items:flex-start}
+figure.ph-gen{flex:none;width:150px;aspect-ratio:16/10;border-radius:12px}figure.ph-gen figcaption{display:none}
+.credits{list-style:none;padding:0;margin:24px 0;display:grid;gap:10px}
+.credits li{display:flex;gap:14px;align-items:center;padding:10px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.credits b{color:#fff;font-size:14px;word-break:break-word}.credits p{margin:2px 0 0;color:var(--mut);font-size:13px}
 /* Accueil du guide */
 .hero-guide{display:grid;grid-template-columns:1.25fr .75fr;gap:32px;align-items:center;padding:12px 0 24px}
-.vitrine{position:relative;min-height:320px}
-.vitrine .car{position:absolute;width:88%;filter:drop-shadow(0 20px 30px rgba(0,0,0,.5))}
-.vitrine .v0{top:0;left:12%;opacity:.55;transform:scale(.8)}.vitrine .v1{top:30%;left:0}.vitrine .v2{top:62%;left:16%;opacity:.8;transform:scale(.9)}
+.vitrine{position:relative;min-height:360px}
+.vitrine figure{position:absolute;width:72%;aspect-ratio:16/10;border-radius:20px;box-shadow:0 24px 50px -20px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.08)}
+.vitrine .v0{top:0;right:0;transform:rotate(3deg)}.vitrine .v1{top:30%;left:0;z-index:2;transform:rotate(-2deg)}.vitrine .v2{top:58%;right:4%;transform:rotate(2deg)}
 .grille-cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .carte-cl{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;text-decoration:none;background:var(--card);border:1px solid var(--line);transition:border-color .2s,background .2s}
 .carte-cl:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 8%,transparent)}
@@ -434,7 +469,8 @@ h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
 /* Fiche modèle */
 .hero-mod{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;padding:8px 0 10px}
 .hero-vis{position:relative;padding:20px}
-.hero-vis::before{content:"";position:absolute;inset:8% 0 0;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 35%,transparent),transparent);filter:blur(10px)}
+.hero-vis::before{content:"";position:absolute;inset:-6%;border-radius:40%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 30%,transparent),transparent);filter:blur(24px)}
+.hero-vis figure{position:relative}
 .hero-vis .car{position:relative;filter:drop-shadow(0 24px 30px rgba(0,0,0,.55))}
 .tuiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 22px}
 .tuiles div{padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
@@ -467,10 +503,10 @@ h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
 /* Classements */
 .hero-cl{padding:8px 0 10px;max-width:860px}.crit{margin-top:4px}
 .classement{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:14px}
-.rang{display:grid;grid-template-columns:54px 200px minmax(0,1fr) auto;gap:20px;align-items:center;padding:16px 20px;border-radius:22px;background:var(--card);border:1px solid var(--line)}
+.rang{display:grid;grid-template-columns:54px 230px minmax(0,1fr) auto;gap:20px;align-items:center;padding:16px 20px;border-radius:22px;background:var(--card);border:1px solid var(--line)}
 .rang:hover{border-color:color-mix(in srgb,var(--c) 45%,transparent)}
 .num{font-size:34px;font-weight:700;letter-spacing:-.04em;background:linear-gradient(180deg,#fff,#71717a);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center}
-.rang-vis{padding:8px;border-radius:16px;background:radial-gradient(80% 90% at 50% 100%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%)}
+.rang-vis{border-radius:14px}
 .rang-txt h2{margin:0 0 4px;font-size:1.3rem}.rang-txt h2 a{text-decoration:none}.rang-txt h2 a:hover{color:var(--acc)}
 .rang-txt p{margin:2px 0;color:var(--mut);font-size:15px}.version b{color:#fff;font-weight:600}
 .rang-act{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
@@ -479,14 +515,33 @@ h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
 .brand-pied{color:#fff;font-weight:600;font-size:16px;margin:0 0 6px}.titre-pied{color:#fff;font-weight:600;margin:0 0 6px}
 @media (max-width:900px){
   .hero-guide,.hero-mod,.grille-art,.deux{grid-template-columns:1fr}
-  .vitrine{display:none}.hero-vis{order:-1;max-width:420px;margin:0 auto;padding:0}
+  .vitrine{display:none}.hero-vis{order:-1;width:100%;max-width:560px;margin:0 auto;padding:0}.hero-vis::before{inset:0}
   .cote{position:static}.pied{grid-template-columns:1fr}
   .rang{grid-template-columns:40px minmax(0,1fr);gap:12px;padding:14px}
-  .rang-vis{grid-column:2;max-width:240px}.rang-txt{grid-column:1/-1}.rang-act{grid-column:1/-1;align-items:flex-start;flex-direction:row;gap:14px}
+  .rang-vis{grid-column:2;max-width:100%}.rang-txt{grid-column:1/-1}.rang-act{grid-column:1/-1;align-items:flex-start;flex-direction:row;gap:14px}
   .num{font-size:26px}
 }
 @media (max-width:560px){.tuiles{grid-template-columns:1fr 1fr}.tuiles .large{grid-column:1/-1}.hide-sm{display:none}}
 """
+
+
+def page_credits() -> str:
+    chemin = "/guide/credits-photos"
+    titre = "Crédits photos du guide d'achat"
+    desc = "Auteurs et licences des photos de voitures utilisées dans le guide d'achat La Bonne Occaz (Wikimedia Commons)."
+    fil_html, fil_ld = fil(("Guide d'achat", "/guide/"), ("Crédits photos", None))
+    lignes = "".join(f'<li>{photo(k, p["titre"], "ph-cred")}<div><b>{e(p["titre"].rsplit(".", 1)[0])}</b>'
+                     f'<p>Auteur : {e(p["auteur"])} · Licence : <a href="{e(p["licence_url"])}" rel="noopener license">{e(p["licence"])}</a> · '
+                     f'<a href="{e(p["page"])}" rel="noopener">Voir sur Wikimedia Commons</a></p></div></li>' for k, p in PHOTOS.items())
+    corps = f"""
+    {fil_html}
+    <section class="hero-cl"><p class="kicker">Crédits</p><h1>Crédits photos</h1>
+      <p class="lead">Les photos du guide proviennent de Wikimedia Commons et sont publiées sous licence libre Creative Commons
+      par leurs auteurs, que nous remercions. Elles sont affichées sans modification. Les marques et modèles cités appartiennent
+      à leurs constructeurs ; La Bonne Occaz n'est affilié à aucun d'eux.</p></section>
+    <ul class="credits">{lignes}</ul>
+"""
+    return page(chemin, titre, desc, corps, [fil_ld]).replace('<meta name="viewport"', '<meta name="robots" content="noindex, follow" />\n  <meta name="viewport"')
 
 
 def main() -> None:
@@ -497,7 +552,8 @@ def main() -> None:
         (SORTIE / f"{m['slug']}.html").write_text(page_modele(m), encoding="utf-8")
     for c in CLASSEMENTS:
         (SORTIE / f"{c['slug']}.html").write_text(page_classement(c), encoding="utf-8")
-    print(f"{len(MODELES) + len(CLASSEMENTS) + 1} pages écrites dans {SORTIE}")
+    (SORTIE / "credits-photos.html").write_text(page_credits(), encoding="utf-8")
+    print(f"{len(MODELES) + len(CLASSEMENTS) + 2} pages écrites dans {SORTIE}")
 
 
 if __name__ == "__main__":

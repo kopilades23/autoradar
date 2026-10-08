@@ -31,9 +31,13 @@ from __future__ import annotations
 import argparse
 import base64
 import hmac
+import io
 import json
 import os
+import re
+import tempfile
 import threading
+import urllib.request
 import time
 import webbrowser
 from collections import defaultdict, deque
@@ -51,6 +55,63 @@ PUBLIC = os.environ.get("AUTORADAR_PUBLIC") == "1"
 LIMITE_MINUTE = int(os.environ.get("AUTORADAR_LIMITE_MINUTE", "90"))
 DOMAINE = os.environ.get("AUTORADAR_DOMAINE", "labonneoccaz.fr").strip().lower()
 REDIRECTION = os.environ.get("AUTORADAR_REDIRECTION") == "1"
+# Photos du guide (Wikimedia Commons, licences libres) : téléchargées une fois, réduites, puis servies par le site
+PHOTOS_GUIDE = Path(__file__).with_name("guides") / "photos.json"
+CACHE_PHOTOS = Path(tempfile.gettempdir()) / "labonneoccaz-photos"
+AGENT_PHOTOS = "LaBonneOccaz/1.0 (https://labonneoccaz.fr; contact@labonneoccaz.fr) python-urllib"
+_photos_meta: dict = {}
+
+
+def _meta_photos() -> dict:
+    if not _photos_meta:
+        try:
+            _photos_meta.update(json.loads(PHOTOS_GUIDE.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+    return _photos_meta
+
+
+def photo_en_cache(cle: str) -> tuple[bytes, str] | None:
+    """Renvoie (octets, type) de la photo, en la téléchargeant et la réduisant (WebP ~900 px) la première fois."""
+    meta = _meta_photos().get(cle)
+    if not meta:
+        return None
+    CACHE_PHOTOS.mkdir(parents=True, exist_ok=True)
+    for ext, ctype in (("webp", "image/webp"), ("jpg", "image/jpeg")):
+        f = CACHE_PHOTOS / f"{cle}.{ext}"
+        if f.is_file() and f.stat().st_size > 1000:
+            return f.read_bytes(), ctype
+    req = urllib.request.Request(meta["img"], headers={"User-Agent": AGENT_PHOTOS})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        brut = r.read()
+    donnees, ext, ctype = brut, "jpg", "image/jpeg"
+    try:
+        from PIL import Image
+        im = Image.open(io.BytesIO(brut)).convert("RGB")
+        im.thumbnail((900, 900))
+        out = io.BytesIO()
+        im.save(out, "WEBP", quality=80, method=4)
+        donnees, ext, ctype = out.getvalue(), "webp", "image/webp"
+    except Exception:
+        pass                                   # Pillow absent : photo d'origine (960 px)
+    tmp = CACHE_PHOTOS / f".{cle}.{os.getpid()}.{threading.get_ident()}"
+    tmp.write_bytes(donnees)
+    tmp.replace(CACHE_PHOTOS / f"{cle}.{ext}")
+    return donnees, ctype
+
+
+def prechauffer_photos() -> None:
+    """Au démarrage, en arrière-plan : récupère les photos pour que les visiteurs ne les attendent pas."""
+    def tache():
+        for cle in list(_meta_photos()):
+            try:
+                photo_en_cache(cle)
+            except Exception:
+                pass
+            time.sleep(1.5)                    # doucement, pour Wikimedia
+    threading.Thread(target=tache, daemon=True).start()
+
+
 PAGES_PUBLIQUES = ["/", "/faq.html"]   # pages à référencer (les pages légales sont en noindex)
 _appels: dict[str, deque] = defaultdict(deque)
 _verrou = threading.Lock()
@@ -164,6 +225,8 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path == "/sitemap.xml" and self._officiel():
             pages = [(p, STATIC_DIR / (p.strip("/") or "index.html"), "1.0" if p == "/" else "0.5") for p in PAGES_PUBLIQUES]
             for f in sorted((STATIC_DIR / "guide").glob("*.html")):     # guide d'achat (pages statiques)
+                if f.stem == "credits-photos":
+                    continue
                 pages.append(("/guide/" if f.stem == "index" else f"/guide/{f.stem}", f, "0.9" if f.stem == "index" else "0.8"))
             jour = lambda f: time.strftime("%Y-%m-%d", time.gmtime(f.stat().st_mtime))
             urls = "".join(f"  <url><loc>https://{DOMAINE}{p}</loc><lastmod>{jour(f)}</lastmod>"
@@ -175,6 +238,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         # Guide d'achat : adresses propres (/guide/peugeot-208 -> peugeot-208.html) ; l'ancienne forme .html redirige
         chemin, _, requete = self.path.partition("?")
+        m = re.fullmatch(r"/guide/photo/([a-z0-9-]{2,40})\.webp", chemin)
+        if m:
+            return self._photo(m.group(1))
         if chemin.startswith("/guide/") and chemin.endswith(".html") and not chemin.endswith("/index.html"):
             self.send_response(301)
             self.send_header("Location", chemin[:-5] + (f"?{requete}" if requete else ""))
@@ -218,6 +284,28 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json({"erreur": type(e).__name__, "message": str(e)[:300]}, 500)
         return super().do_GET()
 
+    def _photo(self, cle: str):
+        meta = _meta_photos().get(cle)
+        if not meta:
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        try:
+            donnees, ctype = photo_en_cache(cle)
+        except Exception:                       # téléchargement impossible : on renvoie vers la photo d'origine
+            self.send_response(302)
+            self.send_header("Location", meta["img"])
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Cache-Control", "public, max-age=2592000, immutable")
+        self.send_header("Content-Length", str(len(donnees)))
+        self.end_headers()
+        self.wfile.write(donnees)
+
     def do_POST(self):
         if not self._autorise():      # lecture des fiches : non comptée (elle découle d'une recherche déjà comptée)
             return
@@ -256,6 +344,7 @@ def main() -> None:
     mode = "navigateur" if (args.navigateur or args.visible) else None
     MOTEUR = Moteur(visible=args.visible, mode=mode)
     MOTEUR.prechauffer()  # ouvre les onglets des sites en arrière-plan : 1re recherche plus rapide
+    prechauffer_photos()  # photos du guide d'achat
 
     url = f"http://localhost:{args.port}"
     server = ThreadingHTTPServer((args.hote, args.port), Handler)

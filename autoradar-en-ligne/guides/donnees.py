@@ -11,13 +11,13 @@ MAJ_TEXTE = "octobre 2026"
 # carrosserie : citadine | compacte | suv | berline  (choisit la silhouette dessinée)
 MODELES = [
     {
-        "slug": "peugeot-208", "marque": "Peugeot", "modele": "208", "marque_id": 55, "modele_cle": "m:20057",
+        "slug": "peugeot-208", "photo": "208-2", "marque": "Peugeot", "modele": "208", "marque_id": 55, "modele_cle": "m:20057",
         "carrosserie": "citadine", "couleur": "#ff6a2b", "categorie": "Citadine", "fiabilite": 3,
         "resume": "La citadine la plus vendue en France : agréable, bien équipée, mais un moteur essence à surveiller de près.",
         "budget": "5 000 à 20 000 €",
         "generations": [
-            ("208 I (2012-2019)", "Le gros du marché sous 10 000 €. Phase 2 à partir de 2015, plus moderne."),
-            ("208 II (2019-…)", "Nouveau style, intérieur i-Cockpit 3D, existe en électrique (e-208)."),
+            ("208 I (2012-2019)", "Le gros du marché sous 10 000 €. Phase 2 à partir de 2015, plus moderne.", "208-1"),
+            ("208 II (2019-…)", "Nouveau style, intérieur i-Cockpit 3D, existe en électrique (e-208).", "208-2"),
         ],
         "conseilles": [
             ("1.5 BlueHDi 100 (208 II) / 1.6 BlueHDi 75-100 (208 I)", "Diesels robustes et sobres, idéaux pour beaucoup de kilomètres."),
@@ -37,13 +37,13 @@ MODELES = [
                 ("La 208 est-elle fiable ?", "Globalement oui, à l'exception du 1.2 PureTech turbo dont la courroie de distribution s'use trop vite sur de nombreux exemplaires. Un entretien suivi et documenté est indispensable.")],
     },
     {
-        "slug": "renault-clio", "marque": "Renault", "modele": "Clio", "marque_id": 60, "modele_cle": "m:1961",
+        "slug": "renault-clio", "photo": "clio-5", "marque": "Renault", "modele": "Clio", "marque_id": 60, "modele_cle": "m:1961",
         "carrosserie": "citadine", "couleur": "#ffcf3d", "categorie": "Citadine", "fiabilite": 3,
         "resume": "Increvable en diesel, pratique et pas chère à entretenir : la référence des citadines d'occasion.",
         "budget": "4 000 à 20 000 €",
         "generations": [
-            ("Clio 4 (2012-2019)", "Très répandue, pièces bon marché, phase 2 en 2016."),
-            ("Clio 5 (2019-…)", "Intérieur nettement plus moderne, version hybride E-Tech très sobre."),
+            ("Clio 4 (2012-2019)", "Très répandue, pièces bon marché, phase 2 en 2016.", "clio-4"),
+            ("Clio 5 (2019-…)", "Intérieur nettement plus moderne, version hybride E-Tech très sobre.", "clio-5"),
         ],
         "conseilles": [
             ("1.5 dCi 75 / 90 (Clio 4) et 1.5 Blue dCi (Clio 5)", "Le diesel K9K est l'un des moteurs les plus éprouvés du marché."),
@@ -63,13 +63,13 @@ MODELES = [
                 ("Clio 4 ou Clio 5 ?", "La Clio 4 est imbattable sous 10 000 €. La Clio 5 apporte un intérieur plus moderne et l'hybride E-Tech, à partir d'environ 12 000 €.")],
     },
     {
-        "slug": "volkswagen-polo", "marque": "Volkswagen", "modele": "Polo", "marque_id": 74, "modele_cle": "m:2090",
+        "slug": "volkswagen-polo", "photo": "polo-6", "marque": "Volkswagen", "modele": "Polo", "marque_id": 74, "modele_cle": "m:2090",
         "carrosserie": "citadine", "couleur": "#5aa9ff", "categorie": "Citadine", "fiabilite": 4,
         "resume": "Une petite voiture de qualité allemande, solide et qui garde bien sa valeur.",
         "budget": "5 000 à 20 000 €",
         "generations": [
-            ("Polo 5 (2009-2017)", "Restylée en 2014 avec de nouveaux moteurs plus modernes."),
-            ("Polo 6 (2017-…)", "Plus spacieuse, plus technologique, très bonne finition."),
+            ("Polo 5 (2009-2017)", "Restylée en 2014 avec de nouveaux moteurs plus modernes.", "polo-5"),
+            ("Polo 6 (2017-…)", "Plus spacieuse, plus technologique, très bonne finition.", "polo-6"),
         ],
         "conseilles": [
             ("1.0 MPI 65 / 75 / 80", "Simple, fiable, parfait pour un jeune conducteur."),
@@ -87,13 +87,13 @@ MODELES = [
                 ("Quelle Polo pour un jeune permis ?", "Une Polo 1.0 MPI de 65 à 80 ch : assurance raisonnable et mécanique simple.")],
     },
     {
-        "slug": "toyota-yaris", "marque": "Toyota", "modele": "Yaris", "marque_id": 70, "modele_cle": "m:15663",
+        "slug": "toyota-yaris", "photo": "yaris-4", "marque": "Toyota", "modele": "Yaris", "marque_id": 70, "modele_cle": "m:15663",
         "carrosserie": "citadine", "couleur": "#ff4d6d", "categorie": "Citadine", "fiabilite": 5,
         "resume": "La championne de la fiabilité : l'hybride Toyota est réputé pour durer très longtemps avec peu de frais.",
         "budget": "6 000 à 22 000 €",
         "generations": [
-            ("Yaris 3 (2011-2020)", "Hybride 100 ch très répandue, souvent d'anciens taxis ou véhicules de flotte."),
-            ("Yaris 4 (2020-…)", "Nouvelle hybride 116 ch encore plus sobre, primée voiture de l'année 2021."),
+            ("Yaris 3 (2011-2020)", "Hybride 100 ch très répandue, souvent d'anciens taxis ou véhicules de flotte.", "yaris-3"),
+            ("Yaris 4 (2020-…)", "Nouvelle hybride 116 ch encore plus sobre, primée voiture de l'année 2021.", "yaris-4"),
         ],
         "conseilles": [
             ("1.5 Hybride 100 (Yaris 3)", "Boîte automatique sans embrayage, très peu d'usure, consommation basse en ville."),
@@ -111,13 +111,13 @@ MODELES = [
                 ("La Yaris convient-elle à un jeune conducteur ?", "Oui : faible puissance, assurance raisonnable et boîte automatique facile.")],
     },
     {
-        "slug": "dacia-sandero", "marque": "Dacia", "modele": "Sandero", "marque_id": 16360, "modele_cle": "m:19129",
+        "slug": "dacia-sandero", "photo": "sandero-3", "marque": "Dacia", "modele": "Sandero", "marque_id": 16360, "modele_cle": "m:19129",
         "carrosserie": "citadine", "couleur": "#7ad37a", "categorie": "Citadine", "fiabilite": 4,
         "resume": "La voiture neuve la moins chère de France, et une occasion simple, fiable et peu coûteuse.",
         "budget": "4 000 à 15 000 €",
         "generations": [
-            ("Sandero 2 (2012-2020)", "Mécanique Renault éprouvée, très bon rapport prix/place."),
-            ("Sandero 3 (2020-…)", "Plus moderne et mieux équipée, version GPL ECO-G économique."),
+            ("Sandero 2 (2012-2020)", "Mécanique Renault éprouvée, très bon rapport prix/place.", "sandero-2"),
+            ("Sandero 3 (2020-…)", "Plus moderne et mieux équipée, version GPL ECO-G économique.", "sandero-3"),
         ],
         "conseilles": [
             ("1.5 dCi 75 / 90", "Le diesel Renault, robuste et sobre."),
@@ -135,13 +135,13 @@ MODELES = [
                 ("Sandero GPL : bonne idée ?", "Oui si vous roulez beaucoup : le GPL coûte environ deux fois moins cher que l'essence au litre.")],
     },
     {
-        "slug": "citroen-c3", "marque": "Citroën", "modele": "C3", "marque_id": 21, "modele_cle": "m:18264",
+        "slug": "citroen-c3", "photo": "c3-3", "marque": "Citroën", "modele": "C3", "marque_id": 21, "modele_cle": "m:18264",
         "carrosserie": "citadine", "couleur": "#c58bff", "categorie": "Citadine", "fiabilite": 3,
         "resume": "Confortable et originale, mais qui partage les moteurs 1.2 PureTech de Peugeot.",
         "budget": "4 000 à 18 000 €",
         "generations": [
             ("C3 II (2009-2016)", "Pare-brise panoramique « Zénith », 1.4 HDi robuste."),
-            ("C3 III (2016-2024)", "Style original avec Airbump, suspension confortable."),
+            ("C3 III (2016-2024)", "Style original avec Airbump, suspension confortable.", "c3-3"),
         ],
         "conseilles": [
             ("1.6 / 1.5 BlueHDi", "Diesels sobres et durables."),
@@ -157,13 +157,13 @@ MODELES = [
         "faq": [("La Citroën C3 est-elle fiable ?", "Correcte en diesel et en 1.2 atmosphérique ; prudence avec le 1.2 PureTech turbo sans historique."),]
     },
     {
-        "slug": "volkswagen-golf", "marque": "Volkswagen", "modele": "Golf", "marque_id": 74, "modele_cle": "m:2084",
+        "slug": "volkswagen-golf", "photo": "golf-7", "marque": "Volkswagen", "modele": "Golf", "marque_id": 74, "modele_cle": "m:2084",
         "carrosserie": "compacte", "couleur": "#5aa9ff", "categorie": "Compacte", "fiabilite": 4,
         "resume": "La compacte de référence : polyvalente, bien finie et très demandée à la revente.",
         "budget": "7 000 à 30 000 €",
         "generations": [
-            ("Golf 7 (2012-2020)", "Considérée comme l'une des meilleures Golf ; restylage « 7.5 » en 2017."),
-            ("Golf 8 (2020-…)", "Plus connectée, mais quelques bugs logiciels signalés au lancement."),
+            ("Golf 7 (2012-2020)", "Considérée comme l'une des meilleures Golf ; restylage « 7.5 » en 2017.", "golf-7"),
+            ("Golf 8 (2020-…)", "Plus connectée, mais quelques bugs logiciels signalés au lancement.", "golf-8"),
         ],
         "conseilles": [
             ("1.6 TDI 110-115 / 2.0 TDI 150", "Diesels endurants, parfaits pour les gros rouleurs."),
@@ -181,12 +181,12 @@ MODELES = [
                 ("Quel moteur choisir sur une Golf 7 ?", "Le 1.6 TDI ou le 2.0 TDI pour rouler beaucoup, le 1.4 TSI ou 1.5 TSI en essence.")],
     },
     {
-        "slug": "peugeot-308", "marque": "Peugeot", "modele": "308", "marque_id": 55, "modele_cle": "m:19055",
+        "slug": "peugeot-308", "photo": "308-2", "marque": "Peugeot", "modele": "308", "marque_id": 55, "modele_cle": "m:19055",
         "carrosserie": "compacte", "couleur": "#ff6a2b", "categorie": "Compacte", "fiabilite": 3,
         "resume": "Une compacte élégante et confortable, à choisir de préférence en diesel.",
         "budget": "6 000 à 28 000 €",
         "generations": [
-            ("308 II (2013-2021)", "Élue voiture de l'année 2014, i-Cockpit et grand coffre."),
+            ("308 II (2013-2021)", "Élue voiture de l'année 2014, i-Cockpit et grand coffre.", "308-2"),
             ("308 III (2021-…)", "Plus haut de gamme, versions hybrides rechargeables."),
         ],
         "conseilles": [
@@ -203,13 +203,13 @@ MODELES = [
         "faq": [("Quelle 308 d'occasion choisir ?", "Une 308 II 1.5 BlueHDi 130 EAT8 : sobre, confortable et sans le souci de courroie du PureTech."),]
     },
     {
-        "slug": "renault-captur", "marque": "Renault", "modele": "Captur", "marque_id": 60, "modele_cle": "m:20235",
+        "slug": "renault-captur", "photo": "captur-2", "marque": "Renault", "modele": "Captur", "marque_id": 60, "modele_cle": "m:20235",
         "carrosserie": "suv", "couleur": "#ffcf3d", "categorie": "SUV urbain", "fiabilite": 3,
         "resume": "Le SUV urbain qui a lancé la mode : pratique, avec sa banquette coulissante.",
         "budget": "6 000 à 24 000 €",
         "generations": [
-            ("Captur I (2013-2019)", "Base de Clio 4, très répandu."),
-            ("Captur II (2019-…)", "Plus grand et mieux fini, hybride E-Tech."),
+            ("Captur I (2013-2019)", "Base de Clio 4, très répandu.", "captur-1"),
+            ("Captur II (2019-…)", "Plus grand et mieux fini, hybride E-Tech.", "captur-2"),
         ],
         "conseilles": [
             ("1.5 dCi 90 / 110", "Diesel fiable et sobre."),
@@ -225,13 +225,13 @@ MODELES = [
         "faq": [("Le Renault Captur est-il fiable ?", "Oui en 1.5 dCi et en 0.9 TCe ; évitez le 1.2 TCe 120 EDC des premières années.")],
     },
     {
-        "slug": "peugeot-2008", "marque": "Peugeot", "modele": "2008", "marque_id": 55, "modele_cle": "m:20237",
+        "slug": "peugeot-2008", "photo": "2008-2", "marque": "Peugeot", "modele": "2008", "marque_id": 55, "modele_cle": "m:20237",
         "carrosserie": "suv", "couleur": "#ff6a2b", "categorie": "SUV urbain", "fiabilite": 3,
         "resume": "Le SUV de la 208 : mêmes qualités, mêmes moteurs, donc mêmes précautions.",
         "budget": "7 000 à 26 000 €",
         "generations": [
             ("2008 I (2013-2019)", "Plus proche d'un break surélevé, Grip Control sur certaines versions."),
-            ("2008 II (2019-…)", "Vrai SUV au style affirmé, existe en électrique."),
+            ("2008 II (2019-…)", "Vrai SUV au style affirmé, existe en électrique.", "2008-2"),
         ],
         "conseilles": [
             ("1.5 BlueHDi 100 / 130", "Le choix serein."),
@@ -246,12 +246,12 @@ MODELES = [
         "faq": [("Peugeot 2008 : quel moteur choisir ?", "Le 1.5 BlueHDi en diesel, ou un 1.2 PureTech avec courroie récemment changée et factures.")],
     },
     {
-        "slug": "peugeot-3008", "marque": "Peugeot", "modele": "3008", "marque_id": 55, "modele_cle": "m:19217",
+        "slug": "peugeot-3008", "photo": "3008-2", "marque": "Peugeot", "modele": "3008", "marque_id": 55, "modele_cle": "m:19217",
         "carrosserie": "suv", "couleur": "#ff6a2b", "categorie": "SUV familial", "fiabilite": 3,
         "resume": "Un SUV familial très réussi en design et en présentation, à choisir en diesel de préférence.",
         "budget": "12 000 à 35 000 €",
         "generations": [
-            ("3008 II (2016-2023)", "Élu voiture de l'année 2017, énorme succès."),
+            ("3008 II (2016-2023)", "Élu voiture de l'année 2017, énorme succès.", "3008-2"),
             ("3008 III (2024-…)", "Nouvelle génération, encore rare en occasion."),
         ],
         "conseilles": [
@@ -268,13 +268,13 @@ MODELES = [
         "faq": [("Le Peugeot 3008 est-il fiable ?", "En 1.5 et 2.0 BlueHDi, globalement oui. Le 1.2 PureTech demande un historique d'entretien irréprochable.")],
     },
     {
-        "slug": "dacia-duster", "marque": "Dacia", "modele": "Duster", "marque_id": 16360, "modele_cle": "m:19264",
+        "slug": "dacia-duster", "photo": "duster-2", "marque": "Dacia", "modele": "Duster", "marque_id": 16360, "modele_cle": "m:19264",
         "carrosserie": "suv", "couleur": "#7ad37a", "categorie": "SUV", "fiabilite": 4,
         "resume": "Le SUV le plus malin du marché : spacieux, simple, et disponible en 4x4 à petit prix.",
         "budget": "7 000 à 22 000 €",
         "generations": [
             ("Duster I (2010-2017)", "Rustique mais très costaud."),
-            ("Duster II (2018-2024)", "Mieux fini et mieux équipé."),
+            ("Duster II (2018-2024)", "Mieux fini et mieux équipé.", "duster-2"),
         ],
         "conseilles": [
             ("1.5 dCi / Blue dCi 110-115 (4x2 ou 4x4)", "Robuste, idéal pour la campagne et le remorquage."),
@@ -289,12 +289,12 @@ MODELES = [
         "faq": [("Le Dacia Duster est-il fiable ?", "Oui, surtout en 1.5 dCi : mécanique Renault simple et éprouvée.")],
     },
     {
-        "slug": "toyota-c-hr", "marque": "Toyota", "modele": "C-HR", "marque_id": 70, "modele_cle": "m:74374",
+        "slug": "toyota-c-hr", "photo": "chr-1", "marque": "Toyota", "modele": "C-HR", "marque_id": 70, "modele_cle": "m:74374",
         "carrosserie": "suv", "couleur": "#ff4d6d", "categorie": "SUV hybride", "fiabilite": 5,
         "resume": "Un SUV au look audacieux avec la fiabilité hybride Toyota.",
         "budget": "14 000 à 30 000 €",
         "generations": [
-            ("C-HR I (2016-2023)", "Hybride 122 ch puis 184 ch à partir de 2019."),
+            ("C-HR I (2016-2023)", "Hybride 122 ch puis 184 ch à partir de 2019.", "chr-1"),
             ("C-HR II (2023-…)", "Nouvelle génération, encore chère en occasion."),
         ],
         "conseilles": [
@@ -309,12 +309,12 @@ MODELES = [
         "faq": [("Le Toyota C-HR hybride est-il fiable ?", "Oui, c'est l'un des SUV les plus fiables du marché.")],
     },
     {
-        "slug": "toyota-corolla", "marque": "Toyota", "modele": "Corolla", "marque_id": 70, "modele_cle": "m:2052",
+        "slug": "toyota-corolla", "photo": "corolla-12", "marque": "Toyota", "modele": "Corolla", "marque_id": 70, "modele_cle": "m:2052",
         "carrosserie": "compacte", "couleur": "#ff4d6d", "categorie": "Compacte hybride", "fiabilite": 5,
         "resume": "La compacte hybride la plus fiable, en berline 5 portes ou en break Touring Sports.",
         "budget": "15 000 à 30 000 €",
         "generations": [
-            ("Corolla 12 (2019-…)", "Remplace l'Auris ; hybride 122-140 ch ou 180-196 ch."),
+            ("Corolla 12 (2019-…)", "Remplace l'Auris ; hybride 122-140 ch ou 180-196 ch.", "corolla-12"),
         ],
         "conseilles": [
             ("1.8 Hybride 122 / 140", "Très sobre, parfaite au quotidien."),
@@ -328,13 +328,13 @@ MODELES = [
         "faq": [("Toyota Corolla hybride : bon achat d'occasion ?", "Oui : c'est l'une des compactes les plus fiables et économiques, avec une boîte automatique sans entretien particulier.")],
     },
     {
-        "slug": "skoda-octavia", "marque": "Skoda", "modele": "Octavia", "marque_id": 65, "modele_cle": "m:15222",
+        "slug": "skoda-octavia", "photo": "octavia-3", "marque": "Skoda", "modele": "Octavia", "marque_id": 65, "modele_cle": "m:15222",
         "carrosserie": "berline", "couleur": "#41d1b4", "categorie": "Familiale", "fiabilite": 4,
         "resume": "La familiale la plus rationnelle : un coffre géant et la mécanique Volkswagen.",
         "budget": "8 000 à 30 000 €",
         "generations": [
-            ("Octavia III (2013-2020)", "Très répandue, souvent en break Combi."),
-            ("Octavia IV (2020-…)", "Plus moderne, très bien équipée."),
+            ("Octavia III (2013-2020)", "Très répandue, souvent en break Combi.", "octavia-3"),
+            ("Octavia IV (2020-…)", "Plus moderne, très bien équipée.", "octavia-4"),
         ],
         "conseilles": [
             ("2.0 TDI 150 / 1.6 TDI 115", "Diesels endurants, parfaits pour les longs trajets."),
@@ -348,13 +348,13 @@ MODELES = [
         "faq": [("La Skoda Octavia est-elle fiable ?", "Oui, elle partage les moteurs éprouvés de la Golf avec plus d'espace et un prix plus bas.")],
     },
     {
-        "slug": "kia-sportage", "marque": "Kia", "modele": "Sportage", "marque_id": 39, "modele_cle": "m:1812",
+        "slug": "kia-sportage", "photo": "sportage-5", "marque": "Kia", "modele": "Sportage", "marque_id": 39, "modele_cle": "m:1812",
         "carrosserie": "suv", "couleur": "#ff8a4c", "categorie": "SUV familial", "fiabilite": 4,
         "resume": "Un SUV familial bien équipé, avec une garantie constructeur de 7 ans transmissible.",
         "budget": "12 000 à 32 000 €",
         "generations": [
-            ("Sportage IV (2016-2021)", "Spacieux et bien équipé."),
-            ("Sportage V (2022-…)", "Hybride et hybride rechargeable, intérieur très moderne."),
+            ("Sportage IV (2016-2021)", "Spacieux et bien équipé.", "sportage-4"),
+            ("Sportage V (2022-…)", "Hybride et hybride rechargeable, intérieur très moderne.", "sportage-5"),
         ],
         "conseilles": [
             ("1.6 CRDi 115 / 136", "Diesel sobre, souvent en hybridation légère."),
@@ -368,12 +368,12 @@ MODELES = [
         "faq": [("La garantie Kia est-elle transmissible ?", "Oui, la garantie constructeur de 7 ans se transmet en cas de revente, sous réserve d'un entretien conforme.")],
     },
     {
-        "slug": "tesla-model-3", "marque": "Tesla", "modele": "Model 3", "marque_id": 51520, "modele_cle": "m:74665",
+        "slug": "tesla-model-3", "photo": "model3", "marque": "Tesla", "modele": "Model 3", "marque_id": 51520, "modele_cle": "m:74665",
         "carrosserie": "berline", "couleur": "#e4e4e7", "categorie": "Électrique", "fiabilite": 4,
         "resume": "La berline électrique la plus vendue : grande autonomie, recharge rapide et coûts d'usage très bas.",
         "budget": "18 000 à 35 000 €",
         "generations": [
-            ("Model 3 (2019-2023)", "Versions Propulsion, Grande Autonomie et Performance."),
+            ("Model 3 (2019-2023)", "Versions Propulsion, Grande Autonomie et Performance.", "model3"),
             ("Model 3 « Highland » (2023-…)", "Restylée, plus silencieuse et mieux finie."),
         ],
         "conseilles": [
@@ -400,12 +400,12 @@ CLASSEMENTS = [
         "criteres": ["Puissance modérée (65 à 100 ch) pour une assurance raisonnable", "Bon niveau de sécurité (ESP, airbags, aides au freinage)", "Entretien simple et pièces bon marché", "Gabarit facile à garer"],
         "prix_max": 12000,
         "liste": [
-            ("toyota-yaris", "Yaris 3 Hybride 100", "Automatique, ultra fiable et sobre : la plus facile à vivre."),
-            ("renault-clio", "Clio 4 0.9 TCe 75-90 ou 1.5 dCi 75", "Économique à l'achat, à l'entretien et à l'assurance."),
-            ("volkswagen-polo", "Polo 1.0 MPI 65-80", "Solide, bien finie, mécanique très simple."),
-            ("dacia-sandero", "Sandero 2 1.0 SCe 75 ou 0.9 TCe 90", "Le meilleur rapport place/prix."),
-            ("peugeot-208", "208 1.2 PureTech 75-82 atmosphérique", "Agréable et bien équipée, sans le souci du moteur turbo."),
-            ("citroen-c3", "C3 1.2 PureTech 82", "Confortable et rassurante sur la route."),
+            ("toyota-yaris", "Yaris 3 Hybride 100 (2012-2020)", "Automatique, ultra fiable et sobre : la plus facile à vivre.", "yaris-3"),
+            ("renault-clio", "Clio 4 0.9 TCe 75-90 ou 1.5 dCi 75 (2012-2019)", "Économique à l'achat, à l'entretien et à l'assurance.", "clio-4"),
+            ("volkswagen-polo", "Polo 5 1.0 MPI 60-75 (2014-2017)", "Solide, bien finie, mécanique très simple.", "polo-5"),
+            ("dacia-sandero", "Sandero 2 1.0 SCe 75 ou 0.9 TCe 90 (2016-2020)", "Le meilleur rapport place/prix.", "sandero-2"),
+            ("peugeot-208", "208 I 1.2 PureTech 82 atmosphérique (2015-2019)", "Agréable et bien équipée, sans le souci du moteur turbo.", "208-1"),
+            ("citroen-c3", "C3 III 1.2 PureTech 82 (2016-2020)", "Confortable et rassurante sur la route.", "c3-3"),
         ],
     },
     {
@@ -416,13 +416,13 @@ CLASSEMENTS = [
         "criteres": ["Historique d'entretien complet", "Moteur réputé fiable (voir chaque fiche)", "Kilométrage cohérent avec l'âge (environ 15 000 km par an)", "Contrôle technique récent sans défaut majeur"],
         "prix_max": 10000,
         "liste": [
-            ("toyota-yaris", "Yaris 3 Hybride (2013-2017)", "La plus fiable de la sélection."),
-            ("renault-clio", "Clio 4 1.5 dCi (2014-2018)", "Increvable et économique."),
-            ("volkswagen-polo", "Polo 5 1.0 / 1.2 TSI phase 2 (2014-2017)", "Qualité allemande à petit prix."),
-            ("dacia-sandero", "Sandero 2 (2016-2020)", "Spacieuse et quasi neuve pour le prix."),
-            ("peugeot-208", "208 I 1.6 BlueHDi (2015-2018)", "Le diesel évite le souci du PureTech."),
-            ("volkswagen-golf", "Golf 7 1.6 TDI (2013-2016, kilométrage élevé)", "Une compacte de qualité si l'entretien suit."),
-            ("renault-captur", "Captur I 1.5 dCi (2014-2017)", "Un SUV urbain à prix de citadine."),
+            ("toyota-yaris", "Yaris 3 Hybride 100 (2013-2017)", "La plus fiable de la sélection.", "yaris-3"),
+            ("renault-clio", "Clio 4 1.5 dCi 75-90 (2014-2018)", "Increvable et économique.", "clio-4"),
+            ("volkswagen-polo", "Polo 5 1.0 MPI / 1.2 TSI (2014-2017)", "Qualité allemande à petit prix.", "polo-5"),
+            ("dacia-sandero", "Sandero 2 0.9 TCe 90 / 1.5 dCi (2016-2020)", "Spacieuse et quasi neuve pour le prix.", "sandero-2"),
+            ("peugeot-208", "208 I 1.6 BlueHDi 75-100 (2015-2018)", "Le diesel évite le souci du PureTech.", "208-1"),
+            ("volkswagen-golf", "Golf 7 1.6 TDI 105-110 (2013-2016, kilométrage élevé)", "Une compacte de qualité si l'entretien suit.", "golf-7"),
+            ("renault-captur", "Captur I 1.5 dCi 90 (2014-2017)", "Un SUV urbain à prix de citadine.", "captur-1"),
         ],
     },
     {
@@ -433,13 +433,13 @@ CLASSEMENTS = [
         "criteres": ["Garantie constructeur restante", "Équipements récents (aides à la conduite, CarPlay)", "Motorisation adaptée à votre kilométrage annuel"],
         "prix_max": 20000,
         "liste": [
-            ("toyota-c-hr", "C-HR 1.8 Hybride", "SUV hybride ultra fiable."),
-            ("toyota-corolla", "Corolla 1.8 Hybride (2019-2021)", "La compacte la plus sereine."),
-            ("volkswagen-golf", "Golf 7.5 1.5 TSI / 2.0 TDI", "La valeur sûre."),
-            ("skoda-octavia", "Octavia III Combi 2.0 TDI", "La familiale la plus spacieuse."),
-            ("peugeot-3008", "3008 II 1.5 BlueHDi 130", "Le SUV familial le plus séduisant."),
-            ("dacia-duster", "Duster II 1.5 Blue dCi 115", "Rustique, malin, 4x4 possible."),
-            ("renault-clio", "Clio 5 E-Tech hybride", "Citadine hybride récente et sobre."),
+            ("toyota-c-hr", "C-HR I 1.8 Hybride 122 (2017-2020)", "SUV hybride ultra fiable.", "chr-1"),
+            ("toyota-corolla", "Corolla 1.8 Hybride 122 (2019-2021)", "La compacte la plus sereine.", "corolla-12"),
+            ("volkswagen-golf", "Golf 7 1.4 TSI / 2.0 TDI (2015-2019)", "La valeur sûre.", "golf-7"),
+            ("skoda-octavia", "Octavia III Combi 2.0 TDI 150 (2017-2020)", "La familiale la plus spacieuse.", "octavia-3"),
+            ("peugeot-3008", "3008 II 1.5 BlueHDi 130 (2018-2020)", "Le SUV familial le plus séduisant.", "3008-2"),
+            ("dacia-duster", "Duster II 1.5 Blue dCi 115 (2018-2022)", "Rustique, malin, 4x4 possible.", "duster-2"),
+            ("renault-clio", "Clio 5 E-Tech hybride 140 (2020-2022)", "Citadine hybride récente et sobre.", "clio-5"),
         ],
     },
     {
@@ -450,12 +450,12 @@ CLASSEMENTS = [
         "criteres": ["Garantie restante (constructeur ou batterie)", "Coût d'usage : électrique et hybride font de grosses économies", "Équipements de confort et de sécurité récents"],
         "prix_max": 30000,
         "liste": [
-            ("tesla-model-3", "Model 3 Grande Autonomie", "Électrique de référence, coût d'usage très bas."),
-            ("kia-sportage", "Sportage V hybride", "SUV familial avec garantie 7 ans transmissible."),
-            ("toyota-corolla", "Corolla 2.0 Hybride récente", "Fiabilité et sobriété."),
-            ("peugeot-3008", "3008 II restylé 1.5 BlueHDi EAT8", "Très bien équipé."),
-            ("skoda-octavia", "Octavia IV", "Espace et technologie."),
-            ("volkswagen-golf", "Golf 8", "La compacte la plus aboutie."),
+            ("tesla-model-3", "Model 3 Grande Autonomie (2019-2022)", "Électrique de référence, coût d'usage très bas.", "model3"),
+            ("kia-sportage", "Sportage V 1.6 T-GDi Hybride (2022-…)", "SUV familial avec garantie 7 ans transmissible.", "sportage-5"),
+            ("toyota-corolla", "Corolla 2.0 Hybride 180-196 (2020-…)", "Fiabilité et sobriété.", "corolla-12"),
+            ("peugeot-3008", "3008 II 1.5 BlueHDi 130 EAT8 (2018-2020)", "Très bien équipé.", "3008-2"),
+            ("skoda-octavia", "Octavia IV Combi 1.5 TSI / 2.0 TDI (2020-…)", "Espace et technologie.", "octavia-4"),
+            ("volkswagen-golf", "Golf 8 1.5 TSI / 2.0 TDI (2020-…)", "La compacte la plus aboutie.", "golf-8"),
         ],
     },
     {
@@ -466,13 +466,13 @@ CLASSEMENTS = [
         "criteres": ["Moteurs simples et éprouvés", "Peu de pannes connues", "Entretien régulier et documenté"],
         "prix_max": None,
         "liste": [
-            ("toyota-yaris", "Yaris Hybride", "Une référence absolue de fiabilité."),
-            ("toyota-corolla", "Corolla Hybride", "Même technologie, en compacte."),
-            ("toyota-c-hr", "C-HR Hybride", "La fiabilité Toyota en SUV."),
-            ("dacia-duster", "Duster 1.5 dCi", "Mécanique simple et robuste."),
-            ("volkswagen-polo", "Polo 1.0 MPI / TSI", "Petite, solide, durable."),
-            ("skoda-octavia", "Octavia 2.0 TDI", "Endurante, idéale gros rouleurs."),
-            ("renault-clio", "Clio 4 1.5 dCi", "Le diesel K9K est quasi increvable."),
+            ("toyota-yaris", "Yaris 4 Hybride 116 (2020-…)", "Une référence absolue de fiabilité.", "yaris-4"),
+            ("toyota-corolla", "Corolla 12 Hybride (2019-…)", "Même technologie, en compacte.", "corolla-12"),
+            ("toyota-c-hr", "C-HR I Hybride (2016-2023)", "La fiabilité Toyota en SUV.", "chr-1"),
+            ("dacia-duster", "Duster II 1.5 Blue dCi (2018-2024)", "Mécanique simple et robuste.", "duster-2"),
+            ("volkswagen-polo", "Polo 6 1.0 MPI / 1.0 TSI (2017-…)", "Petite, solide, durable.", "polo-6"),
+            ("skoda-octavia", "Octavia III 2.0 TDI (2013-2020)", "Endurante, idéale gros rouleurs.", "octavia-3"),
+            ("renault-clio", "Clio 4 1.5 dCi (2012-2019)", "Le diesel K9K est quasi increvable.", "clio-4"),
         ],
     },
 ]
