@@ -241,6 +241,44 @@
     }
   </style>
   <style>
+    /* ---------- Flux d'annonces (hero) ---------- */
+    .flux { position: relative; width: 100%; max-width: 440px; border-radius: 1.25rem; border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(20,20,24,.92), rgba(12,12,15,.92)); box-shadow: 0 30px 80px -40px rgba(255,106,43,.35), 0 1px 0 rgba(255,255,255,.05) inset;
+      padding: .6rem .6rem .35rem; }
+    .flux::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+      background: linear-gradient(140deg, rgba(255,138,76,.45), transparent 35%, transparent 70%, rgba(109,74,255,.35));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+    .flux-tete { display: flex; align-items: center; justify-content: space-between; padding: .15rem .35rem .55rem;
+      font: 500 10.5px/1 var(--font-mono, monospace); letter-spacing: .14em; text-transform: uppercase; color: #71717a; }
+    .flux-live { display: inline-flex; align-items: center; gap: .45rem; color: #4ade80; }
+    .flux-live i { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,.55); animation: flux-ping 2.2s ease-out infinite; }
+    @keyframes flux-ping { 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+    .flux-nb { color: #e4e4e7; font-variant-numeric: tabular-nums; }
+    .flux-liste { --h: 58px; height: calc(3 * var(--h) + 2 * 6px); overflow: hidden; margin: 0; padding: 0; list-style: none;
+      mask-image: linear-gradient(180deg, #000 78%, transparent); -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent); }
+    .fr { display: grid; grid-template-rows: 1fr; opacity: 1; margin-bottom: 6px;
+      transition: grid-template-rows .55s cubic-bezier(.16,1,.3,1), opacity .45s ease, margin .55s cubic-bezier(.16,1,.3,1); }
+    .fr.ferme { grid-template-rows: 0fr; opacity: 0; margin-bottom: 0; }
+    .fr-in { position: relative; min-height: 0; overflow: hidden; display: flex; align-items: center; gap: .7rem; height: var(--h);
+      padding: 0 .55rem 0 .4rem; border-radius: .9rem; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.05);
+      transition: background .6s, border-color .6s; }
+    .fr.neuf .fr-in { background: rgba(255,106,43,.09); border-color: rgba(255,138,76,.28); }
+    .fr-img { width: 64px; height: 44px; flex: none; border-radius: .55rem; object-fit: cover; background: #1c1c21; }
+    .fr-txt { min-width: 0; flex: 1; }
+    .fr-t { margin: 0; font-size: 13.5px; font-weight: 600; color: #f4f4f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
+    .fr-m { margin: .15rem 0 0; font-size: 11.5px; color: #71717a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fr-d { flex: none; text-align: right; }
+    .fr-p { margin: 0; font-size: 13.5px; font-weight: 650; color: #fff; font-variant-numeric: tabular-nums; }
+    .fr-s { display: inline-block; margin-top: .2rem; padding: 1px 6px; border-radius: 6px; font-size: 10.5px; color: #a1a1aa; background: rgba(255,255,255,.06); }
+    .fr-s.alerte { color: #fca5a5; background: rgba(239,68,68,.16); }
+    .fr-cache { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .45rem; border-radius: inherit;
+      font-size: 12.5px; font-weight: 600; color: #fecaca; background: rgba(36,9,11,.93); opacity: 0; transition: opacity .35s; }
+    .fr.masquee .fr-in { border-color: rgba(239,68,68,.4); }
+    .fr.masquee .fr-cache { opacity: 1; }
+    @media (max-width: 420px) { .fr-v { display: none; } .fr-img { width: 56px; height: 40px; } .fr-in { gap: .6rem; } }
+    @media (prefers-reduced-motion: reduce) { .flux-live i { animation: none; } }
+  </style>
+  <style>
     .field { width: 100%; border-radius: .9rem; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
       padding: .7rem .85rem; font-size: .875rem; color: #f4f4f5; outline: none; transition: border-color .3s, background .3s, box-shadow .3s; }
     .field:focus { border-color: rgba(255,106,43,.55); background: rgba(255,255,255,.06); box-shadow: 0 0 0 4px rgba(255,106,43,.12); }
@@ -303,13 +341,19 @@
       <p class="reveal relative mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[.26em] text-zinc-400" style="--d:120ms">
         <span class="h-px w-10 bg-gradient-to-r from-accent to-transparent"></span><span class="sm:hidden">Comparateur d'occasions</span><span class="hidden sm:inline">Comparateur d'annonces automobiles</span>
       </p>
-      <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
-      <p class="reveal relative mt-5 max-w-2xl text-lg text-zinc-400" style="--d:650ms">
-        Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu, Auto-Sélection, Renew, Autosphere et des centaines de concessions,
-        interrogés en direct. Les annonces douteuses sont repérées pour vous.
-      </p>
+      <div class="relative grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
+        <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
+        <!-- Flux d'annonces animé : montre le principe (tous les sites, annonces à risque écartées) -->
+        <div class="flux reveal" style="--d:650ms" aria-hidden="true">
+          <div class="flux-tete">
+            <span class="flux-live"><i></i>En direct</span>
+            <span><span class="flux-nb" id="fluxNb">0</span> annonces · 8 sites</span>
+          </div>
+          <ul class="flux-liste" id="fluxListe"></ul>
+        </div>
+      </div>
 
-      <form id="form" class="reveal relative z-20 mt-10 rounded-3xl border border-white/10 bg-[#0c0c0f]/90 p-4 sm:p-5" style="--d:800ms" autocomplete="off">
+      <form id="form" class="reveal relative z-20 mt-8 rounded-3xl sm:mt-10 border border-white/10 bg-[#0c0c0f]/90 p-4 sm:p-5" style="--d:800ms" autocomplete="off">
         <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-[1.45fr_1.45fr_1fr_1fr_1.3fr_1.3fr_auto]">
           <label class="col-span-2 md:col-span-1"><span class="lbl">Marque</span>
             <select id="marque" class="field" required><option value="">Chargement…</option></select></label>
@@ -409,6 +453,8 @@
       <div id="comment" class="scroll-mt-28 pt-16">
         <p class="font-mono text-[11px] uppercase tracking-[.22em] text-accent">Comment ça marche</p>
         <h2 class="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Une recherche, tous les sites, sans les mauvaises surprises.</h2>
+        <p class="mt-4 max-w-2xl text-zinc-400">Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu, Auto-Sélection, Renew, Autosphere et des centaines de concessions
+          sont interrogés en direct. Les annonces douteuses sont repérées pour vous.</p>
         <div class="mt-10 grid gap-4 sm:grid-cols-3">
           <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
             <span class="grid size-9 place-items-center rounded-xl bg-accent/15 text-accent"><svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
@@ -592,6 +638,68 @@
         const shine = w.startsWith("<s>"), txt = w.replace(/<\/?s>/g, "");
         return `<span class="inline-block overflow-hidden pb-2 align-bottom"><span class="word" style="--d:${200 + i * 90}ms">${shine ? `<span class="shimmer-text">${txt}</span>` : txt}</span></span>`;
       }).join(" ");
+    })();
+
+    /* ---------- Flux d'annonces du hero (démonstration) ---------- */
+    (function fluxAnnonces() {
+      const liste = $("#fluxListe"); if (!liste) return;
+      const A = [
+        ["208-2", "Peugeot 208 PureTech 100", "2021 · 34 000 km|Lyon", "15 490 €", "AutoScout24"],
+        ["clio-5", "Renault Clio 5 TCe 90", "2020 · 41 500 km|Nantes", "13 290 €", "La Centrale"],
+        ["golf-7", "Volkswagen Golf 7 TSI", "2018 · 78 000 km|Lille", "16 900 €", "L'argus"],
+        ["3008-2", "Peugeot 3008 PureTech", "2019 · 92 000 km|Toulouse", "9 800 €", "Moteur HS"],
+        ["yaris-4", "Toyota Yaris Hybride", "2021 · 29 000 km|Bordeaux", "17 450 €", "Autosphere"],
+        ["sandero-3", "Dacia Sandero Stepway", "2022 · 18 000 km|Rennes", "12 990 €", "ParuVendu"],
+        ["captur-2", "Renault Captur TCe 140", "2021 · 45 000 km|Strasbourg", "18 490 €", "Renew"],
+        ["chr-1", "Toyota C-HR Hybride", "2019 · 61 000 km|Montpellier", "19 990 €", "Leboncoin"],
+        ["polo-6", "Volkswagen Polo TSI 95", "2019 · 64 000 km|Marseille", "4 500 €", "Accidentée"],
+        ["octavia-4", "Skoda Octavia TDI", "2020 · 96 000 km|Nancy", "17 900 €", "Auto-Sélection"],
+        ["sportage-5", "Kia Sportage T-GDi", "2022 · 32 000 km|Dijon", "24 900 €", "La Centrale"],
+        ["c3-3", "Citroën C3 PureTech 83", "2020 · 39 000 km|Reims", "10 990 €", "Leboncoin"],
+        ["model3", "Tesla Model 3", "2021 · 58 000 km|Paris", "26 900 €", "AutoScout24"],
+      ];
+      const RISQUE = new Set(["Moteur HS", "Accidentée"]);
+      const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      const ligne = ([img, t, m, p, s]) => {
+        const li = document.createElement("li"); li.className = "fr";
+        const r = RISQUE.has(s);
+        li.innerHTML = `<div class="fr-in"><img class="fr-img" src="/guide/photo/240/${img}.webp" width="64" height="44" alt="" decoding="async">`
+          + `<div class="fr-txt"><p class="fr-t">${esc(t)}</p><p class="fr-m">${esc(m.split("|")[0])}<span class="fr-v"> · ${esc(m.split("|")[1])}</span></p></div>`
+          + `<div class="fr-d"><p class="fr-p">${p}</p><span class="fr-s${r ? " alerte" : ""}">${esc(s)}</span></div>`
+          + (r ? `<div class="fr-cache"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Annonce à risque écartée</div>` : "") + `</div>`;
+        if (r) li.dataset.risque = "1";
+        return li;
+      };
+      // au départ : 3 annonces déjà là
+      let i = 0;
+      for (const a of [A[1], A[0], A[2]]) liste.appendChild(ligne(a));
+      i = 3;
+      const nb = $("#fluxNb"); let total = 0;
+      const compter = (cible, ms) => {
+        const de = total, t0 = performance.now();
+        const pas = (t) => { const k = Math.min(1, (t - t0) / ms); total = Math.round(de + (cible - de) * (1 - Math.pow(1 - k, 3)));
+          nb.textContent = total.toLocaleString("fr-FR"); if (k < 1) requestAnimationFrame(pas); };
+        requestAnimationFrame(pas);
+      };
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { total = 1284; nb.textContent = "1 284"; return; }
+      setTimeout(() => compter(1180 + Math.floor(Math.random() * 160), 1800), 700);
+      const actif = () => !document.hidden && !document.body.classList.contains("hors-hero") && !document.body.classList.contains("en-recherche");
+      function suivant() {
+        if (!actif()) return;
+        const a = A[i++ % A.length], li = ligne(a);
+        li.classList.add("ferme", "neuf");
+        liste.prepend(li);
+        requestAnimationFrame(() => requestAnimationFrame(() => li.classList.remove("ferme")));
+        setTimeout(() => li.classList.remove("neuf"), 1400);
+        if (li.dataset.risque) {
+          setTimeout(() => li.classList.add("masquee"), 1100);          // repérée…
+          setTimeout(() => li.classList.add("ferme"), 2300);            // …puis écartée
+          setTimeout(() => li.remove(), 2900);
+        } else compter(total + 3 + Math.floor(Math.random() * 14), 600);
+        // on ne garde que ce qui est visible
+        setTimeout(() => { const l = liste.querySelectorAll(".fr:not(.ferme)"); for (let k = 4; k < l.length; k++) l[k].remove(); }, 700);
+      }
+      setTimeout(() => { suivant(); setInterval(suivant, 2600); }, 1600);
     })();
 
     /* ---------- Formulaire ---------- */
