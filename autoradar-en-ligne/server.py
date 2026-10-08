@@ -59,6 +59,7 @@ REDIRECTION = os.environ.get("AUTORADAR_REDIRECTION") == "1"
 PHOTOS_GUIDE = Path(__file__).with_name("guides") / "photos.json"
 CACHE_PHOTOS = Path(tempfile.gettempdir()) / "labonneoccaz-photos"
 AGENT_PHOTOS = "LaBonneOccaz/1.0 (https://labonneoccaz.fr; contact@labonneoccaz.fr) python-urllib"
+VERSION_PHOTOS = "v2"   # à changer pour forcer le re-téléchargement des photos
 _photos_meta: dict = {}
 
 
@@ -78,7 +79,7 @@ def photo_en_cache(cle: str) -> tuple[bytes, str] | None:
         return None
     CACHE_PHOTOS.mkdir(parents=True, exist_ok=True)
     for ext, ctype in (("webp", "image/webp"), ("jpg", "image/jpeg")):
-        f = CACHE_PHOTOS / f"{cle}.{ext}"
+        f = CACHE_PHOTOS / f"{cle}-{VERSION_PHOTOS}.{ext}"
         if f.is_file() and f.stat().st_size > 1000:
             return f.read_bytes(), ctype
     req = urllib.request.Request(meta["img"], headers={"User-Agent": AGENT_PHOTOS})
@@ -88,15 +89,15 @@ def photo_en_cache(cle: str) -> tuple[bytes, str] | None:
     try:
         from PIL import Image
         im = Image.open(io.BytesIO(brut)).convert("RGB")
-        im.thumbnail((900, 900))
+        im.thumbnail((1280, 1280))              # pas d'agrandissement : nette sur écrans haute définition
         out = io.BytesIO()
-        im.save(out, "WEBP", quality=80, method=4)
+        im.save(out, "WEBP", quality=86, method=5)
         donnees, ext, ctype = out.getvalue(), "webp", "image/webp"
     except Exception:
         pass                                   # Pillow absent : photo d'origine (960 px)
     tmp = CACHE_PHOTOS / f".{cle}.{os.getpid()}.{threading.get_ident()}"
     tmp.write_bytes(donnees)
-    tmp.replace(CACHE_PHOTOS / f"{cle}.{ext}")
+    tmp.replace(CACHE_PHOTOS / f"{cle}-{VERSION_PHOTOS}.{ext}")
     return donnees, ctype
 
 
