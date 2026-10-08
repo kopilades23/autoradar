@@ -3,14 +3,10 @@
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 "Geist",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
 a{color:inherit}
 .halo{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(60vmax 40vmax at 90% -10%,rgba(255,106,43,.14),transparent 60%),radial-gradient(50vmax 40vmax at -10% 10%,rgba(109,74,255,.10),transparent 60%)}
-header.top,main,footer.pied{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-left:16px;padding-right:16px}
-header.top{display:flex;align-items:center;justify-content:space-between;padding-top:16px;padding-bottom:8px}
+main,footer.pied{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding-left:16px;padding-right:16px}
+@media (min-width:640px){main,footer.pied{padding-left:32px;padding-right:32px}}
 .brand{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;text-decoration:none;font-weight:600;letter-spacing:-.02em;font-size:17px;color:#fff}
 .brand b,.brand-pied b{background:linear-gradient(120deg,#ff8a4c,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
-header nav{display:flex;align-items:center;gap:4px;font-size:14px}
-header nav a{color:var(--mut);text-decoration:none;padding:7px 12px;border-radius:10px;white-space:nowrap}
-header nav a:hover{background:rgba(255,255,255,.06);color:#fff}
-.btn-top{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff!important}
 .fil{font-size:13px;color:var(--dim);margin:18px 0 8px}.fil a{color:var(--mut);text-decoration:none}.fil a:hover{color:#fff}.fil span{margin:0 4px}
 .kicker{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
 h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.035em;margin:0 0 16px;color:#fff;font-weight:650}
@@ -130,3 +126,34 @@ figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.cred
   .num{font-size:26px}
 }
 @media (max-width:560px){.tuiles{grid-template-columns:1fr 1fr}.tuiles .large{grid-column:1/-1}.hide-sm{display:none}}
+html{scroll-padding-top:96px}
+.lbo-cont{z-index:30;max-width:1280px;margin:0 auto;padding:0 16px;position:sticky;top:16px}
+.lbo-entete{margin-top:16px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+  background:rgba(11,11,14,.85);padding:10px 12px;box-shadow:0 10px 40px -20px rgba(0,0,0,.9);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+  font-family:"Geist",ui-sans-serif,system-ui,sans-serif;line-height:1.5}
+.lbo-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.lbo-txt{display:flex;flex-direction:column;line-height:1}
+.lbo-nom{font-size:17px;font-weight:600;letter-spacing:-.03em}
+.lbo-sous{display:none;margin-top:4px;font-family:"Geist Mono",ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.22em;color:#71717a}
+.lbo-nav{display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:13px;color:#a1a1aa}
+.lbo-nav a{color:inherit;text-decoration:none;border-radius:8px;padding:6px 12px;transition:background-color .15s,color .15s,border-color .15s}
+.lbo-nav a:hover,.lbo-nav a[aria-current]{background:rgba(255,255,255,.06);color:#fff}
+.lbo-fav{display:inline-flex;align-items:center;gap:6px}.lbo-fav svg{width:16px;height:16px}
+.lbo-nb{min-width:20px;border-radius:999px;background:#ff3d6e;padding:0 6px;text-align:center;font-size:11px;font-weight:600;line-height:20px;color:#fff}
+.lbo-nb[hidden]{display:none}
+.lbo-md{display:none}.lbo-sm{display:none}
+.lbo-nav a.lbo-btn{display:none;margin-left:4px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#e4e4e7}
+.lbo-nav a.lbo-btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.1)}
+@media (min-width:640px){.lbo-cont{padding:0 32px}.lbo-entete{padding:10px 16px}.lbo-sous{display:block}.lbo-sm{display:inline}.lbo-nav a.lbo-btn{display:inline-block}}
+@media (min-width:768px){.lbo-md{display:inline}}
+.logo-mark{position:relative;width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;
+  background:linear-gradient(145deg,#ff7a3d,#ff3d6e);box-shadow:0 10px 30px -10px rgba(255,90,60,.8),inset 0 1px 0 rgba(255,255,255,.35)}
+.logo-mark svg{position:absolute;inset:0;width:100%;height:100%}
+.logo-sweep{position:absolute;inset:0;transform:translateX(-130%);background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);
+  animation:reflet 1.6s cubic-bezier(.45,.05,.55,.95) .5s 1}
+@keyframes reflet{to{transform:translateX(130%)}}
+.logo-check{stroke-dasharray:16;animation:coche .6s cubic-bezier(.65,0,.35,1) .35s both}
+@keyframes coche{from{stroke-dashoffset:16}to{stroke-dashoffset:0}}
+.wordmark{background:linear-gradient(180deg,#fff 0%,#d4d4d8 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wordmark-accent{background:linear-gradient(120deg,#ff8a4c 0%,#ff4d6d 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-reduced-motion:reduce){.logo-sweep,.logo-check{animation:none!important}}
