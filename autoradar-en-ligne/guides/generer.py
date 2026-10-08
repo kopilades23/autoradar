@@ -15,6 +15,7 @@ from urllib.parse import urlencode
 
 sys.path.insert(0, str(Path(__file__).parent))
 from donnees import CLASSEMENTS, MAJ, MAJ_TEXTE, MODELES  # noqa: E402
+from entete import ENTETE_CSS, entete  # noqa: E402
 
 DOMAINE = "https://labonneoccaz.fr"
 # Photos libres de droits (Wikimedia Commons), servies par le site : /guide/photo/<cle>.webp
@@ -90,12 +91,6 @@ def fiabilite(n: int) -> str:
     return f'<span class="fiab" title="Fiabilité : {n}/5" aria-label="Fiabilité {n} sur 5">{pts}</span>'
 
 
-LOGO = ('<svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">'
-        '<stop offset="0" stop-color="#ff7a3d"/><stop offset="1" stop-color="#ff3d6e"/></linearGradient></defs>'
-        '<rect width="64" height="64" rx="18" fill="url(#lg)"/><g transform="translate(-2 3)"><path d="M8 41.5 v-6.5 c0-2.6 1.7-4.5 4.2-5 l5.8-9.6 c1.1-1.7 2.6-2.5 4.6-2.5 h18.8 c2 0 3.5.8 4.6 2.5 l5.8 9.6 c2.5.5 4.2 2.4 4.2 5 v6.5 c0 1.6-1.1 2.7-2.7 2.7 h-42.6 c-1.6 0-2.7-1.1-2.7-2.7z" fill="white"/>'
-        '<path d="M19.5 30 l4.6-7.6 c.5-.8 1.2-1.2 2.1-1.2 h11.6 c.9 0 1.6.4 2.1 1.2 l4.6 7.6z" fill="#ff5f50"/>'
-        '<rect x="11.5" y="43" width="9" height="6.5" rx="2.2" fill="white"/><rect x="43.5" y="43" width="9" height="6.5" rx="2.2" fill="white"/></g>'
-        '<circle cx="50" cy="15" r="9.5" fill="white"/><path d="M45.6 15.2 l3.1 3.1 l5.8-6" fill="none" stroke="#ff4d5a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 UMAMI = ('<script defer src="https://cloud.umami.is/script.js" data-website-id="d5a85375-aefc-4f50-9d56-38882c7c00f2" '
          'data-domains="labonneoccaz.fr,www.labonneoccaz.fr"></script>')
 
@@ -103,6 +98,7 @@ UMAMI = ('<script defer src="https://cloud.umami.is/script.js" data-website-id="
 def page(chemin: str, titre: str, description: str, corps: str, jsonld: list, image: str = "/icone-512.png") -> str:
     url = DOMAINE + chemin
     ld = "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in jsonld)
+    ENTETE = entete("guide")
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -130,14 +126,7 @@ def page(chemin: str, titre: str, description: str, corps: str, jsonld: list, im
 </head>
 <body>
   <div class="halo" aria-hidden="true"></div>
-  <header class="top">
-    <a class="brand" href="/">{LOGO}<span>La Bonne <b>Occaz</b></span></a>
-    <nav aria-label="Navigation principale">
-      <a href="/guide/">Guide<span class="hide-sm"> d'achat</span></a>
-      <a href="/faq.html" class="hide-sm">Aide</a>
-      <a href="/" class="btn-top">Rechercher</a>
-    </nav>
-  </header>
+  {ENTETE}
   <main>
 {corps}
   </main>
@@ -413,14 +402,10 @@ CSS = r"""
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 "Geist",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
 a{color:inherit}
 .halo{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(60vmax 40vmax at 90% -10%,rgba(255,106,43,.14),transparent 60%),radial-gradient(50vmax 40vmax at -10% 10%,rgba(109,74,255,.10),transparent 60%)}
-header.top,main,footer.pied{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-left:16px;padding-right:16px}
-header.top{display:flex;align-items:center;justify-content:space-between;padding-top:16px;padding-bottom:8px}
+main,footer.pied{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding-left:16px;padding-right:16px}
+@media (min-width:640px){main,footer.pied{padding-left:32px;padding-right:32px}}
 .brand{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;text-decoration:none;font-weight:600;letter-spacing:-.02em;font-size:17px;color:#fff}
 .brand b,.brand-pied b{background:linear-gradient(120deg,#ff8a4c,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
-header nav{display:flex;align-items:center;gap:4px;font-size:14px}
-header nav a{color:var(--mut);text-decoration:none;padding:7px 12px;border-radius:10px;white-space:nowrap}
-header nav a:hover{background:rgba(255,255,255,.06);color:#fff}
-.btn-top{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff!important}
 .fil{font-size:13px;color:var(--dim);margin:18px 0 8px}.fil a{color:var(--mut);text-decoration:none}.fil a:hover{color:#fff}.fil span{margin:0 4px}
 .kicker{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
 h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.035em;margin:0 0 16px;color:#fff;font-weight:650}
@@ -564,7 +549,7 @@ def page_credits() -> str:
 
 def main() -> None:
     SORTIE.mkdir(parents=True, exist_ok=True)
-    (SORTIE / "guide.css").write_text(CSS.strip() + "\n", encoding="utf-8")
+    (SORTIE / "guide.css").write_text(CSS.strip() + "\n" + ENTETE_CSS.strip() + "\n", encoding="utf-8")
     (SORTIE / "index.html").write_text(page_index(), encoding="utf-8")
     for m in MODELES:
         (SORTIE / f"{m['slug']}.html").write_text(page_modele(m), encoding="utf-8")
