@@ -5,10 +5,10 @@
 @source "../static/index.html";
 
 @theme {
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
-  --color-ink: #08080a;
-  --color-accent: #ff6a2b;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #09090b;
+  --color-accent: #ff5b1f;
   --color-accent-soft: #ffb08a;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
