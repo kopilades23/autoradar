@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/site.css?v=d18beae8" />
+  <link rel="stylesheet" href="/site.css?v=14149db0" />
   <style>
     :root { color-scheme: dark; }
     html, body { overflow-x: clip; }
@@ -244,6 +244,15 @@
     .seg .dd-btn { width: 100%; justify-content: space-between; padding: 1px 0; border: 0; background: none; box-shadow: none !important;
       color: #fafafa; font-size: 15px; font-weight: 500; }
     .seg .dd-btn > svg:first-child { display: none; }
+    .seg .dd-select .dd-btn > svg:first-child { display: block; }
+    .seg .dd-btn:disabled { color: #52525b; cursor: not-allowed; }
+    .dd-liste { left: 0; right: auto; width: min(320px, 88vw); padding: 0 6px 6px; }
+    .dd-cherche { position: sticky; top: 0; z-index: 1; padding: 6px 0 6px; background: rgba(18,18,22,.98); }
+    .dd-cherche input { width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); padding: .55rem .75rem;
+      color: #fff; font: 14px Archivo, system-ui, sans-serif; outline: none; transition: border-color .2s, box-shadow .2s; }
+    .dd-cherche input:focus { border-color: rgba(255,91,31,.6); box-shadow: 0 0 0 4px rgba(255,91,31,.12); }
+    .dd-gr { padding: .65rem .75rem .3rem; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #71717a; }
+    .dd-vide { padding: .7rem .75rem; font-size: 13px; color: #71717a; }
     .seg .dd-btn.actif { background: none; color: #ffb48f; }
     .barre .btn-go { border-radius: 14px; padding: 0 1.6rem; font-weight: 700; font-size: 15px; }
 
@@ -319,6 +328,7 @@
       .seg:nth-child(-n+2) { border-top: 0; }
       .seg:nth-child(2n) { border-left: 1px solid rgba(255,255,255,.08); }
       .seg.seg-ou { grid-column: 1 / -1; border-left: 0; }
+      .seg:nth-child(2) .dd-liste { left: auto; right: 0; }
       .barre .btn-go { grid-column: 1 / -1; height: 50px; margin-top: 4px; }
     }
     @media (hover: none), (pointer: coarse) { .spot { background: radial-gradient(520px circle at 85% 4%, rgba(255,91,31,.14), transparent 62%); } }
@@ -391,10 +401,18 @@
 
       <form id="form" class="reveal relative z-20 mt-10" style="--d:600ms" autocomplete="off">
         <div class="barre">
-          <label class="seg"><span>Marque</span>
-            <select id="marque" class="champ"><option value="">Toutes les marques</option></select></label>
-          <label class="seg"><span>Modèle</span>
-            <select id="modele" class="champ" disabled><option value="">Tous les modèles</option></select></label>
+          <div class="seg"><span id="lbl-marque">Marque</span>
+            <select id="marque" class="sr-only" tabindex="-1" aria-hidden="true"><option value="">Toutes les marques</option></select>
+            <div class="dd dd-select">
+              <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="lbl-marque"><span data-dd-label class="truncate">Toutes les marques</span><svg viewBox="0 0 24 24" class="chev size-4 shrink-0 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+              <div class="dd-menu dd-long dd-liste" role="listbox"><div class="dd-cherche"><input type="text" placeholder="Rechercher une marque…" autocomplete="off" aria-label="Rechercher une marque…"></div><div class="dd-items"></div></div>
+            </div></div>
+          <div class="seg"><span id="lbl-modele">Modèle</span>
+            <select id="modele" class="sr-only" tabindex="-1" aria-hidden="true" disabled><option value="">Tous les modèles</option></select>
+            <div class="dd dd-select">
+              <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="lbl-modele" disabled><span data-dd-label class="truncate">Tous les modèles</span><svg viewBox="0 0 24 24" class="chev size-4 shrink-0 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+              <div class="dd-menu dd-long dd-liste" role="listbox"><div class="dd-cherche"><input type="text" placeholder="Rechercher un modèle…" autocomplete="off" aria-label="Rechercher un modèle…"></div><div class="dd-items"></div></div>
+            </div></div>
           <label class="seg"><span>Budget max</span><input id="prix_max" class="champ" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
           <label class="seg"><span>Km max</span><input id="km_max" class="champ" type="number" min="0" step="5000" placeholder="Illimité" inputmode="numeric"></label>
           <div class="seg seg-ou"><span>Où</span>
@@ -826,6 +844,57 @@
       peindre();
       return peindre;
     }
+    /* ---------- Listes Marque / Modèle : menu maison (avec recherche) qui pilote le <select> caché ---------- */
+    const sansAccents = (t) => (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    function listeSelect(sel) {
+      const root = sel.parentElement.querySelector(".dd-select"), btn = $(".dd-btn", root), menu = $(".dd-menu", root);
+      const champ = $(".dd-cherche input", root), zone = $(".dd-items", root);
+      const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+      const item = (o) => `<button type="button" role="option" class="dd-item" data-v="${esc(o.value)}" aria-checked="${o.value === sel.value}">
+        <span>${esc(o.textContent)}</span><svg viewBox="0 0 24 24" class="ok size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5 9-10"/></svg></button>`;
+      const peindre = () => {
+        $("[data-dd-label]", root).textContent = sel.selectedOptions[0]?.textContent || "";
+        btn.disabled = sel.disabled; btn.classList.toggle("actif", !!sel.value);
+      };
+      const remplir = (q = "") => {
+        q = sansAccents(q.trim()); let html = "";
+        if (q) {   // recherche : liste à plat, sans doublons
+          const vus = new Set();
+          for (const o of sel.querySelectorAll("option")) if (o.value && !vus.has(o.value) && sansAccents(o.textContent).includes(q)) { vus.add(o.value); html += item(o); }
+        } else for (const n of sel.children) {
+          if (n.tagName === "OPTGROUP") html += `<div class="dd-gr">${esc(n.label)}</div>` + [...n.children].map(item).join("");
+          else html += item(n);
+        }
+        zone.innerHTML = html || `<div class="dd-vide">Aucun résultat</div>`;
+      };
+      const fermer = () => { menu.classList.remove("ouvert"); btn.setAttribute("aria-expanded", "false"); };
+      const choisir = (v) => { fermer(); if (v !== sel.value) { sel.value = v; sel.dispatchEvent(new Event("change", { bubbles: true })); } peindre(); btn.focus(); };
+      btn.addEventListener("click", () => {
+        const o = !menu.classList.contains("ouvert"); if (!o) return fermer();
+        remplir(); champ.value = ""; menu.classList.add("ouvert"); btn.setAttribute("aria-expanded", "true");
+        menu.scrollTop = 0; const c = $('[aria-checked="true"]', zone); if (c && sel.value) c.scrollIntoView({ block: "center" });
+        if (matchMedia("(hover: hover)").matches) champ.focus();
+      });
+      champ.addEventListener("input", () => remplir(champ.value));
+      champ.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); const b = $(".dd-item", zone); if (b) choisir(b.dataset.v); }
+        if (e.key === "ArrowDown") { e.preventDefault(); $(".dd-item", zone)?.focus(); }
+      });
+      zone.addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) choisir(b.dataset.v); });
+      menu.addEventListener("keydown", (e) => {
+        const l = [...zone.querySelectorAll(".dd-item")], i = l.indexOf(document.activeElement);
+        if (e.key === "ArrowDown" && i >= 0) { e.preventDefault(); l[Math.min(i + 1, l.length - 1)].focus(); }
+        if (e.key === "ArrowUp" && i >= 0) { e.preventDefault(); i === 0 ? champ.focus() : l[i - 1].focus(); }
+      });
+      document.addEventListener("click", (e) => { if (!root.contains(e.target)) fermer(); });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermer(); });
+      sel.addEventListener("change", peindre);
+      new MutationObserver(peindre).observe(sel, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
+      peindre();
+      return peindre;
+    }
+    const majMarque = listeSelect($("#marque")), majModele = listeSelect($("#modele"));
+    $("#form").addEventListener("reset", () => setTimeout(() => { majMarque(); majModele(); }));
     const peindreDepuis = menuDeroulant($("#ddDepuis"), DEPUIS, () => state.depuis, (v) => { state.depuis = +v || 0; retrier(); });
     // Région : filtrée par les sites qui indiquent le lieu du véhicule (Leboncoin, La Centrale, AutoScout24)
     const REGIONS = [["", "Toute la France"], ["auvergne-rhone-alpes", "Auvergne-Rhône-Alpes"], ["bourgogne-franche-comte", "Bourgogne-Franche-Comté"],
@@ -855,7 +924,7 @@
       Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: null }); viderRendu();
       history.replaceState(null, "", location.pathname);
       $("#resultats").classList.add("hidden"); $("#accueil").classList.remove("hidden"); $("#grid").innerHTML = "";
-      renderChips(); window.scrollTo({ top: 0, behavior: "smooth" }); $("#marque").focus();
+      renderChips(); window.scrollTo({ top: 0, behavior: "smooth" }); $("#marque").parentElement.querySelector(".dd-btn").focus();
     });
 
     async function chargerMarques() {
@@ -933,7 +1002,7 @@
       const unCritere = c.marque || c.prix_max || c.km_max || c.annee_min || c.annee_max || c.puissance_min || c.puissance_max
         || c.options || c.carburants || c.region;
       $("#aideMarque").classList.toggle("hidden", !!unCritere);
-      if (!unCritere) { $("#marque").focus(); return; }
+      if (!unCritere) { $("#marque").parentElement.querySelector(".dd-btn").focus(); return; }
       const run = ++state.run;
       Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c, triCharge: triSite(), masques: new Set() }); viderRendu();
       const url = new URL(location.href); url.search = new URLSearchParams({ ...c, sources: [...state.sources].join(",") }).toString();
@@ -1383,7 +1452,7 @@
       catch { $("#marque").innerHTML = `<option value="">Catalogue indisponible — le serveur tourne-t-il ?</option>`; return; }
       if (p.get("region") && REGIONS.some(r => r[0] === p.get("region"))) { state.region = p.get("region"); peindreRegion(); }
       if (/^\d{1,9}$/.test(p.get("marque") || "") && $(`#marque option[value="${p.get("marque")}"]`)) {   // lien partagé (marque inconnue : ignoré)
-        $("#marque").value = p.get("marque");
+        $("#marque").value = p.get("marque"); majMarque();
         await chargerModeles(p.get("marque"), p.get("modele"));
         for (const k of ["prix_max", "km_max", "annee_min", "annee_max", "puissance_min", "puissance_max"]) if (p.get(k)) $("#" + k).value = p.get(k);
         lancer();

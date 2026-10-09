@@ -40,6 +40,13 @@
     </header>
   </div>
   <script>try{var n=Object.keys(JSON.parse(localStorage.getItem("autoradar.favoris")||"{}")||{}).length,e=document.getElementById("nbFavoris");if(n){e.textContent=n;e.hidden=false}}catch(_){}</script>
+  <div class="lbo-spot" aria-hidden="true"></div>
+  <script>(function(){if(!matchMedia("(hover: hover) and (pointer: fine)").matches)return;
+    var spot=document.querySelector(".lbo-spot"),raf=0,ev=null,SEL=".carte-mod,.carte-cl,.tuiles>*,.pile>*,.regles li,.cote>*,.lueur";
+    document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(SEL).forEach(function(b){b.classList.add("lueur")})});
+    addEventListener("pointermove",function(e){ev=e;if(raf)return;raf=requestAnimationFrame(function(){raf=0;
+      spot.style.setProperty("--sx",ev.clientX+"px");spot.style.setProperty("--sy",ev.clientY+"px");
+      var b=ev.target.closest&&ev.target.closest(".lueur");if(b){var r=b.getBoundingClientRect();b.style.setProperty("--x",(ev.clientX-r.left)+"px");b.style.setProperty("--y",(ev.clientY-r.top)+"px")}})},{passive:true});})();</script>
   <main>
 
     <nav class="fil" aria-label="Fil d'Ariane"><a href="/">Accueil</a> <span>/</span> <span aria-current="page">Guide d&#x27;achat</span></nav>
