@@ -31,17 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <style type="text/tailwindcss">
-    @theme {
-      --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-      --font-mono: "Geist Mono", ui-monospace, monospace;
-      --color-ink: #08080a;
-      --color-accent: #ff6a2b;
-      --color-accent-soft: #ffb08a;
-      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-    }
-  </style>
+  <link rel="stylesheet" href="/site.css?v=52ff1ab0" />
   <style>
     :root { color-scheme: dark; }
     html, body { overflow-x: clip; }
@@ -279,6 +269,9 @@
     @media (prefers-reduced-motion: reduce) { .flux-live i { animation: none; } }
   </style>
   <style>
+    #form:not(.filtres-ouverts) #optChips { display: none; }
+    #form.filtres-ouverts #plusFiltres .chev { transform: rotate(180deg); }
+    @media (max-width: 1023px) { #form:not(.filtres-ouverts) .filtre-sup-m, #form:not(.filtres-ouverts) [data-sup] { display: none; } }
     .field { width: 100%; border-radius: .9rem; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
       padding: .7rem .85rem; font-size: .875rem; color: #f4f4f5; outline: none; transition: border-color .3s, background .3s, box-shadow .3s; }
     .field:focus { border-color: rgba(255,106,43,.55); background: rgba(255,255,255,.06); box-shadow: 0 0 0 4px rgba(255,106,43,.12); }
@@ -320,7 +313,7 @@
       <nav class="flex items-center gap-1 whitespace-nowrap text-[13px] text-zinc-400">
         <a href="/guide/" class="rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">Guide<span class="hidden sm:inline"> d'achat</span></a>
         <a href="/faq.html" class="hidden rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white md:inline">Aide &amp; FAQ</a>
-        <a href="#favoris" id="lienFavoris" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">
+        <a href="#favoris" id="lienFavoris" aria-label="Mes favoris" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">
           <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>
           <span class="hidden sm:inline">Favoris</span><span id="nbFavoris" class="compteur hidden min-w-5 rounded-full bg-[#ff3d6e] px-1.5 text-center text-[11px] font-semibold leading-5 text-white"></span></a>
         <a href="/base.html" id="lienBase" class="hidden rounded-lg px-3 py-1.5 sm:inline transition hover:bg-white/[0.06] hover:text-white">Base locale</a>
@@ -342,12 +335,12 @@
         <span class="h-px w-10 bg-gradient-to-r from-accent to-transparent"></span><span class="sm:hidden">Comparateur d'occasions</span><span class="hidden sm:inline">Comparateur d'annonces automobiles</span>
       </p>
       <div class="relative grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
-        <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]"></h1>
+        <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]">Toutes les occasions, une recherche.</h1>
         <!-- Flux d'annonces animé : montre le principe (tous les sites, annonces à risque écartées) -->
-        <div class="flux reveal" style="--d:650ms" aria-hidden="true">
+        <div class="flux reveal" style="--d:650ms" role="img" aria-label="Exemple d'annonces trouvées sur plusieurs sites, dont une annonce à risque écartée">
           <div class="flux-tete">
-            <span class="flux-live"><i></i>En direct</span>
-            <span><span class="flux-nb" id="fluxNb">0</span> annonces · 8 sites</span>
+            <span>Exemple de résultats</span>
+            <span>8 sites · 1 recherche</span>
           </div>
           <ul class="flux-liste" id="fluxListe"></ul>
         </div>
@@ -356,7 +349,7 @@
       <form id="form" class="reveal relative z-20 mt-8 rounded-3xl sm:mt-10 border border-white/10 bg-[#0c0c0f]/90 p-4 sm:p-5" style="--d:800ms" autocomplete="off">
         <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-[1.45fr_1.45fr_1fr_1fr_1.3fr_1.3fr_auto]">
           <label class="col-span-2 md:col-span-1"><span class="lbl">Marque</span>
-            <select id="marque" class="field" required><option value="">Chargement…</option></select></label>
+            <select id="marque" class="field" required><option value="">Choisir…</option></select></label>
           <label class="col-span-2 md:col-span-1"><span class="lbl">Modèle</span>
             <select id="modele" class="field" disabled><option value="">Tous les modèles</option></select></label>
           <label><span class="lbl">Prix max (€)</span><input id="prix_max" class="field" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
@@ -367,12 +360,11 @@
           <div><span class="lbl">Puissance</span><div class="duo">
             <select id="puissance_min" class="field" aria-label="Puissance minimum"><option value="">Min</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select>
             <select id="puissance_max" class="field" aria-label="Puissance maximum"><option value="">Max</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select></div></div>
-          <div class="flex items-end"><button id="go" type="submit" class="btn-go inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-[.72rem] text-sm font-semibold text-white">
+          <div class="col-span-2 flex items-end xl:col-span-1"><button id="go" type="submit" class="btn-go inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-[.72rem] text-sm font-semibold text-white">
             <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher</button></div>
         </div>
-        <div id="optChips" class="mt-4 grid gap-3 border-t border-white/5 pt-4 lg:grid-cols-[auto_1fr] lg:gap-x-5"></div>
         <div class="mt-4 flex flex-col gap-3 border-t border-white/5 pt-4 lg:flex-row lg:items-center">
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="filtre-sup-m flex flex-wrap items-center gap-1.5">
             <span class="mr-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">Sites</span>
             <div id="srcChips" class="flex flex-wrap gap-1.5"></div>
           </div>
@@ -385,7 +377,7 @@
               </button>
               <div class="dd-menu dd-long" role="listbox"></div>
             </div>
-            <div class="dd" id="ddDepuis">
+            <div class="dd filtre-sup-m" id="ddDepuis">
               <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Date de mise en ligne de l'annonce">
                 <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
                 <span data-dd-label>Toutes les dates</span>
@@ -393,15 +385,25 @@
               </button>
               <div class="dd-menu" role="listbox"></div>
             </div>
-            <button id="verifOnly" type="button" aria-pressed="false" title="N'afficher que les annonces dont la description a été lue (pannes cachées repérées)"
+            <button id="verifOnly" type="button" aria-pressed="false" data-sup title="N'afficher que les annonces dont la description complète a pu être lue et analysée (ce n'est pas une inspection du véhicule)"
               class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-emerald-500/10 aria-pressed:text-emerald-200">
-              <span class="switch"></span>Seulement vérifiées</button>
-            <button id="effacer" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
+              <span class="switch"></span>Descriptions lues uniquement</button>
+            <button id="effacer" type="button" data-sup class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
               <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Effacer les filtres</button>
             <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les véhicules en panne, accidentés, vendus pour pièces ou « en l'état »"
               class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-red-500/10 aria-pressed:text-red-200">
               <span class="switch"></span>Exclure les véhicules à risque</button>
           </div>
+        </div>
+        <div class="mt-3 border-t border-white/5 pt-3">
+          <button type="button" id="plusFiltres" aria-expanded="false" aria-controls="optChips"
+            class="inline-flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1.5 text-left text-sm text-zinc-300 transition hover:text-white">
+            <span><span class="font-medium text-zinc-100">Plus de filtres</span>
+              <span class="ml-1 text-xs text-zinc-500"><span class="lg:hidden">équipements, carburant, sites, date…</span><span class="hidden lg:inline">équipements (toit panoramique, hi-fi, CarPlay…), carburant, boîte auto</span></span>
+              <span id="nbFiltres" class="ml-1 hidden rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"></span></span>
+            <svg viewBox="0 0 24 24" class="chev size-4 shrink-0 opacity-70 transition" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="optChips" class="mt-3 grid gap-3 lg:grid-cols-[auto_1fr] lg:gap-x-5"></div>
         </div>
       </form>
     </section>
@@ -409,6 +411,7 @@
     <!-- ================= Résultats ================= -->
     <section id="resultats" class="hidden pb-24">
       <div class="mb-5 flex flex-col gap-3">
+        <p id="progression" class="hidden items-center gap-2 text-sm text-zinc-300" role="status"></p>
         <div id="srcBar" class="flex flex-wrap gap-2"></div>
         <p id="noteRegion" class="hidden rounded-xl border border-sky-400/20 bg-sky-400/[0.06] px-3 py-2 text-xs text-sky-100/90"></p>
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -429,7 +432,7 @@
       <main id="grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite"></main>
       <div id="sentinelle" class="hidden h-px"></div>
       <div class="mt-10 flex flex-col items-center gap-3">
-        <button id="plus" class="hidden rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-zinc-200 transition hover:border-white/20 hover:bg-white/10 active:scale-95">Charger plus d'annonces</button>
+        <button id="plus" class="btn-go hidden rounded-xl px-6 py-3 text-sm font-semibold text-white active:scale-95">Voir plus d'annonces</button>
         <p id="plusInfo" class="font-mono text-[11px] text-zinc-600"></p>
       </div>
     </section>
@@ -468,6 +471,23 @@
             <span class="grid size-9 place-items-center rounded-xl bg-violet-500/15 text-violet-300"><svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.9L22 10l-5.5 4.7L18.2 22 12 18.3 5.8 22l1.7-7.3L2 10l7.1-1.1z"/></svg></span>
             <p class="mt-4 font-medium">Les options qui comptent</p>
             <p class="mt-1.5 text-sm leading-relaxed text-zinc-400">Toit panoramique, hi-fi Focal ou Bose, CarPlay, caméra 360°… cochez-les : seules les voitures équipées restent.</p></div>
+        </div>
+        <div id="detection" class="mt-4 grid gap-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 md:grid-cols-[1fr_1.4fr] md:p-8">
+          <div>
+            <p class="text-lg font-semibold tracking-tight">Comment une annonce est-elle repérée «&nbsp;à risque&nbsp;»&nbsp;?</p>
+            <p class="mt-2 text-sm leading-relaxed text-zinc-400">Pas de magie ni de promesse : un outil lit le texte des annonces à votre place, pour vous éviter les mauvaises surprises.</p>
+            <a href="/faq.html#risque" class="mt-3 inline-block text-sm text-zinc-300 underline-offset-4 hover:text-white hover:underline">En savoir plus →</a>
+          </div>
+          <ol class="grid gap-3 text-sm leading-relaxed text-zinc-300">
+            <li class="flex gap-3"><span class="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-semibold">1</span>
+              <span>La <b class="font-medium text-white">description complète</b> de chaque annonce est lue, pas seulement le titre.</span></li>
+            <li class="flex gap-3"><span class="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-semibold">2</span>
+              <span>On y cherche les signes qui ne trompent pas : «&nbsp;moteur HS&nbsp;», «&nbsp;joint de culasse&nbsp;», «&nbsp;boîte à changer&nbsp;», «&nbsp;accidentée&nbsp;», «&nbsp;pour pièces&nbsp;», «&nbsp;vendue en l'état&nbsp;», «&nbsp;non roulante&nbsp;»…</span></li>
+            <li class="flex gap-3"><span class="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-semibold">3</span>
+              <span>L'annonce est alors <b class="font-medium text-red-300">signalée en rouge</b>, ou masquée si «&nbsp;Exclure les véhicules à risque&nbsp;» est activé.</span></li>
+            <li class="flex gap-3"><span class="grid size-6 shrink-0 place-items-center rounded-full bg-amber-400/15 text-xs font-semibold text-amber-200">!</span>
+              <span class="text-zinc-400">«&nbsp;Description lue&nbsp;» signifie que le texte a pu être analysé. <b class="font-medium text-zinc-200">Ce n'est pas une inspection du véhicule</b> : faites toujours vérifier la voiture et son historique (contrôle technique, HistoVec) avant d'acheter.</span></li>
+          </ol>
         </div>
       </div>
       <div id="guide" class="pt-20">
@@ -674,15 +694,7 @@
       let i = 0;
       for (const a of [A[1], A[0], A[2]]) liste.appendChild(ligne(a));
       i = 3;
-      const nb = $("#fluxNb"); let total = 0;
-      const compter = (cible, ms) => {
-        const de = total, t0 = performance.now();
-        const pas = (t) => { const k = Math.min(1, (t - t0) / ms); total = Math.round(de + (cible - de) * (1 - Math.pow(1 - k, 3)));
-          nb.textContent = total.toLocaleString("fr-FR"); if (k < 1) requestAnimationFrame(pas); };
-        requestAnimationFrame(pas);
-      };
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { total = 1284; nb.textContent = "1 284"; return; }
-      setTimeout(() => compter(1180 + Math.floor(Math.random() * 160), 1800), 700);
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const actif = () => !document.hidden && !document.body.classList.contains("hors-hero") && !document.body.classList.contains("en-recherche");
       function suivant() {
         if (!actif()) return;
@@ -695,7 +707,7 @@
           setTimeout(() => li.classList.add("masquee"), 1100);          // repérée…
           setTimeout(() => li.classList.add("ferme"), 2300);            // …puis écartée
           setTimeout(() => li.remove(), 2900);
-        } else compter(total + 3 + Math.floor(Math.random() * 14), 600);
+        }
         // on ne garde que ce qui est visible
         setTimeout(() => { const l = liste.querySelectorAll(".fr:not(.ferme)"); for (let k = 4; k < l.length; k++) l[k].remove(); }, 700);
       }
@@ -734,7 +746,16 @@
       }).join("");
       $("#hideMerguez").setAttribute("aria-pressed", String(state.hideMerguez));
       $("#verifOnly").setAttribute("aria-pressed", String(state.verifOnly));
+      const n = state.opts.size + state.carbus.size;
+      $("#nbFiltres").textContent = n; $("#nbFiltres").classList.toggle("hidden", !n);
+      if (n && !ouvrirFiltres.fait) ouvrirFiltres(true);
     }
+    function ouvrirFiltres(ouvert) {
+      ouvrirFiltres.fait = true;
+      $("#form").classList.toggle("filtres-ouverts", ouvert);
+      $("#plusFiltres").setAttribute("aria-expanded", String(ouvert));
+    }
+    $("#plusFiltres").addEventListener("click", () => ouvrirFiltres(!$("#form").classList.contains("filtres-ouverts")));
     $("#optChips").addEventListener("click", (e) => {
       if (e.target.closest("[data-audio-tout]")) {
         const liste = GROUPES[GROUPE_AUDIO] || [], tout = liste.every(o => state.opts.has(o));
@@ -1044,7 +1065,8 @@
       node.style.setProperty("--d", `${Math.min(i, 10) * 60}ms`);
       if (!anim) { node.classList.remove("reveal"); node.classList.add("no-anim"); }
       node.addEventListener("animationend", (e) => { if (e.animationName === "reveal") node.classList.remove("reveal"); });
-      $("[data-link]", node).href = a.lien_origine || a.lien;
+      const lk = $("[data-link]", node); lk.href = a.lien_origine || a.lien;
+      lk.setAttribute("aria-label", `Voir l'annonce : ${a.titre || "véhicule"}${a.prix ? ", " + fmt.format(a.prix) + " €" : ""} (nouvel onglet)`);
       const img = $("[data-img]", node); img.src = a.image || PLACEHOLDER; img.alt = a.titre;
       img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
       const src = Object.values(SOURCES).find(s => s.nom === a.source || s.court === a.source || s.source === a.source) || { dot: "#aaa" };
@@ -1163,8 +1185,9 @@
       $("#resume").textContent = `${state.annonces.length} trouvée(s)` + (cachees ? ` · ${cachees} écartée(s)` : "") + (nm ? ` · ${nm} à risque` : "")
         + (sansDate ? ` · ${sansDate} sans date` : "") + (sansPuissance ? ` · ${sansPuissance} sans puissance connue` : "");
       const suite = Object.values(state.src).some(s => s.suite && !s.erreur);
+      if (suite && !enCours && state.annonces.length) $("#resume").textContent += " · d'autres pages disponibles en bas ↓";
       $("#plus").classList.toggle("hidden", !suite || enCours);
-      $("#plusInfo").textContent = enCours ? "Recherche en cours…" : suite ? "Charge la page suivante de chaque site" : (state.annonces.length ? "Toutes les pages disponibles ont été parcourues" : "");
+      $("#plusInfo").textContent = enCours ? "Recherche en cours…" : suite ? "Chaque site renvoie ses annonces page par page : ce bouton charge la page suivante de chacun" : (state.annonces.length ? "Toutes les pages disponibles ont été parcourues" : "");
     }
     // Rendu économe : plusieurs mises à jour rapprochées = un seul rendu ; les cartes déjà affichées sont
     // réutilisées (pas de reconstruction ni de nouveau décodage des photos) ; les cartes arrivent par paquets.
@@ -1221,7 +1244,7 @@
         : c.puissance_min ? `Puissance ≥ ${c.puissance_min} ch` : `Puissance ≤ ${c.puissance_max} ch`, "puissance"));
       if (c.annee_min || c.annee_max) f.push(puce(c.annee_min && c.annee_max ? `Année ${c.annee_min}–${c.annee_max}`
         : c.annee_min ? `Année ≥ ${c.annee_min}` : `Année ≤ ${c.annee_max}`, "annee"));
-      if (state.verifOnly) f.push(puce("Seulement vérifiées", "verif"));
+      if (state.verifOnly) f.push(puce("Descriptions lues uniquement", "verif"));
       if (state.hideMerguez && state.annonces.some(a => a.merguez)) f.push(puce("Véhicules à risque exclus", "risque"));
       const aucuneSurSites = !state.annonces.length;
       return `<div class="reveal col-span-full rounded-3xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-14 text-center">
@@ -1249,6 +1272,12 @@
     });
 
     function renderBar() {
+      const ks = Object.keys(state.src), fini = ks.filter(k => !state.src[k].charge).length, prog = $("#progression");
+      if (ks.length && fini < ks.length) {
+        prog.innerHTML = `<svg viewBox="0 0 24 24" class="spin size-4 text-accent" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>`
+          + `<span><b class="font-semibold text-white">${fini} site${fini > 1 ? "s" : ""} sur ${ks.length}</b> ${fini > 1 ? "ont" : "a"} répondu — d'autres annonces arrivent, restez sur la page.</span>`;
+        prog.classList.replace("hidden", "flex");
+      } else prog.classList.replace("flex", "hidden");
       document.querySelector(".logo-mark")?.classList.toggle("scan", Object.values(state.src).some(s => s.charge || (s.fichesTotal && s.fichesFaites < s.fichesTotal && !s.freine)));
       const c = state.crit || {};
       const pill = (k) => {
@@ -1328,12 +1357,14 @@
       if (p.get("sources")) state.sources = new Set(p.get("sources").split(",").flatMap(s => s === "leparking" ? ["leboncoin", "lacentrale"] : [s]).filter(s => CHIPS[s]));
       if (!state.sources.size) state.sources = new Set(Object.keys(CHIPS));
       renderChips();
+      const marquesPretes = chargerMarques();          // en parallèle : la liste des marques s'affiche tout de suite
+      marquesPretes.catch(() => {});
       try { const g = await (await fetch("/api/options")).json(); if (g && Object.keys(g).length) { GROUPES = g; construireOptions(); } } catch {}
       state.opts = new Set([...state.opts].filter(o => OPTIONS[o])); renderChips();
-      try { await chargerMarques(); }
+      try { await marquesPretes; }
       catch { $("#marque").innerHTML = `<option value="">Catalogue indisponible — le serveur tourne-t-il ?</option>`; return; }
       if (p.get("region") && REGIONS.some(r => r[0] === p.get("region"))) { state.region = p.get("region"); peindreRegion(); }
-      if (p.get("marque")) {
+      if (/^\d{1,9}$/.test(p.get("marque") || "") && $(`#marque option[value="${p.get("marque")}"]`)) {   // lien partagé (marque inconnue : ignoré)
         $("#marque").value = p.get("marque");
         await chargerModeles(p.get("marque"), p.get("modele"));
         for (const k of ["prix_max", "km_max", "annee_min", "annee_max", "puissance_min", "puissance_max"]) if (p.get(k)) $("#" + k).value = p.get(k);
