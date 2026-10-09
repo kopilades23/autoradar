@@ -109,6 +109,9 @@ def _marquer_miroirs(cartes: list[dict]) -> list[dict]:
     return out
 
 
+# Sites capables de chercher « toutes marques » (recherche par critères ou équipements seulement)
+SANS_MARQUE = {"autoscout24", "leparking"}
+
 class SiteBloque(Exception):
     """Le site demande une vérification anti-robot."""
 
@@ -726,6 +729,8 @@ class Moteur:
         t0 = time.perf_counter()
         if source in TOUTES_SOURCES and source not in self.sources:
             return {"source": source, "erreur": "indisponible", "annonces": []}
+        if not q.get("marque_id") and source not in SANS_MARQUE:    # ces sites exigent une marque dans l'adresse
+            return {"source": source, "annonces": [], "suite": False, "total_site": 0, "page": 1}
         try:
             if source == "autoscout24":
                 res = await self._as24(q)

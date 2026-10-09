@@ -163,7 +163,7 @@ def _parametres_valides(chemin: str, qs: dict) -> bool:
         v = _q(qs, k)
         if v is not None and not (str(v).isdigit() and len(str(v)) <= 9):
             return False
-    if chemin in ("/api/modeles", "/api/recherche") and _q(qs, "marque") is None:
+    if chemin == "/api/modeles" and _q(qs, "marque") is None:     # la recherche, elle, peut se faire sans marque
         return False
     return True
 
