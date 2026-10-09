@@ -23,11 +23,24 @@ def entete(actif: str = "") -> str:
       </nav>
     </header>
   </div>
-  <script>try{{var n=Object.keys(JSON.parse(localStorage.getItem("autoradar.favoris")||"{{}}")||{{}}).length,e=document.getElementById("nbFavoris");if(n){{e.textContent=n;e.hidden=false}}}}catch(_){{}}</script>'''
+  <script>try{{var n=Object.keys(JSON.parse(localStorage.getItem("autoradar.favoris")||"{{}}")||{{}}).length,e=document.getElementById("nbFavoris");if(n){{e.textContent=n;e.hidden=false}}}}catch(_){{}}</script>
+  <div class="lbo-spot" aria-hidden="true"></div>
+  <script>(function(){{if(!matchMedia("(hover: hover) and (pointer: fine)").matches)return;
+    var spot=document.querySelector(".lbo-spot"),raf=0,ev=null,SEL=".carte-mod,.carte-cl,.tuiles>*,.pile>*,.regles li,.cote>*,.lueur";
+    document.addEventListener("DOMContentLoaded",function(){{document.querySelectorAll(SEL).forEach(function(b){{b.classList.add("lueur")}})}});
+    addEventListener("pointermove",function(e){{ev=e;if(raf)return;raf=requestAnimationFrame(function(){{raf=0;
+      spot.style.setProperty("--sx",ev.clientX+"px");spot.style.setProperty("--sy",ev.clientY+"px");
+      var b=ev.target.closest&&ev.target.closest(".lueur");if(b){{var r=b.getBoundingClientRect();b.style.setProperty("--x",(ev.clientX-r.left)+"px");b.style.setProperty("--y",(ev.clientY-r.top)+"px")}}}})}},{{passive:true}});}})();</script>'''
 
 
 # mêmes mesures que la barre Tailwind de l'accueil (max-w-7xl, px-4 / sm:px-8, rounded-2xl, py-2.5…)
 ENTETE_CSS = r"""
+.lbo-spot{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(640px circle at var(--sx,78%) var(--sy,8%),rgba(255,91,31,.12),transparent 62%)}
+.lueur{position:relative}
+.lueur::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:radial-gradient(260px circle at var(--x,50%) var(--y,50%),rgba(255,91,31,.85),transparent 55%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s}
+.lueur:hover::after{opacity:1}
 html{scroll-padding-top:96px}
 .lbo-cont{z-index:30;max-width:1280px;margin:0 auto;padding:0 16px;position:sticky;top:16px}
 .lbo-entete{margin-top:16px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;border:1px solid rgba(255,255,255,.08);
