@@ -20,7 +20,7 @@ def entete(actif: str = "") -> str:
       <nav class="lbo-nav" aria-label="Navigation principale">
         <a href="/guide/"{cur("guide")}>Guide<span class="lbo-sm"> d'achat</span></a>
         <a href="/faq.html" class="lbo-md"{cur("faq")}>Aide &amp; FAQ</a>
-        <a href="/#favoris" class="lbo-fav">{COEUR}<span class="lbo-sm">Favoris</span><span class="lbo-nb" id="nbFavoris" hidden></span></a>
+        <a href="/#favoris" class="lbo-fav" aria-label="Mes favoris">{COEUR}<span class="lbo-sm">Favoris</span><span class="lbo-nb" id="nbFavoris" hidden></span></a>
         <a href="/" class="lbo-btn">Nouvelle recherche</a>
       </nav>
     </header>
