@@ -30,24 +30,16 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff7a3d'/%3E%3Cstop offset='1' stop-color='%23ff3d6e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='url%28%23g%29'/%3E%3Cg transform='translate%28-2 3%29'%3E%3Cpath d='M8 41.5 v-6.5 c0-2.6 1.7-4.5 4.2-5 l5.8-9.6 c1.1-1.7 2.6-2.5 4.6-2.5 h18.8 c2 0 3.5.8 4.6 2.5 l5.8 9.6 c2.5.5 4.2 2.4 4.2 5 v6.5 c0 1.6-1.1 2.7-2.7 2.7 h-42.6 c-1.6 0-2.7-1.1-2.7-2.7z' fill='white'/%3E%3Cpath d='M19.5 30 l4.6-7.6 c.5-.8 1.2-1.2 2.1-1.2 h11.6 c.9 0 1.6.4 2.1 1.2 l4.6 7.6z' fill='%23ff5f50'/%3E%3Crect x='11.5' y='43' width='9' height='6.5' rx='2.2' fill='white'/%3E%3Crect x='43.5' y='43' width='9' height='6.5' rx='2.2' fill='white'/%3E%3Ccircle cx='16.3' cy='36' r='2.6' fill='%23ff5f50'/%3E%3Ccircle cx='47.7' cy='36' r='2.6' fill='%23ff5f50'/%3E%3C/g%3E%3Ccircle cx='50' cy='15' r='9.5' fill='white'/%3E%3Cpath d='M45.6 15.2 l3.1 3.1 l5.8-6' fill='none' stroke='%23ff4d5a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/site.css?v=52ff1ab0" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/site.css?v=d18beae8" />
   <style>
     :root { color-scheme: dark; }
     html, body { overflow-x: clip; }
-    body { background: #08080a; }
+    body { background: #09090b; }
 
-    /* ---------- Fond : aurora + grille ---------- */
-    .aurora { position: fixed; inset: -20vmax; z-index: 0; pointer-events: none; opacity: .5; } /* dégradés radiaux déjà flous : pas de filter:blur coûteux */
-    .aurora span { position: absolute; border-radius: 9999px; animation: drift 60s ease-in-out infinite alternate; }
-    .aurora span:nth-child(1) { width: 42vmax; height: 42vmax; left: 10%; top: 0%;  background: radial-gradient(circle, #ff6a2b 0%, transparent 65%); }
-    .aurora span:nth-child(2) { width: 38vmax; height: 38vmax; right: 5%; top: 10%; background: radial-gradient(circle, #6d4aff 0%, transparent 65%); animation-duration: 70s; animation-delay: -8s; }
-    .aurora span:nth-child(3) { width: 30vmax; height: 30vmax; left: 40%; top: 35%; background: radial-gradient(circle, #1fb6ff 0%, transparent 65%); opacity: .5; animation-duration: 80s; animation-delay: -16s; }
-    @keyframes drift {
-      0%   { transform: translate3d(0,0,0) scale(1); }
-      50%  { transform: translate3d(6vmax,4vmax,0) scale(1.12); }
-      100% { transform: translate3d(-5vmax,2vmax,0) scale(.95); }
-    }
+    /* ---------- Fond : halo orange qui suit la souris + grille ---------- */
+    .spot { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(640px circle at var(--sx, 78%) var(--sy, 12%), rgba(255,91,31,.12), transparent 62%); }
     .grid-bg {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
@@ -137,7 +129,7 @@
 
     /* ---------- Logo : voiture + badge « bonne occaz » ---------- */
     .logo-mark { position: relative; width: 38px; height: 38px; border-radius: 12px; overflow: hidden; flex: none;
-      background: linear-gradient(145deg, #ff7a3d, #ff3d6e); box-shadow: 0 10px 30px -10px rgba(255,90,60,.8), inset 0 1px 0 rgba(255,255,255,.35); }
+      background: #ff5b1f; box-shadow: 0 10px 30px -12px rgba(255,91,31,.9), inset 0 1px 0 rgba(255,255,255,.3); }
     .logo-mark svg { position: absolute; inset: 0; width: 100%; height: 100%; }
     /* reflet qui traverse le logo (une fois au chargement, en continu pendant une recherche) */
     .logo-sweep { position: absolute; inset: 0; transform: translateX(-130%);
@@ -151,29 +143,9 @@
     .logo-badge { transform-origin: 50px 15px; }
     .logo-mark.scan .logo-badge { animation: badge 1.3s ease-in-out infinite; }
     @keyframes badge { 50% { transform: scale(.82); } }
-    .wordmark { background: linear-gradient(180deg, #fff 0%, #d4d4d8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .wordmark-accent { background: linear-gradient(120deg, #ff8a4c 0%, #ff4d6d 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-
-    /* ---------- Radar discret derrière le titre ---------- */
-    .hero-radar { position: absolute; z-index: 0; pointer-events: none; right: -12vw; top: -6rem; width: min(760px, 90vw); aspect-ratio: 1;
-      mask-image: radial-gradient(circle, #000 35%, transparent 70%); -webkit-mask-image: radial-gradient(circle, #000 35%, transparent 70%); opacity: .55; }
-    .hero-radar .rings { position: absolute; inset: 0; border-radius: 50%;
-      background: repeating-radial-gradient(circle, rgba(255,255,255,.07) 0 1px, transparent 1px 64px); }
-    .hero-radar .cross { position: absolute; inset: 0;
-      background: linear-gradient(rgba(255,255,255,.05), rgba(255,255,255,.05)) center / 1px 100% no-repeat,
-                  linear-gradient(rgba(255,255,255,.05), rgba(255,255,255,.05)) center / 100% 1px no-repeat; }
-    .hero-radar .beam { position: absolute; inset: 0; border-radius: 50%;
-      background: conic-gradient(from 0deg, transparent 0deg, transparent 300deg, rgba(255,106,43,.03) 320deg, rgba(255,106,43,.16) 359.5deg, transparent 360deg);
-      animation: sweep 9s linear infinite; will-change: transform; }
-    .hero-radar .dot { position: absolute; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; background: #ff8a5b;
-      box-shadow: 0 0 12px 3px rgba(255,120,70,.55); opacity: 0; animation: dot 9s ease-out infinite; }
-    @keyframes dot { 0%, 100% { opacity: 0; transform: scale(.4); } 4% { opacity: 1; transform: scale(1.25); } 30% { opacity: .08; transform: scale(1); } }
-
-    /* ---------- Bandeau des sites (défilement lent) ---------- */
-    .marquee { mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
-    .marquee-track { display: flex; width: max-content; gap: 2.75rem; animation: defile 38s linear infinite; }
-    .marquee:hover .marquee-track { animation-play-state: paused; }
-    @keyframes defile { to { transform: translateX(-50%); } }
+    .wordmark { color: #fff; }
+    .wordmark-accent { color: #ff5b1f; }
+    .wm { font-stretch: 125%; font-weight: 800; font-size: 15.5px; letter-spacing: -.01em; text-transform: uppercase; line-height: 1; }
 
     /* ---------- Menu déroulant maison ---------- */
     .dd { position: relative; }
@@ -212,66 +184,23 @@
     /* ---------- Économie d'énergie ----------
        Onglet caché, ou partie animée hors de l'écran : tout est mis en pause. */
     .en-pause *, .en-pause *::before, .en-pause *::after { animation-play-state: paused !important; }
-    .hors-hero .hero-radar *, .hors-hero .marquee-track, .hors-hero .aurora span { animation-play-state: paused !important; }
+    .hors-hero .vitrine * { animation-play-state: paused !important; }
     /* Téléphones, tablettes, écrans tactiles : décor fixe (pas d'animation en boucle, pas de flou d'arrière-plan) */
     @media (hover: none), (pointer: coarse), (max-width: 900px) {
-      .aurora span, .hero-radar .beam, .hero-radar .dot, .marquee-track, .logo-sweep, .logo-check, .live-dot { animation: none !important; }
-      .hero-radar .dot:nth-of-type(-n+3) { opacity: .7; }
+      .logo-sweep, .live-dot { animation: none !important; }
       .grain { display: none; }
-      .marquee { overflow-x: auto; scrollbar-width: none; } .marquee::-webkit-scrollbar { display: none; }
       .backdrop-blur-xl, .backdrop-blur-md, .dd-menu { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
       header.sticky { background: #0d0d10 !important; }
-      .logo-mark.scan .logo-badge { animation: badge 1.3s ease-in-out infinite !important; }
+      .logo-mark.scan .logo-sweep { animation: reflet 1.3s ease-in-out infinite !important; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
       .reveal, .word { opacity: 1; transform: none; filter: none; }
-      .logo-sweep, .hero-radar .beam, .hero-radar .dot, .marquee-track { animation: none !important; }
+      .logo-sweep { animation: none !important; } .titre .ligne > span, .vitrine .vc { transform: none !important; opacity: 1 !important; }
     }
   </style>
   <style>
-    /* ---------- Flux d'annonces (hero) ---------- */
-    .flux { position: relative; width: 100%; max-width: 440px; border-radius: 1.25rem; border: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(20,20,24,.92), rgba(12,12,15,.92)); box-shadow: 0 30px 80px -40px rgba(255,106,43,.35), 0 1px 0 rgba(255,255,255,.05) inset;
-      padding: .6rem .6rem .35rem; }
-    .flux::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
-      background: linear-gradient(140deg, rgba(255,138,76,.45), transparent 35%, transparent 70%, rgba(109,74,255,.35));
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-    .flux-tete { display: flex; align-items: center; justify-content: space-between; padding: .15rem .35rem .55rem;
-      font: 500 10.5px/1 var(--font-mono, monospace); letter-spacing: .14em; text-transform: uppercase; color: #71717a; }
-    .flux-live { display: inline-flex; align-items: center; gap: .45rem; color: #4ade80; }
-    .flux-live i { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,.55); animation: flux-ping 2.2s ease-out infinite; }
-    @keyframes flux-ping { 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
-    .flux-nb { color: #e4e4e7; font-variant-numeric: tabular-nums; }
-    .flux-liste { --h: 58px; height: calc(3 * var(--h) + 2 * 6px); overflow: hidden; margin: 0; padding: 0; list-style: none;
-      mask-image: linear-gradient(180deg, #000 78%, transparent); -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent); }
-    .fr { display: grid; grid-template-rows: 1fr; opacity: 1; margin-bottom: 6px;
-      transition: grid-template-rows .55s cubic-bezier(.16,1,.3,1), opacity .45s ease, margin .55s cubic-bezier(.16,1,.3,1); }
-    .fr.ferme { grid-template-rows: 0fr; opacity: 0; margin-bottom: 0; }
-    .fr-in { position: relative; min-height: 0; overflow: hidden; display: flex; align-items: center; gap: .7rem; height: var(--h);
-      padding: 0 .55rem 0 .4rem; border-radius: .9rem; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.05);
-      transition: background .6s, border-color .6s; }
-    .fr.neuf .fr-in { background: rgba(255,106,43,.09); border-color: rgba(255,138,76,.28); }
-    .fr-img { width: 64px; height: 44px; flex: none; border-radius: .55rem; object-fit: cover; background: #1c1c21; }
-    .fr-txt { min-width: 0; flex: 1; }
-    .fr-t { margin: 0; font-size: 13.5px; font-weight: 600; color: #f4f4f5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
-    .fr-m { margin: .15rem 0 0; font-size: 11.5px; color: #71717a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fr-d { flex: none; text-align: right; }
-    .fr-p { margin: 0; font-size: 13.5px; font-weight: 650; color: #fff; font-variant-numeric: tabular-nums; }
-    .fr-s { display: inline-block; margin-top: .2rem; padding: 1px 6px; border-radius: 6px; font-size: 10.5px; color: #a1a1aa; background: rgba(255,255,255,.06); }
-    .fr-s.alerte { color: #fca5a5; background: rgba(239,68,68,.16); }
-    .fr-cache { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .45rem; border-radius: inherit;
-      font-size: 12.5px; font-weight: 600; color: #fecaca; background: rgba(36,9,11,.93); opacity: 0; transition: opacity .35s; }
-    .fr.masquee .fr-in { border-color: rgba(239,68,68,.4); }
-    .fr.masquee .fr-cache { opacity: 1; }
-    @media (max-width: 420px) { .fr-v { display: none; } .fr-img { width: 56px; height: 40px; } .fr-in { gap: .6rem; } }
-    @media (prefers-reduced-motion: reduce) { .flux-live i { animation: none; } }
-  </style>
-  <style>
-    #form:not(.filtres-ouverts) #optChips { display: none; }
-    #form.filtres-ouverts #plusFiltres .chev { transform: rotate(180deg); }
-    @media (max-width: 1023px) { #form:not(.filtres-ouverts) .filtre-sup-m, #form:not(.filtres-ouverts) [data-sup] { display: none; } }
     .field { width: 100%; border-radius: .9rem; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
       padding: .7rem .85rem; font-size: .875rem; color: #f4f4f5; outline: none; transition: border-color .3s, background .3s, box-shadow .3s; }
     .field:focus { border-color: rgba(255,106,43,.55); background: rgba(255,255,255,.06); box-shadow: 0 0 0 4px rgba(255,106,43,.12); }
@@ -282,10 +211,122 @@
     .duo { display: grid; grid-template-columns: 1fr 1fr; gap: .375rem; }
     .duo select.field { padding-left: .65rem; padding-right: 1.55rem; background-position: right .4rem center; background-size: .85rem; }
     .lbl { display: block; margin-bottom: .4rem; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #71717a; }
+
+    /* =================== Refonte 2026 : identité « auto » =================== */
+    .titre { font-stretch: 125%; font-weight: 800; text-transform: uppercase; letter-spacing: -.035em; line-height: .92;
+      font-size: clamp(2.45rem, 4.9vw, 4.35rem); }
+    .titre .ligne { display: block; overflow: hidden; padding-bottom: .06em; }
+    .titre .ligne > span { display: inline-block; transform: translateY(105%); animation: monte .95s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--d, 0ms); }
+    .titre .o { color: #ff5b1f; }
+    @keyframes monte { to { transform: none; } }
+    .titre-2 { font-stretch: 125%; font-weight: 800; text-transform: uppercase; letter-spacing: -.025em; line-height: .98; }
+    .surtitre { font-size: 13px; font-weight: 600; color: #ff5b1f; letter-spacing: .01em; }
+    .accroche { font-size: 16px; font-weight: 500; line-height: 1.5; color: #a1a1aa; max-width: 36rem; }
+    .accroche span { color: #f4f4f5; }
+    .pill { display: inline-flex; align-items: center; gap: .55rem; border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.03);
+      border-radius: 999px; padding: .4rem .95rem .4rem .7rem; font-size: 13px; color: #c4c4cc; }
+    .pill i { width: 7px; height: 7px; border-radius: 50%; background: #ff5b1f; box-shadow: 0 0 0 4px rgba(255,91,31,.15); }
+
+    /* barre de recherche sur une ligne */
+    .barre { display: grid; grid-template-columns: 1.15fr 1.15fr .85fr .85fr 1.15fr auto; padding: 6px; border-radius: 20px;
+      background: rgba(18,18,22,.85); border: 1px solid rgba(255,255,255,.09); transition: border-color .3s, box-shadow .3s; }
+    .barre:hover, .barre:focus-within { border-color: rgba(255,91,31,.5); box-shadow: 0 0 0 5px rgba(255,91,31,.09); }
+    .seg { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 1px; padding: .45rem 1rem; border-left: 1px solid rgba(255,255,255,.08); }
+    .seg:first-child { border-left: 0; }
+    .seg > span { font-size: 11.5px; font-weight: 500; color: #8b8b94; }
+    .champ { width: 100%; min-width: 0; appearance: none; -moz-appearance: textfield; background: transparent; border: 0; outline: none; padding: 1px 0;
+      color: #fafafa; font: 500 15px/1.4 Archivo, system-ui, sans-serif; text-overflow: ellipsis; }
+    .champ::placeholder { color: #71717a; }
+    .champ::-webkit-outer-spin-button, .champ::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    select.champ { cursor: pointer; padding-right: 1.3rem; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right center / .95rem; }
+    select.champ:disabled { color: #52525b; cursor: not-allowed; }
+    select.champ option, select.champ optgroup { background: #111114; color: #f4f4f5; }
+    .seg .dd-btn { width: 100%; justify-content: space-between; padding: 1px 0; border: 0; background: none; box-shadow: none !important;
+      color: #fafafa; font-size: 15px; font-weight: 500; }
+    .seg .dd-btn > svg:first-child { display: none; }
+    .seg .dd-btn.actif { background: none; color: #ffb48f; }
+    .barre .btn-go { border-radius: 14px; padding: 0 1.6rem; font-weight: 700; font-size: 15px; }
+
+    /* filtres rapides */
+    .q { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.03);
+      border-radius: 999px; padding: .45rem .8rem; font-size: 13px; color: #d4d4d8; cursor: pointer; user-select: none;
+      transition: border-color .25s, background .25s, color .25s, transform .25s cubic-bezier(.16,1,.3,1); }
+    .q svg { width: 14px; height: 14px; opacity: .75; transition: color .25s, opacity .25s; }
+    .q:hover { border-color: rgba(255,255,255,.22); color: #fff; transform: translateY(-1px); }
+    .q[aria-pressed="true"] { background: rgba(255,91,31,.14); border-color: rgba(255,91,31,.65); color: #fff; }
+    .q[aria-pressed="true"] svg { color: #ff5b1f; opacity: 1; }
+    .q.tous { border-style: dashed; color: #a1a1aa; }
+    .q.tous[aria-expanded="true"] { border-style: solid; border-color: rgba(255,255,255,.3); color: #fff; }
+    #form:not(.filtres-ouverts) #panneau { display: none; }
+    #panneau { animation: deplie .45s cubic-bezier(.16,1,.3,1); }
+    @keyframes deplie { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+    /* vitrine : trois annonces en éventail à droite du titre */
+    .vitrine { position: relative; height: 420px; perspective: 1400px; }
+    .vc { position: absolute; top: 40px; width: 240px; border-radius: 18px; overflow: hidden; background: #131316; border: 1px solid rgba(255,255,255,.09);
+      box-shadow: 0 40px 80px -36px rgba(0,0,0,.9); opacity: 0; transition: transform .7s cubic-bezier(.16,1,.3,1), box-shadow .5s;
+      animation: vc-in 1.1s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--d); }
+    .vc.g { left: 0; transform: translate(10px, 30px) rotate(-7deg); z-index: 1; }
+    .vc.m { left: 50%; margin-left: -120px; top: 0; transform: none; z-index: 3; box-shadow: 0 50px 110px -40px rgba(255,91,31,.5); }
+    .vc.d { right: 0; transform: translate(-10px, 30px) rotate(7deg); z-index: 2; }
+    @keyframes vc-in { from { opacity: 0; translate: 0 60px; } to { opacity: 1; translate: 0 0; } }
+    .vitrine:hover .vc.g { transform: translate(-26px, 22px) rotate(-10deg); }
+    .vitrine:hover .vc.d { transform: translate(26px, 22px) rotate(10deg); }
+    .vitrine:hover .vc.m { transform: translateY(-8px); }
+    .vc .im { position: relative; aspect-ratio: 4/3; overflow: hidden; background: #1c1c21; }
+    .vc .im img { width: 100%; height: 100%; object-fit: cover; }
+    .vc .bd { padding: 12px 13px 13px; }
+    .vc .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vc .px { display: flex; justify-content: space-between; align-items: end; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.07); }
+    .vc .px b { font-stretch: 112%; font-weight: 700; font-size: 18px; letter-spacing: -.02em; }
+    .vc .px small { font-size: 11.5px; color: #8b8b94; }
+    .vc.ko .im img { filter: grayscale(1) brightness(.55); }
+    .vc.ko .px b { color: #71717a; text-decoration: line-through; }
+    .vc .ecarte { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); white-space: nowrap; border-radius: 999px; background: #dc2626;
+      color: #fff; font-weight: 700; font-size: 12px; padding: 6px 12px; box-shadow: 0 10px 30px -8px rgba(220,38,38,.8); }
+
+    /* badges et pastilles (cartes) */
+    .badge { display: inline-flex; align-items: center; gap: .4rem; border-radius: 8px; padding: 4px 9px; font-size: 11.5px; font-weight: 600; color: #fff;
+      background: rgba(9,9,11,.72); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+    .badge-ok { color: #bbf7d0; }
+    .spec { display: inline-flex; align-items: center; gap: 5px; border-radius: 7px; padding: 3px 8px; font-size: 12px; color: #d4d4d8; background: rgba(255,255,255,.06); white-space: nowrap; }
+    .spec svg { width: 13px; height: 13px; opacity: .7; flex: none; }
+    .sites { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: 14px; }
+    .site { display: inline-flex; align-items: center; gap: 5px; }
+    .site button { font-weight: 600; color: #e4e4e7; transition: color .2s, opacity .2s; }
+    .site button:hover { color: #fff; }
+    .site a { color: #71717a; font-size: 13px; transition: color .2s; } .site a:hover { color: #ff5b1f; }
+    .site.off button { color: #52525b; text-decoration: line-through; }
+    .site.charge button { animation: clign 1.2s ease-in-out infinite; } @keyframes clign { 50% { opacity: .45; } }
+    .site.ko button { color: #52525b; cursor: default; }
+    .prix { font-stretch: 112%; font-weight: 700; font-size: 22px; letter-spacing: -.02em; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
+    .card[data-merguez="1"] .prix { color: #a1a1aa; }
+
+    /* lueur orange qui suit la souris sur les blocs (cartes, cases) */
+    .lueur { position: relative; }
+    .lueur::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+      background: radial-gradient(260px circle at var(--x, 50%) var(--y, 50%), rgba(255,91,31,.85), transparent 55%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+      opacity: 0; transition: opacity .35s; }
+    .lueur:hover::after { opacity: 1; }
+
+    @media (max-width: 1023px) {
+      .vitrine { display: none; }
+    }
+    @media (max-width: 860px) {
+      .barre { grid-template-columns: 1fr 1fr; gap: 0; padding: 4px; }
+      .seg { border-left: 0; border-top: 1px solid rgba(255,255,255,.08); padding: .6rem .8rem; }
+      .seg:nth-child(-n+2) { border-top: 0; }
+      .seg:nth-child(2n) { border-left: 1px solid rgba(255,255,255,.08); }
+      .seg.seg-ou { grid-column: 1 / -1; border-left: 0; }
+      .barre .btn-go { grid-column: 1 / -1; height: 50px; margin-top: 4px; }
+    }
+    @media (hover: none), (pointer: coarse) { .spot { background: radial-gradient(520px circle at 85% 4%, rgba(255,91,31,.14), transparent 62%); } }
     .no-anim .opt { animation: none; opacity: 1; transform: none; }
     .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
-    .btn-go { background: linear-gradient(135deg, #ff6a2b, #ff3d6e); box-shadow: 0 12px 40px -12px rgba(255,106,43,.7); transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s; }
-    .btn-go:hover { transform: translateY(-1px); box-shadow: 0 18px 50px -12px rgba(255,106,43,.85); }
+    .btn-go { position: relative; overflow: hidden; background: #ff5b1f; box-shadow: 0 14px 40px -14px rgba(255,91,31,.9); transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s, background .3s; }
+    .btn-go::after { content: ""; position: absolute; inset: 0; transform: translateX(-120%); background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%); animation: reflet 3.4s 2s ease-in-out infinite; }
+    .btn-go:hover { transform: translateY(-1px); background: #ff6a33; box-shadow: 0 18px 50px -12px rgba(255,91,31,1); }
     .btn-go:active { transform: scale(.97); }
     .progress { background: linear-gradient(90deg, transparent, rgba(255,106,43,.9), transparent); background-size: 50% 100%; background-repeat: no-repeat;
       animation: prog 1.1s ease-in-out infinite; } @keyframes prog { from { background-position: -50% 0; } to { background-position: 150% 0; } }
@@ -293,7 +334,7 @@
 </head>
 
 <body class="min-h-screen font-sans text-zinc-100 antialiased selection:bg-accent/40">
-  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="spot" aria-hidden="true"></div>
   <div class="grid-bg" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
 
@@ -303,12 +344,9 @@
       <a href="/" class="group flex items-center gap-3" aria-label="La Bonne Occaz — accueil">
         <span class="logo-mark" aria-hidden="true">
           <span class="logo-sweep"></span>
-          <svg viewBox="0 0 64 64" fill="none"><g transform="translate(-2 3)"><path d="M8 41.5 v-6.5 c0-2.6 1.7-4.5 4.2-5 l5.8-9.6 c1.1-1.7 2.6-2.5 4.6-2.5 h18.8 c2 0 3.5.8 4.6 2.5 l5.8 9.6 c2.5.5 4.2 2.4 4.2 5 v6.5 c0 1.6-1.1 2.7-2.7 2.7 h-42.6 c-1.6 0-2.7-1.1-2.7-2.7z" fill="white"/><path d="M19.5 30 l4.6-7.6 c.5-.8 1.2-1.2 2.1-1.2 h11.6 c.9 0 1.6.4 2.1 1.2 l4.6 7.6z" fill="#ff5f50"/><rect x="11.5" y="43" width="9" height="6.5" rx="2.2" fill="white"/><rect x="43.5" y="43" width="9" height="6.5" rx="2.2" fill="white"/><circle cx="16.3" cy="36" r="2.6" fill="#ff5f50"/><circle cx="47.7" cy="36" r="2.6" fill="#ff5f50"/></g><g class="logo-badge"><circle cx="50" cy="15" r="9.5" fill="white"/><path class="logo-check" d="M45.6 15.2 l3.1 3.1 l5.8-6" fill="none" stroke="#ff4d5a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+          <svg viewBox="0 0 38 38" fill="none"><g transform="translate(7 7)"><path d="M1.6 16.7v-3.6c0-1 .7-1.9 1.7-2.1l2.1-3.5c.4-.7 1.1-1.1 1.9-1.1h7.4c.8 0 1.5.4 1.9 1.1l2.1 3.5c1 .2 1.7 1.1 1.7 2.1v3.6c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z" fill="#fff"/><path d="M6.6 10.9l1.7-2.9h7.4l1.7 2.9z" fill="#ff5b1f"/><rect x="3.4" y="17" width="3.4" height="3" rx="1.1" fill="#fff"/><rect x="17.2" y="17" width="3.4" height="3" rx="1.1" fill="#fff"/></g></svg>
         </span>
-        <span class="flex flex-col leading-none">
-          <span class="text-[17px] font-semibold tracking-[-0.03em]"><span class="wordmark">La Bonne</span> <span class="wordmark-accent">Occaz</span></span>
-          <span class="mt-1 hidden font-mono text-[9.5px] uppercase tracking-[.22em] text-zinc-500 sm:block">Moteur de recherche d'occasions</span>
-        </span>
+        <span class="wm"><span class="wordmark">La Bonne</span> <span class="wordmark-accent">Occaz</span></span>
       </a>
       <nav class="flex items-center gap-1 whitespace-nowrap text-[13px] text-zinc-400">
         <a href="/guide/" class="rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">Guide<span class="hidden sm:inline"> d'achat</span></a>
@@ -322,88 +360,99 @@
     </header>
 
     <!-- ================= Hero + formulaire ================= -->
-    <section id="recherche" class="relative pt-14 pb-8 sm:pt-20">
-      <div class="hero-radar" aria-hidden="true">
-        <div class="rings"></div><div class="cross"></div><div class="beam"></div>
-        <span class="dot" style="left:71%;top:30%;animation-delay:.7s"></span>
-        <span class="dot" style="left:78%;top:62%;animation-delay:2.4s"></span>
-        <span class="dot" style="left:38%;top:74%;animation-delay:4.6s"></span>
-        <span class="dot" style="left:26%;top:40%;animation-delay:6.7s"></span>
-        <span class="dot" style="left:55%;top:18%;animation-delay:8.3s"></span>
-      </div>
-      <p class="reveal relative mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[.26em] text-zinc-400" style="--d:120ms">
-        <span class="h-px w-10 bg-gradient-to-r from-accent to-transparent"></span><span class="sm:hidden">Comparateur d'occasions</span><span class="hidden sm:inline">Comparateur d'annonces automobiles</span>
-      </p>
-      <div class="relative grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
-        <h1 id="headline" class="relative max-w-4xl text-[clamp(2.3rem,6vw,4.6rem)] font-semibold leading-[.95] tracking-[-0.045em]">Toutes les occasions, une recherche.</h1>
-        <!-- Flux d'annonces animé : montre le principe (tous les sites, annonces à risque écartées) -->
-        <div class="flux reveal" style="--d:650ms" role="img" aria-label="Exemple d'annonces trouvées sur plusieurs sites, dont une annonce à risque écartée">
-          <div class="flux-tete">
-            <span>Exemple de résultats</span>
-            <span>8 sites · 1 recherche</span>
+    <section id="recherche" class="relative pt-12 pb-8 sm:pt-16">
+      <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_520px]">
+        <div>
+          <p class="accroche reveal" style="--d:60ms">Toutes les annonces auto,<span> filtrées par équipement.</span></p>
+          <h1 id="headline" class="titre mt-6">Toutes les occasions. Une recherche.</h1>
+          <p class="reveal mt-6 max-w-xl text-[17px] leading-relaxed text-zinc-400" style="--d:450ms">Une seule recherche sur les grands sites d'annonces. Les véhicules en panne ou accidentés sont repérés et écartés pour vous.</p>
+        </div>
+        <div class="vitrine" aria-hidden="true">
+          <div class="vc g" style="--d:500ms">
+            <div class="im"><img src="/guide/photo/480/yaris-4.webp" alt="" width="252" height="189" decoding="async" fetchpriority="low">
+              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">AutoScout24</span><span class="badge badge-ok">✓ Description lue</span></div></div>
+            <div class="bd"><p class="t">Toyota Yaris Hybride 116</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2021</span><span class="spec">29 000 km</span><span class="spec">Hybride</span></div>
+              <div class="px"><b>17 450 €</b><small>Bordeaux (33)</small></div></div>
           </div>
-          <ul class="flux-liste" id="fluxListe"></ul>
+          <div class="vc d ko" style="--d:650ms">
+            <div class="im"><img src="/guide/photo/480/polo-6.webp" alt="" width="252" height="189" decoding="async" fetchpriority="low">
+              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">Leboncoin</span></div><span class="ecarte">Moteur HS — écartée</span></div>
+            <div class="bd"><p class="t">Volkswagen Polo 1.0 TSI 95</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2019</span><span class="spec">64 000 km</span><span class="spec">Essence</span></div>
+              <div class="px"><b>4 500 €</b><small>Marseille (13)</small></div></div>
+          </div>
+          <div class="vc m" style="--d:350ms">
+            <div class="im"><img src="/guide/photo/480/golf-7.webp" alt="" width="252" height="189" decoding="async" fetchpriority="low">
+              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">L'argus</span><span class="badge badge-ok">✓ Description lue</span></div></div>
+            <div class="bd"><p class="t">Volkswagen Golf 7 1.5 TSI</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2018</span><span class="spec">78 000 km</span><span class="spec">Essence</span></div>
+              <div class="px"><b>16 490 €</b><small>Lille (59)</small></div></div>
+          </div>
         </div>
       </div>
 
-      <form id="form" class="reveal relative z-20 mt-8 rounded-3xl sm:mt-10 border border-white/10 bg-[#0c0c0f]/90 p-4 sm:p-5" style="--d:800ms" autocomplete="off">
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-[1.45fr_1.45fr_1fr_1fr_1.3fr_1.3fr_auto]">
-          <label class="col-span-2 md:col-span-1"><span class="lbl">Marque</span>
-            <select id="marque" class="field" required><option value="">Choisir…</option></select></label>
-          <label class="col-span-2 md:col-span-1"><span class="lbl">Modèle</span>
-            <select id="modele" class="field" disabled><option value="">Tous les modèles</option></select></label>
-          <label><span class="lbl">Prix max (€)</span><input id="prix_max" class="field" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
-          <label><span class="lbl">Km max</span><input id="km_max" class="field" type="number" min="0" step="5000" placeholder="Illimité" inputmode="numeric"></label>
-          <div><span class="lbl">Année</span><div class="duo">
-            <select id="annee_min" class="field" aria-label="Année minimum"><option value="">Min</option></select>
-            <select id="annee_max" class="field" aria-label="Année maximum"><option value="">Max</option></select></div></div>
-          <div><span class="lbl">Puissance</span><div class="duo">
-            <select id="puissance_min" class="field" aria-label="Puissance minimum"><option value="">Min</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select>
-            <select id="puissance_max" class="field" aria-label="Puissance maximum"><option value="">Max</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select></div></div>
-          <div class="col-span-2 flex items-end xl:col-span-1"><button id="go" type="submit" class="btn-go inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-[.72rem] text-sm font-semibold text-white">
-            <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher</button></div>
-        </div>
-        <div class="mt-4 flex flex-col gap-3 border-t border-white/5 pt-4 lg:flex-row lg:items-center">
-          <div class="filtre-sup-m flex flex-wrap items-center gap-1.5">
-            <span class="mr-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">Sites</span>
-            <div id="srcChips" class="flex flex-wrap gap-1.5"></div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
+      <form id="form" class="reveal relative z-20 mt-10" style="--d:600ms" autocomplete="off">
+        <div class="barre">
+          <label class="seg"><span>Marque</span>
+            <select id="marque" class="champ"><option value="">Toutes les marques</option></select></label>
+          <label class="seg"><span>Modèle</span>
+            <select id="modele" class="champ" disabled><option value="">Tous les modèles</option></select></label>
+          <label class="seg"><span>Budget max</span><input id="prix_max" class="champ" type="number" min="0" step="500" placeholder="Illimité" inputmode="numeric"></label>
+          <label class="seg"><span>Km max</span><input id="km_max" class="champ" type="number" min="0" step="5000" placeholder="Illimité" inputmode="numeric"></label>
+          <div class="seg seg-ou"><span>Où</span>
             <div class="dd" id="ddRegion">
               <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Région où se trouve le véhicule">
-                <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-                <span data-dd-label>Toute la France</span>
-                <svg viewBox="0 0 24 24" class="chev size-3.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/></svg>
+                <span data-dd-label class="truncate">Toute la France</span>
+                <svg viewBox="0 0 24 24" class="chev size-4 shrink-0 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
               </button>
               <div class="dd-menu dd-long" role="listbox"></div>
-            </div>
-            <div class="dd filtre-sup-m" id="ddDepuis">
-              <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Date de mise en ligne de l'annonce">
-                <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-                <span data-dd-label>Toutes les dates</span>
-                <svg viewBox="0 0 24 24" class="chev size-3.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="dd-menu" role="listbox"></div>
-            </div>
-            <button id="verifOnly" type="button" aria-pressed="false" data-sup title="N'afficher que les annonces dont la description complète a pu être lue et analysée (ce n'est pas une inspection du véhicule)"
-              class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-emerald-500/10 aria-pressed:text-emerald-200">
-              <span class="switch"></span>Descriptions lues uniquement</button>
-            <button id="effacer" type="button" data-sup class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
-              <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Effacer les filtres</button>
-            <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les véhicules en panne, accidentés, vendus pour pièces ou « en l'état »"
-              class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-red-500/10 aria-pressed:text-red-200">
-              <span class="switch"></span>Exclure les véhicules à risque</button>
-          </div>
+            </div></div>
+          <button id="go" type="submit" class="btn-go inline-flex items-center justify-center gap-2 text-white">
+            <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Rechercher</button>
         </div>
-        <div class="mt-3 border-t border-white/5 pt-3">
-          <button type="button" id="plusFiltres" aria-expanded="false" aria-controls="optChips"
-            class="inline-flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1.5 text-left text-sm text-zinc-300 transition hover:text-white">
-            <span><span class="font-medium text-zinc-100">Plus de filtres</span>
-              <span class="ml-1 text-xs text-zinc-500"><span class="lg:hidden">équipements, carburant, sites, date…</span><span class="hidden lg:inline">équipements (toit panoramique, hi-fi, CarPlay…), carburant, boîte auto</span></span>
-              <span id="nbFiltres" class="ml-1 hidden rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"></span></span>
-            <svg viewBox="0 0 24 24" class="chev size-4 shrink-0 opacity-70 transition" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div id="optChips" class="mt-3 grid gap-3 lg:grid-cols-[auto_1fr] lg:gap-x-5"></div>
+        <p id="aideMarque" class="mt-2 hidden text-sm text-amber-200/90">Choisissez une marque, ou au moins un critère (budget, kilométrage, équipement…).</p>
+
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+          <span class="mr-1 text-[12.5px] text-zinc-500">Filtres rapides</span>
+          <div id="quickChips" class="contents"></div>
+          <button type="button" id="plusFiltres" class="q tous" aria-expanded="false" aria-controls="panneau">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Tous les filtres<span id="nbFiltres" class="hidden rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"></span></button>
+          <span class="mx-1 hidden h-5 w-px bg-white/10 sm:block"></span>
+          <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les véhicules en panne, accidentés, vendus pour pièces ou « en l'état »"
+            class="inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-[13px] text-zinc-300 transition hover:text-white aria-pressed:text-red-200">
+            <span class="switch"></span>Masquer les annonces à risque</button>
+        </div>
+
+        <div id="panneau" class="mt-4 rounded-2xl border border-white/[0.08] bg-[#111114]/90 p-4 sm:p-5">
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto] lg:items-end">
+            <div><span class="lbl">Année</span><div class="duo">
+              <select id="annee_min" class="field" aria-label="Année minimum"><option value="">Min</option></select>
+              <select id="annee_max" class="field" aria-label="Année maximum"><option value="">Max</option></select></div></div>
+            <div><span class="lbl">Puissance</span><div class="duo">
+              <select id="puissance_min" class="field" aria-label="Puissance minimum"><option value="">Min</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select>
+              <select id="puissance_max" class="field" aria-label="Puissance maximum"><option value="">Max</option><option value="75">75 ch</option><option value="90">90 ch</option><option value="100">100 ch</option><option value="110">110 ch</option><option value="130">130 ch</option><option value="150">150 ch</option><option value="180">180 ch</option><option value="200">200 ch</option><option value="250">250 ch</option><option value="300">300 ch</option></select></div></div>
+            <div><span class="lbl">Mise en ligne</span>
+              <div class="dd" id="ddDepuis">
+                <button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false" title="Date de mise en ligne de l'annonce">
+                  <svg viewBox="0 0 24 24" class="size-3.5 opacity-70" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                  <span data-dd-label>Toutes les dates</span>
+                  <svg viewBox="0 0 24 24" class="chev size-3.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="dd-menu" role="listbox"></div>
+              </div></div>
+            <div class="flex flex-wrap gap-2">
+              <button id="verifOnly" type="button" aria-pressed="false" title="N'afficher que les annonces dont la description complète a pu être lue et analysée (ce n'est pas une inspection du véhicule)"
+                class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-emerald-500/10 aria-pressed:text-emerald-200">
+                <span class="switch"></span>Descriptions lues uniquement</button>
+              <button id="effacer" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
+                <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Effacer les filtres</button>
+            </div>
+          </div>
+          <div class="mt-5 flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] pt-4">
+            <span class="lbl mb-0 mr-2">Sites</span>
+            <div id="srcChips" class="flex flex-wrap gap-1.5"></div>
+          </div>
+          <div id="optChips" class="mt-4 grid gap-3 border-t border-white/[0.06] pt-4 lg:grid-cols-[auto_1fr] lg:gap-x-5"></div>
         </div>
       </form>
     </section>
@@ -440,7 +489,7 @@
     <section id="vueFavoris" class="hidden pb-24 pt-12">
       <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p class="font-mono text-[11px] uppercase tracking-[.22em] text-accent">Mes favoris</p>
+          <p class="surtitre">Mes favoris</p>
           <h2 class="mt-2 text-3xl font-semibold tracking-[-0.03em]"><span id="nbFavTitre">0</span> annonce<span id="nbFavS">s</span> enregistrée<span id="nbFavS2">s</span></h2>
           <p class="mt-2 text-sm text-zinc-500">Gardées sur cet appareil, même après avoir fermé le site. Une annonce peut disparaître si le vendeur la retire.</p>
         </div>
@@ -450,29 +499,24 @@
     </section>
 
     <section id="accueil" class="reveal pb-20" style="--d:950ms">
-      <div class="marquee overflow-hidden border-y border-white/[0.06] py-5" aria-label="Sites interrogés">
-        <div class="marquee-track font-medium tracking-tight text-zinc-500" id="marquee"></div>
-      </div>
-      <div id="comment" class="scroll-mt-28 pt-16">
-        <p class="font-mono text-[11px] uppercase tracking-[.22em] text-accent">Comment ça marche</p>
-        <h2 class="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Une recherche, tous les sites, sans les mauvaises surprises.</h2>
-        <p class="mt-4 max-w-2xl text-zinc-400">Leboncoin, La Centrale, AutoScout24, L'argus, ParuVendu, Auto-Sélection, Renew, Autosphere et des centaines de concessions
-          sont interrogés en direct. Les annonces douteuses sont repérées pour vous.</p>
+      <div id="comment" class="scroll-mt-28 pt-20">
+        <p class="surtitre">Comment ça marche</p>
+        <h2 class="mt-3 max-w-2xl titre-2 text-3xl sm:text-[2.6rem]">Une recherche, tous les sites, sans les mauvaises surprises.</h2>
         <div class="mt-10 grid gap-4 sm:grid-cols-3">
-          <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
+          <div class="lueur rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 transition hover:bg-white/[0.035]">
             <span class="grid size-9 place-items-center rounded-xl bg-accent/15 text-accent"><svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
             <p class="mt-4 font-medium">Tous les sites d'un coup</p>
             <p class="mt-1.5 text-sm leading-relaxed text-zinc-400">Modèle, budget, kilométrage, année et carburant sont envoyés à chaque site, qui filtre lui-même ses annonces.</p></div>
-          <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
+          <div class="lueur rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 transition hover:bg-white/[0.035]">
             <span class="grid size-9 place-items-center rounded-xl bg-red-500/15 text-red-300"><svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
             <p class="mt-4 font-medium">Les pannes cachées repérées</p>
             <p class="mt-1.5 text-sm leading-relaxed text-zinc-400">La description de chaque annonce est lue : moteur HS, turbo, accident, « pour pièces »… elles sont signalées ou masquées.</p></div>
-          <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
+          <div class="lueur rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 transition hover:bg-white/[0.035]">
             <span class="grid size-9 place-items-center rounded-xl bg-violet-500/15 text-violet-300"><svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.9L22 10l-5.5 4.7L18.2 22 12 18.3 5.8 22l1.7-7.3L2 10l7.1-1.1z"/></svg></span>
             <p class="mt-4 font-medium">Les options qui comptent</p>
             <p class="mt-1.5 text-sm leading-relaxed text-zinc-400">Toit panoramique, hi-fi Focal ou Bose, CarPlay, caméra 360°… cochez-les : seules les voitures équipées restent.</p></div>
         </div>
-        <div id="detection" class="mt-4 grid gap-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 md:grid-cols-[1fr_1.4fr] md:p-8">
+        <div id="detection" class="lueur mt-4 grid gap-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6 md:grid-cols-[1fr_1.4fr] md:p-8">
           <div>
             <p class="text-lg font-semibold tracking-tight">Comment une annonce est-elle repérée «&nbsp;à risque&nbsp;»&nbsp;?</p>
             <p class="mt-2 text-sm leading-relaxed text-zinc-400">Pas de magie ni de promesse : un outil lit le texte des annonces à votre place, pour vous éviter les mauvaises surprises.</p>
@@ -491,34 +535,34 @@
         </div>
       </div>
       <div id="guide" class="pt-20">
-        <p class="font-mono text-[11px] uppercase tracking-[.22em] text-accent">Guide d'achat</p>
+        <p class="surtitre">Guide d'achat</p>
         <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
-          <h2 class="max-w-2xl text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Quelle voiture d'occasion acheter&nbsp;?</h2>
+          <h2 class="max-w-2xl titre-2 text-3xl sm:text-[2.6rem]">Quelle voiture d'occasion acheter&nbsp;?</h2>
           <a href="/guide/" class="text-sm text-zinc-400 underline-offset-4 hover:text-white hover:underline">Tout le guide →</a>
         </div>
         <p class="mt-3 max-w-2xl text-zinc-400">Les modèles fiables, les moteurs à éviter et les points à vérifier, puis un clic pour voir les annonces. <a href="/guide/credits-photos" class="text-zinc-600 underline-offset-2 hover:underline">Crédits photos</a></p>
-        <div class="mt-8 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5"><a href="/guide/voiture-jeune-permis" class="group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="mt-8 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5"><a href="/guide/voiture-jeune-permis" class="lueur group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
             <span><span class="block text-sm font-medium text-white">Jeune permis</span><span class="text-xs text-zinc-500">6 modèles conseillés</span></span>
-            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voiture-occasion-moins-10000-euros" class="group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
+            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voiture-occasion-moins-10000-euros" class="lueur group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
             <span><span class="block text-sm font-medium text-white">Moins de 10 000 €</span><span class="text-xs text-zinc-500">7 modèles conseillés</span></span>
-            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voiture-occasion-moins-20000-euros" class="group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
+            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voiture-occasion-moins-20000-euros" class="lueur group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
             <span><span class="block text-sm font-medium text-white">Moins de 20 000 €</span><span class="text-xs text-zinc-500">7 modèles conseillés</span></span>
-            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voiture-occasion-moins-30000-euros" class="group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
+            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voiture-occasion-moins-30000-euros" class="lueur group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
             <span><span class="block text-sm font-medium text-white">Moins de 30 000 €</span><span class="text-xs text-zinc-500">6 modèles conseillés</span></span>
-            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voitures-occasion-les-plus-fiables" class="group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
+            <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/guide/voitures-occasion-les-plus-fiables" class="lueur group flex items-center justify-between gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 transition hover:border-white/20 hover:bg-white/[0.05]">
             <span><span class="block text-sm font-medium text-white">Les plus fiables</span><span class="text-xs text-zinc-500">7 modèles conseillés</span></span>
             <svg viewBox="0 0 24 24" class="size-4 text-zinc-500 transition group-hover:translate-x-0.5 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
-        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"><a href="/guide/peugeot-208" class="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"><a href="/guide/peugeot-208" class="lueur group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
             <div class="aspect-[16/10] overflow-hidden bg-zinc-900"><img src="/guide/photo/800/208-2.webp" srcset="/guide/photo/480/208-2.webp 480w, /guide/photo/800/208-2.webp 800w, /guide/photo/208-2.webp 1280w" sizes="(max-width: 640px) 46vw, 200px" alt="Peugeot 208 d'occasion" width="900" height="520" loading="lazy" decoding="async" class="size-full object-cover transition duration-500 group-hover:scale-105"></div>
-            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Peugeot 208<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/renault-clio" class="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
+            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Peugeot 208<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/renault-clio" class="lueur group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
             <div class="aspect-[16/10] overflow-hidden bg-zinc-900"><img src="/guide/photo/800/clio-5.webp" srcset="/guide/photo/480/clio-5.webp 480w, /guide/photo/800/clio-5.webp 800w, /guide/photo/clio-5.webp 1280w" sizes="(max-width: 640px) 46vw, 200px" alt="Renault Clio d'occasion" width="900" height="520" loading="lazy" decoding="async" class="size-full object-cover transition duration-500 group-hover:scale-105"></div>
-            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Renault Clio<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/toyota-yaris" class="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
+            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Renault Clio<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/toyota-yaris" class="lueur group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
             <div class="aspect-[16/10] overflow-hidden bg-zinc-900"><img src="/guide/photo/800/yaris-4.webp" srcset="/guide/photo/480/yaris-4.webp 480w, /guide/photo/800/yaris-4.webp 800w, /guide/photo/yaris-4.webp 1280w" sizes="(max-width: 640px) 46vw, 200px" alt="Toyota Yaris d'occasion" width="900" height="520" loading="lazy" decoding="async" class="size-full object-cover transition duration-500 group-hover:scale-105"></div>
-            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Toyota Yaris<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/volkswagen-golf" class="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
+            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Toyota Yaris<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/volkswagen-golf" class="lueur group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
             <div class="aspect-[16/10] overflow-hidden bg-zinc-900"><img src="/guide/photo/800/golf-7.webp" srcset="/guide/photo/480/golf-7.webp 480w, /guide/photo/800/golf-7.webp 800w, /guide/photo/golf-7.webp 1280w" sizes="(max-width: 640px) 46vw, 200px" alt="Volkswagen Golf d'occasion" width="900" height="520" loading="lazy" decoding="async" class="size-full object-cover transition duration-500 group-hover:scale-105"></div>
-            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Volkswagen Golf<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/peugeot-3008" class="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
+            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Volkswagen Golf<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/peugeot-3008" class="lueur group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
             <div class="aspect-[16/10] overflow-hidden bg-zinc-900"><img src="/guide/photo/800/3008-2.webp" srcset="/guide/photo/480/3008-2.webp 480w, /guide/photo/800/3008-2.webp 800w, /guide/photo/3008-2.webp 1280w" sizes="(max-width: 640px) 46vw, 200px" alt="Peugeot 3008 d'occasion" width="900" height="520" loading="lazy" decoding="async" class="size-full object-cover transition duration-500 group-hover:scale-105"></div>
-            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Peugeot 3008<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/dacia-duster" class="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
+            <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Peugeot 3008<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a><a href="/guide/dacia-duster" class="lueur group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] transition hover:-translate-y-0.5 hover:border-white/20">
             <div class="aspect-[16/10] overflow-hidden bg-zinc-900"><img src="/guide/photo/800/duster-2.webp" srcset="/guide/photo/480/duster-2.webp 480w, /guide/photo/800/duster-2.webp 800w, /guide/photo/duster-2.webp 1280w" sizes="(max-width: 640px) 46vw, 200px" alt="Dacia Duster d'occasion" width="900" height="520" loading="lazy" decoding="async" class="size-full object-cover transition duration-500 group-hover:scale-105"></div>
             <p class="px-4 pb-3 pt-2.5 text-sm font-medium text-white">Dacia Duster<span class="block text-xs font-normal text-zinc-500">Moteurs fiables et à éviter</span></p></a></div>
       </div>
@@ -543,40 +587,35 @@
   </footer>
 
   <template id="cardTpl">
-    <article class="card reveal group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08]">
+    <article class="card reveal group relative flex flex-col overflow-hidden rounded-[20px] border border-white/[0.08]">
       <a class="absolute inset-0 z-[4]" target="_blank" rel="noopener noreferrer" data-link aria-label="Voir l'annonce"></a>
       <div class="relative aspect-[4/3] overflow-hidden bg-zinc-900">
         <img class="photo size-full object-cover" loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer" alt="" data-img />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/0 to-black/25"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/0 to-black/0"></div>
         <div class="absolute left-3 top-3 flex flex-col items-start gap-1.5">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[11px] font-medium text-white" data-source></span>
-          <span class="merguez-badge hidden items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-semibold text-white" data-merguez-badge>
+          <span class="badge" data-source></span>
+          <span class="badge badge-ok hidden" data-verif>✓ Description lue</span>
+          <span class="merguez-badge hidden items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1 text-[11.5px] font-semibold text-white" data-merguez-badge>
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
             <span>À risque</span></span>
         </div>
-        <button type="button" class="fav absolute right-3 top-3 z-[5] grid size-9 place-items-center rounded-full border border-white/15 bg-black/60 text-white" data-fav aria-pressed="false" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">
+        <button type="button" class="fav absolute right-3 top-3 z-[5] grid size-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur" data-fav aria-pressed="false" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">
           <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg></button>
-        <span class="absolute bottom-3.5 right-3 rounded-full bg-white/90 px-2.5 py-1 font-mono text-[11px] font-medium text-black" data-year></span>
-        <p class="absolute bottom-3 left-4 text-[28px] font-semibold leading-none tracking-tight tabular-nums text-white drop-shadow" data-price></p>
       </div>
-      <div class="flex flex-1 flex-col gap-3 p-5">
-        <h3 class="line-clamp-2 text-[15px] font-medium leading-snug text-zinc-100" data-title></h3>
-        <p class="-mt-1 truncate text-xs text-zinc-500 empty:hidden" data-specs></p>
-        <p class="hidden text-xs text-red-300/90" data-merguez-motifs></p>
-        <div class="flex flex-wrap gap-1.5 empty:hidden" data-options></div>
-        <p class="line-clamp-2 text-xs leading-relaxed text-zinc-500 empty:hidden" data-extrait></p>
-        <div class="mt-auto flex flex-wrap gap-2 pt-1 font-mono text-[11px] text-zinc-400">
-          <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1">
-            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 14l4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></svg><span data-km></span></span>
-          <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1 empty:hidden" data-vendeur></span>
-          <span class="hidden items-center gap-1.5 rounded-lg border border-white/10 px-2 py-1" data-date></span>
-          <span class="hidden items-center gap-1 rounded-lg border border-sky-400/30 px-2 py-1 text-sky-300/80" data-aussi></span>
-          <span class="hidden items-center gap-1 px-1 py-1 text-zinc-500" data-nonverif></span>
-        </div>
-        <div class="flex items-center justify-between border-t border-white/5 pt-3 text-sm">
-          <span class="text-zinc-400 transition group-hover:text-white">Voir l'annonce</span>
-          <span class="grid size-8 place-items-center rounded-full bg-white/5 transition group-hover:bg-accent group-hover:text-black">
-            <svg viewBox="0 0 24 24" class="cta-arrow size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      <div class="flex flex-1 flex-col px-4 pb-4 pt-3.5">
+        <h3 class="truncate text-[15.5px] font-semibold text-white" data-title></h3>
+        <p class="mt-0.5 truncate text-[13px] text-zinc-500 empty:hidden" data-sous></p>
+        <div class="mt-3 flex flex-wrap gap-1.5 empty:hidden" data-specs></div>
+        <p class="mt-2.5 hidden text-xs text-red-300/90" data-merguez-motifs></p>
+        <div class="mt-2.5 flex flex-wrap gap-1.5 empty:hidden" data-options></div>
+        <p class="hidden" data-extrait></p>
+        <div class="mt-auto pt-4">
+          <p class="text-[11.5px] text-zinc-500">Prix</p>
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="prix" data-price></p>
+            <span class="hidden shrink-0 items-center text-xs text-zinc-400" data-date></span>
+          </div>
+          <div class="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] text-zinc-500 empty:hidden" data-pied><span class="hidden items-center text-sky-300/80" data-aussi></span><span class="hidden items-center gap-1" data-nonverif></span></div>
         </div>
       </div>
     </article>
@@ -608,7 +647,9 @@
         CHIPS.lacentrale = { nom: "La Centrale", dot: "#e4003a", via: "leparking" };
       } else CHIPS[k] = { nom: v.court || v.nom, dot: v.dot, via: k };
     }
-    const sourcesAInterroger = () => [...new Set([...state.sources].filter(k => CHIPS[k]).map(k => CHIPS[k].via))];
+    const SANS_MARQUE = new Set(["autoscout24", "leparking"]);   // sites qui savent chercher « toutes marques »
+    const sourcesAInterroger = () => [...new Set([...state.sources].filter(k => CHIPS[k]).map(k => CHIPS[k].via))]
+      .filter(s => $("#marque").value || SANS_MARQUE.has(s));
     const ICON = {
       audio: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
       roof:  '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -651,68 +692,12 @@
       run: 0, annonces: [], vus: new Set(), src: {},
     };
 
-    /* ---------- Titre animé ---------- */
+    /* ---------- Titre animé (ligne par ligne) ---------- */
     (function headline() {
-      const words = ["Toutes", "les", "occasions,", "<s>une</s>", "<s>recherche.</s>"];
-      $("#headline").innerHTML = words.map((w, i) => {
-        const shine = w.startsWith("<s>"), txt = w.replace(/<\/?s>/g, "");
-        return `<span class="inline-block overflow-hidden pb-2 align-bottom"><span class="word" style="--d:${200 + i * 90}ms">${shine ? `<span class="shimmer-text">${txt}</span>` : txt}</span></span>`;
-      }).join(" ");
+      const L = [["Toutes les", ""], ["occasions.", ""], ["Une recherche.", "o"]];
+      $("#headline").innerHTML = L.map(([t, c], i) => `<span class="ligne"><span class="${c}" style="--d:${120 + i * 110}ms">${t}</span></span>`).join("");
     })();
 
-    /* ---------- Flux d'annonces du hero (démonstration) ---------- */
-    (function fluxAnnonces() {
-      const liste = $("#fluxListe"); if (!liste) return;
-      const A = [
-        ["208-2", "Peugeot 208 PureTech 100", "2021 · 34 000 km|Lyon", "15 490 €", "AutoScout24"],
-        ["clio-5", "Renault Clio 5 TCe 90", "2020 · 41 500 km|Nantes", "13 290 €", "La Centrale"],
-        ["golf-7", "Volkswagen Golf 7 TSI", "2018 · 78 000 km|Lille", "16 900 €", "L'argus"],
-        ["3008-2", "Peugeot 3008 PureTech", "2019 · 92 000 km|Toulouse", "9 800 €", "Moteur HS"],
-        ["yaris-4", "Toyota Yaris Hybride", "2021 · 29 000 km|Bordeaux", "17 450 €", "Autosphere"],
-        ["sandero-3", "Dacia Sandero Stepway", "2022 · 18 000 km|Rennes", "12 990 €", "ParuVendu"],
-        ["captur-2", "Renault Captur TCe 140", "2021 · 45 000 km|Strasbourg", "18 490 €", "Renew"],
-        ["chr-1", "Toyota C-HR Hybride", "2019 · 61 000 km|Montpellier", "19 990 €", "Leboncoin"],
-        ["polo-6", "Volkswagen Polo TSI 95", "2019 · 64 000 km|Marseille", "4 500 €", "Accidentée"],
-        ["octavia-4", "Skoda Octavia TDI", "2020 · 96 000 km|Nancy", "17 900 €", "Auto-Sélection"],
-        ["sportage-5", "Kia Sportage T-GDi", "2022 · 32 000 km|Dijon", "24 900 €", "La Centrale"],
-        ["c3-3", "Citroën C3 PureTech 83", "2020 · 39 000 km|Reims", "10 990 €", "Leboncoin"],
-        ["model3", "Tesla Model 3", "2021 · 58 000 km|Paris", "26 900 €", "AutoScout24"],
-      ];
-      const RISQUE = new Set(["Moteur HS", "Accidentée"]);
-      const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-      const ligne = ([img, t, m, p, s]) => {
-        const li = document.createElement("li"); li.className = "fr";
-        const r = RISQUE.has(s);
-        li.innerHTML = `<div class="fr-in"><img class="fr-img" src="/guide/photo/240/${img}.webp" width="64" height="44" alt="" decoding="async">`
-          + `<div class="fr-txt"><p class="fr-t">${esc(t)}</p><p class="fr-m">${esc(m.split("|")[0])}<span class="fr-v"> · ${esc(m.split("|")[1])}</span></p></div>`
-          + `<div class="fr-d"><p class="fr-p">${p}</p><span class="fr-s${r ? " alerte" : ""}">${esc(s)}</span></div>`
-          + (r ? `<div class="fr-cache"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Annonce à risque écartée</div>` : "") + `</div>`;
-        if (r) li.dataset.risque = "1";
-        return li;
-      };
-      // au départ : 3 annonces déjà là
-      let i = 0;
-      for (const a of [A[1], A[0], A[2]]) liste.appendChild(ligne(a));
-      i = 3;
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const actif = () => !document.hidden && !document.body.classList.contains("hors-hero") && !document.body.classList.contains("en-recherche");
-      function suivant() {
-        if (!actif()) return;
-        const a = A[i++ % A.length], li = ligne(a);
-        li.classList.add("ferme", "neuf");
-        liste.prepend(li);
-        requestAnimationFrame(() => requestAnimationFrame(() => li.classList.remove("ferme")));
-        setTimeout(() => li.classList.remove("neuf"), 1400);
-        if (li.dataset.risque) {
-          setTimeout(() => li.classList.add("masquee"), 1100);          // repérée…
-          setTimeout(() => li.classList.add("ferme"), 2300);            // …puis écartée
-          setTimeout(() => li.remove(), 2900);
-        }
-        // on ne garde que ce qui est visible
-        setTimeout(() => { const l = liste.querySelectorAll(".fr:not(.ferme)"); for (let k = 4; k < l.length; k++) l[k].remove(); }, 700);
-      }
-      setTimeout(() => { suivant(); setInterval(suivant, 2600); }, 1600);
-    })();
 
     /* ---------- Formulaire ---------- */
     for (const id of ["annee_min", "annee_max"])
@@ -748,8 +733,34 @@
       $("#verifOnly").setAttribute("aria-pressed", String(state.verifOnly));
       const n = state.opts.size + state.carbus.size;
       $("#nbFiltres").textContent = n; $("#nbFiltres").classList.toggle("hidden", !n);
-      if (n && !ouvrirFiltres.fait) ouvrirFiltres(true);
+      renderRapides();
     }
+    /* ---------- Filtres rapides (toujours visibles sous la barre) ---------- */
+    const RAPIDES = [
+      ["opt", "Boîte automatique", '<circle cx="6" cy="5" r="1.8"/><circle cx="12" cy="5" r="1.8"/><circle cx="18" cy="5" r="1.8"/><circle cx="6" cy="19" r="1.8"/><circle cx="12" cy="19" r="1.8"/><path d="M6 7v10M12 7v10M18 7v5H6"/>'],
+      ["opt", "Toit panoramique", '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 11h18"/>'],
+      ["opt", "CarPlay / Android Auto", '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18h3"/>'],
+      ["opt", "Caméra 360°", '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>'],
+      ["audio", "Hi-fi premium", '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'],
+      ["opt", "Sièges chauffants", '<path d="M8 4c-2 3 2 5 0 8M12 4c-2 3 2 5 0 8M16 4c-2 3 2 5 0 8"/><path d="M5 18h14"/>'],
+      ["carbu", "Hybride", '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'],
+      ["carbu", "Électrique", '<path d="M7 3h8l-2 6h5L9 21l2-8H6z"/>'],
+      ["opt", "Première main", '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'],
+    ];
+    const rapideActif = ([k, nom]) => k === "carbu" ? state.carbus.has(nom)
+      : k === "audio" ? (GROUPES[GROUPE_AUDIO] || []).some(o => state.opts.has(o)) : state.opts.has(nom);
+    function renderRapides() {
+      $("#quickChips").innerHTML = RAPIDES.filter(([k, nom]) => k !== "opt" || OPTIONS[nom]).map(r =>
+        `<button type="button" class="q" data-rapide="${r[1]}" aria-pressed="${rapideActif(r)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${r[2]}</svg>${r[1]}</button>`).join("");
+    }
+    $("#quickChips").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-rapide]"); if (!b) return;
+      const r = RAPIDES.find(x => x[1] === b.dataset.rapide), on = rapideActif(r);
+      if (r[0] === "carbu") on ? state.carbus.delete(r[1]) : state.carbus.add(r[1]);
+      else if (r[0] === "audio") (GROUPES[GROUPE_AUDIO] || []).forEach(o => on ? state.opts.delete(o) : state.opts.add(o));
+      else on ? state.opts.delete(r[1]) : state.opts.add(r[1]);
+      renderChips(); if (state.crit) lancer();
+    });
     function ouvrirFiltres(ouvert) {
       ouvrirFiltres.fait = true;
       $("#form").classList.toggle("filtres-ouverts", ouvert);
@@ -856,7 +867,7 @@
       }
       if (!Array.isArray(marques)) throw new Error("catalogue");
       const opt = (m) => `<option value="${m.id}">${m.label}</option>`;
-      $("#marque").innerHTML = `<option value="">Choisir…</option>
+      $("#marque").innerHTML = `<option value="">Toutes les marques</option>
         <optgroup label="Populaires">${marques.filter(m => m.top).map(opt).join("")}</optgroup>
         <optgroup label="Toutes les marques">${marques.map(opt).join("")}</optgroup>`;
     }
@@ -901,6 +912,7 @@
       return "https://www.leboncoin.fr/recherche?" + p.toString();
     }
     function lienAramis(c) {
+      if (!c.marque_label) return "https://www.aramisauto.com/achat/";
       return `https://www.aramisauto.com/voitures/${slugify(c.marque_label)}/` + (c.modele_label ? `${slugify(c.modele_label)}/` : "");
     }
     function lienLaCentrale(c) {
@@ -918,9 +930,12 @@
 
     function lancer() {
       const c = criteres();
-      if (!c.marque) { $("#marque").focus(); return; }
+      const unCritere = c.marque || c.prix_max || c.km_max || c.annee_min || c.annee_max || c.puissance_min || c.puissance_max
+        || c.options || c.carburants || c.region;
+      $("#aideMarque").classList.toggle("hidden", !!unCritere);
+      if (!unCritere) { $("#marque").focus(); return; }
       const run = ++state.run;
-      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c, triCharge: triSite() }); viderRendu();
+      Object.assign(state, { annonces: [], vus: new Set(), src: {}, crit: c, triCharge: triSite(), masques: new Set() }); viderRendu();
       const url = new URL(location.href); url.search = new URLSearchParams({ ...c, sources: [...state.sources].join(",") }).toString();
       url.hash = "";
       history.replaceState(null, "", url);
@@ -939,7 +954,7 @@
         + `(celles dont le lieu n'est pas indiqué sont mises de côté). Plus de pages sont parcourues automatiquement sur chaque site.`;
       const cleSuivi = [c.marque_label, c.modele_label, state.region].join("|");   // une seule fois par véhicule/région recherchés
       if (cleSuivi !== state.dernierSuivi) { state.dernierSuivi = cleSuivi;
-        suivre("recherche", { marque: c.marque_label, modele: c.modele_label || "tous", region: state.region || "france" }); }
+        suivre("recherche", { marque: c.marque_label || "toutes", modele: c.modele_label || "tous", region: state.region || "france" }); }
     }
 
     async function chargerSource(s, run) {
@@ -1026,6 +1041,10 @@
     }
     const plateformeOk = (a) => a.plateforme === "Leboncoin" ? state.sources.has("leboncoin")
       : a.plateforme === "La Centrale" ? state.sources.has("lacentrale") : true;
+    // site d'une annonce (pour l'afficher / la masquer depuis la barre des sites)
+    const cleSite = (a) => a.plateforme === "Leboncoin" ? "leboncoin" : a.plateforme === "La Centrale" ? "lacentrale"
+      : Object.keys(CHIPS).find(k => CHIPS[k].via !== "leparking" && (SOURCES[k].nom === a.source || SOURCES[k].court === a.source)) || "";
+    const siteVisible = (a) => !state.masques || !state.masques.has(cleSite(a));
     const puissanceOk = (a) => {
       const m = +(state.crit?.puissance_min || 0), M = +(state.crit?.puissance_max || 0);
       return (!m && !M) || (a.puissance_ch && (!m || a.puissance_ch >= m) && (!M || a.puissance_ch <= M));
@@ -1033,7 +1052,7 @@
     const anneeOk = (a) => { const M = +(state.crit?.annee_max || 0); return !M || !a.annee || a.annee <= M; };
     function visibles() {
       return state.annonces.filter(a => !(state.hideMerguez && a.merguez) && !(state.verifOnly && !a.verifiee) && assezRecente(a)
-        && optionsOk(a) && plateformeOk(a) && puissanceOk(a) && anneeOk(a));
+        && optionsOk(a) && plateformeOk(a) && siteVisible(a) && puissanceOk(a) && anneeOk(a));
     }
     function trier(list) {
       const n = (v, d) => (typeof v === "number" ? v : d);
@@ -1070,20 +1089,23 @@
       const img = $("[data-img]", node); img.src = a.image || PLACEHOLDER; img.alt = a.titre;
       img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
       const src = Object.values(SOURCES).find(s => s.nom === a.source || s.court === a.source || s.source === a.source) || { dot: "#aaa" };
-      $("[data-source]", node).innerHTML = `<span class="size-1.5 rounded-full" style="background:${src.dot}"></span>` +
-        (a.plateforme || (a.source === "LeParking" ? "Autre site" : (src.court || a.source)));
-      const y = $("[data-year]", node); a.annee ? (y.textContent = a.annee) : y.remove();
+      $("[data-source]", node).textContent = a.plateforme || (a.source === "LeParking" ? "Autre site" : (src.court || a.source));
       $("[data-price]", node).textContent = a.prix ? `${fmt.format(a.prix)} €` : "Prix n.c.";
       $("[data-title]", node).textContent = a.titre;
-      $("[data-specs]", node).textContent = [a.carburant, a.boite && a.boite.replace(/^Boîte\s+/i, ""), a.puissance_ch && `${a.puissance_ch} ch`, a.ville].filter(Boolean).join(" · ");
-      $("[data-km]", node).textContent = a.kilometrage != null ? `${fmt.format(a.kilometrage)} km` : "km n.c.";
-      $("[data-vendeur]", node).textContent = a.type_vendeur || "";
+      const IC = { an: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', km: '<path d="M12 14l4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/>',
+        carbu: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M4 21h11M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/>', boite: '<circle cx="6" cy="6" r="1.6"/><circle cx="12" cy="6" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="6" cy="18" r="1.6"/><circle cx="12" cy="18" r="1.6"/><path d="M6 8v8M12 8v8M18 8v4H6"/>',
+        ch: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>' };
+      const spec = (k, t) => t ? `<span class="spec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>${String(t).replace(/</g, "&lt;")}</span>` : "";
+      $("[data-specs]", node).innerHTML = spec("an", a.annee) + spec("km", a.kilometrage != null ? `${fmt.format(a.kilometrage)} km` : null)
+        + spec("carbu", a.carburant) + spec("boite", a.boite && a.boite.replace(/^Boîte\s+/i, "")) + spec("ch", a.puissance_ch && `${a.puissance_ch} ch`);
+      $("[data-sous]", node).textContent = [a.ville, a.type_vendeur].filter(Boolean).join(" · ");
+      if (a.verifiee && !a.merguez) $("[data-verif]", node).classList.remove("hidden");
       if (a.date) {
         const j = ageJours(a.date), el = $("[data-date]", node);
         el.textContent = j <= 0 ? "aujourd'hui" : j === 1 ? "hier" : j < 31 ? `il y a ${j} j` : "le " + a.date.split("-").reverse().join("/");
         el.title = "Mise en ligne le " + a.date.split("-").reverse().join("/");
         el.classList.replace("hidden", "inline-flex");
-        if (j <= 2) el.classList.add("border-emerald-400/30", "text-emerald-300/90");
+        if (j <= 2) el.classList.add("text-emerald-300/90");
       }
       $("[data-options]", node).innerHTML = (a.options || []).map(optionBadge).join("");
       $("[data-extrait]", node).textContent = a.extrait || "";
@@ -1114,7 +1136,7 @@
           setTimeout(renderFavoris, 350);
         }
       });
-      attachTilt(node);
+      attachTilt(node); node.classList.add("lueur");
       return node;
     }
 
@@ -1280,32 +1302,25 @@
       } else prog.classList.replace("flex", "hidden");
       document.querySelector(".logo-mark")?.classList.toggle("scan", Object.values(state.src).some(s => s.charge || (s.fichesTotal && s.fichesFaites < s.fichesTotal && !s.freine)));
       const c = state.crit || {};
-      const pill = (k) => {
-        const s = state.src[k], S = SOURCES[k];
-        let etat, cls = "border-white/10 bg-white/[0.03]";
-        if (s.erreur) { etat = s.erreur === "bloque" ? "momentanément indisponible" : "indisponible pour le moment"; cls = "border-white/10 bg-white/[0.02] text-zinc-500"; }
-        else if (s.charge) etat = `<svg viewBox="0 0 24 24" class="spin inline size-3" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg> page ${s.page + 1}…`;
-        else etat = `${fmt.format(s.verif)} annonces` + (s.total != null ? ` · ${fmt.format(s.total)} sur le site` : "")
-          + (s.miroirs ? ` · dont ${s.miroirs} Leboncoin` : "") + (s.repli ? " · recherche élargie" : "")
-          + (s.duree != null ? ` · ${String(s.duree).replace(".", ",")} s` : "")
-          + (s.fichesTotal ? (s.fichesFaites < s.fichesTotal ? ` · descriptions ${s.fichesFaites}/${s.fichesTotal}…` : " · descriptions lues") : "")
-          + (s.freine ? " · en pause quelques minutes" : "");
-        const lien = s.lien ? `<a href="${s.lien}" target="_blank" rel="noopener" class="ml-1 text-zinc-500 underline-offset-2 hover:text-white hover:underline">ouvrir ↗</a>` : "";
-        return `<div class="relative inline-flex items-center gap-2 overflow-hidden rounded-xl border px-3 py-2 text-xs ${cls}">
-          ${s.charge ? '<span class="progress absolute inset-x-0 bottom-0 h-px"></span>' : ""}
-          <span class="size-1.5 rounded-full" style="background:${S.dot}"></span><b class="font-medium text-zinc-100">${S.nom}</b>
-          <span class="font-mono text-[11px] text-zinc-400">${etat}</span>${lien}</div>`;
+      const masques = state.masques || new Set();
+      const item = (k) => {
+        const via = CHIPS[k].via, st = state.src[via];
+        const href = k === "leboncoin" ? lienLeboncoin(c) : k === "lacentrale" ? lienLaCentrale(c) : st.lien;
+        const cls = st.erreur ? "ko" : masques.has(k) ? "off" : st.charge ? "charge" : "";
+        const titre = st.erreur ? "Indisponible pour le moment" : masques.has(k) ? "Afficher ses annonces" : "Masquer ses annonces";
+        return `<span class="site ${cls}"><button type="button" data-masque="${k}" title="${titre}" ${st.erreur ? "disabled" : ""}>${CHIPS[k].nom}</button>`
+          + (href ? `<a href="${href}" target="_blank" rel="noopener" title="Ouvrir la recherche sur ${CHIPS[k].nom}" aria-label="Ouvrir ${CHIPS[k].nom}">↗</a>` : "") + `</span>`;
       };
-      const lien = (href, nom, dot, info) => `<a href="${href}" target="_blank" rel="noopener" title="${info}"
-           class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 transition hover:bg-white/[0.08]">
-           <span class="size-1.5 rounded-full" style="background:${dot}"></span><b class="font-medium text-zinc-100">${nom}</b><span class="text-zinc-500">↗</span></a>`;
-      $("#srcBar").innerHTML = Object.keys(state.src).map(pill).join("") +
-        `<div class="inline-flex flex-wrap items-center gap-1 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-2 py-1 text-xs">
-          <span class="px-1 font-mono text-[10px] uppercase tracking-widest text-zinc-500">Ouvrir aussi</span>` +
-        lien(lienLeboncoin(c), "Leboncoin", "#ff6e14", "Recherche pré-remplie sur Leboncoin (non intégrée aux résultats)") +
-        lien(lienLaCentrale(c), "La Centrale", "#e4003a", "La Centrale bloque l'accès automatisé : la recherche s'ouvre sur leur site, avec vos critères") +
-        lien(lienAramis(c), "Aramis Auto", "#0ea5e9", "Aramis Auto filtre dans le navigateur : la recherche s'ouvre sur leur site") + `</div>`;
+      $("#srcBar").innerHTML = `<div class="sites"><span class="text-[13px] text-zinc-500">Sites</span>`
+        + Object.keys(CHIPS).filter(k => state.src[CHIPS[k].via]).map(item).join("")
+        + `<span class="site"><span class="font-semibold text-zinc-400">Aramis Auto</span><a href="${lienAramis(c)}" target="_blank" rel="noopener" title="Ouvrir la recherche sur Aramis Auto">↗</a></span></div>`;
     }
+    $("#srcBar").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-masque]"); if (!b || b.disabled) return;
+      state.masques = state.masques || new Set();
+      const k = b.dataset.masque; state.masques.has(k) ? state.masques.delete(k) : state.masques.add(k);
+      renderBar(); render(false);
+    });
     async function statut() {   // sources disponibles sur ce serveur (un site qui refuse les hébergeurs est retiré)
       try {
         const d = await (await fetch("/api/statut")).json();
@@ -1316,13 +1331,7 @@
       } catch {}
     }
 
-    /* ---------- Bandeau des sites + année ---------- */
-    (function () {
-      const noms = ["Leboncoin", "La Centrale", "AutoScout24", "L'argus", "ParuVendu", "Auto-Sélection", "Renew", "Autosphere", "Carizy", "Ayvens", "Concessions"];
-      const bloc = noms.map(n => `<span class="whitespace-nowrap text-lg">${n}</span><span class="text-zinc-700">✦</span>`).join("");
-      $("#marquee").innerHTML = bloc + bloc;   // deux fois : défilement sans couture
-      $("#annee").textContent = new Date().getFullYear();
-    })();
+    $("#annee").textContent = new Date().getFullYear();
 
     $("#grid").addEventListener("click", (e) => {
       const a = e.target.closest("a[href]"); if (!a) return;
@@ -1340,6 +1349,15 @@
       catch { prompt("Copiez ce lien :", url); }
       setTimeout(() => (lbl.textContent = "Partager"), 2200);
     });
+
+    /* ---------- Halo orange et lueur des blocs qui suivent la souris ---------- */
+    if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      const spot = $(".spot"); let raf = 0, ev = null;
+      addEventListener("pointermove", (e) => { ev = e; if (raf) return; raf = requestAnimationFrame(() => { raf = 0;
+        spot.style.setProperty("--sx", ev.clientX + "px"); spot.style.setProperty("--sy", ev.clientY + "px");
+        const b = ev.target.closest && ev.target.closest(".lueur"); if (b) { const r = b.getBoundingClientRect();
+          b.style.setProperty("--x", (ev.clientX - r.left) + "px"); b.style.setProperty("--y", (ev.clientY - r.top) + "px"); } }); }, { passive: true });
+    }
 
     /* ---------- Économie d'énergie ---------- */
     document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("en-pause", document.hidden));
