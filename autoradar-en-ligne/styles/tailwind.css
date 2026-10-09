@@ -1,0 +1,14 @@
+/* Source du style de l'accueil. Le fichier servi, static/site.css, est généré à partir de celui-ci :
+   npx @tailwindcss/cli@4 -i styles/tailwind.css -o static/site.css --minify
+   (Tailwind lit static/index.html et ne garde que les classes réellement utilisées.) */
+@import "tailwindcss" source(none);
+@source "../static/index.html";
+
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --color-ink: #08080a;
+  --color-accent: #ff6a2b;
+  --color-accent-soft: #ffb08a;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
