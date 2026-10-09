@@ -119,7 +119,7 @@ def page(chemin: str, titre: str, description: str, corps: str, jsonld: list, im
   <link rel="apple-touch-icon" href="/icone-180.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/guide/guide.css" />
   {UMAMI}
   {ld}
@@ -397,23 +397,23 @@ def page_index() -> str:
 
 
 CSS = r"""
-:root{color-scheme:dark;--bg:#08080a;--fg:#e4e4e7;--mut:#a1a1aa;--dim:#71717a;--line:rgba(255,255,255,.08);--card:rgba(255,255,255,.03);--acc:#ff6a2b}
+:root{color-scheme:dark;--bg:#08080a;--fg:#e4e4e7;--mut:#a1a1aa;--dim:#71717a;--line:rgba(255,255,255,.08);--card:rgba(255,255,255,.03);--acc:#ff5b1f}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%;overflow-x:clip}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 "Geist",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 Archivo,ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
 a{color:inherit}
 .halo{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(60vmax 40vmax at 90% -10%,rgba(255,106,43,.14),transparent 60%),radial-gradient(50vmax 40vmax at -10% 10%,rgba(109,74,255,.10),transparent 60%)}
 main,footer.pied{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding-left:16px;padding-right:16px}
 @media (min-width:640px){main,footer.pied{padding-left:32px;padding-right:32px}}
 .brand{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;text-decoration:none;font-weight:600;letter-spacing:-.02em;font-size:17px;color:#fff}
-.brand b,.brand-pied b{background:linear-gradient(120deg,#ff8a4c,#ff4d6d);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+.brand b,.brand-pied b{color:#ff5b1f;font-weight:600}
 .fil{font-size:13px;color:var(--dim);margin:18px 0 8px}.fil a{color:var(--mut);text-decoration:none}.fil a:hover{color:#fff}.fil span{margin:0 4px}
-.kicker{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
-h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.04;letter-spacing:-.035em;margin:0 0 16px;color:#fff;font-weight:650}
-h1 span{background:linear-gradient(100deg,#fff 10%,#ffb08a 60%,#ff6a8a);-webkit-background-clip:text;background-clip:text;color:transparent}
-h2{color:#fff;letter-spacing:-.02em;line-height:1.2}
+.kicker{font-family:Archivo,ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
+h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1;letter-spacing:-.03em;margin:0 0 16px;color:#fff;font-weight:800;font-stretch:118%}
+h1 span{color:#ff5b1f}
+h2{color:#fff;letter-spacing:-.02em;line-height:1.15;font-stretch:112%;font-weight:750}
 .lead{font-size:1.1rem;color:var(--mut);max-width:62ch;margin:0 0 22px}
 .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;color:#fff;padding:12px 18px;border-radius:14px;
-  background:linear-gradient(135deg,#ff7a3d,#ff3d6e);box-shadow:0 12px 30px -12px rgba(255,80,60,.7);transition:transform .2s}
+  background:#ff5b1f;box-shadow:0 12px 30px -12px rgba(255,80,60,.7);transition:transform .2s}
 .btn:hover{transform:translateY(-1px)}.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .btn.petit{padding:9px 14px;font-size:14px;border-radius:12px}.btn.plein{width:100%;justify-content:center}
 .lien{display:block;color:var(--mut);text-decoration:none;font-size:14px;padding:6px 0}.lien:hover{color:#fff}
@@ -451,7 +451,7 @@ figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.cred
 .bloc{margin:56px 0}.h-sec{font-size:clamp(1.4rem,3vw,1.9rem);margin:0 0 6px}.sous{color:var(--mut);margin:0 0 18px}
 .h-cat{display:flex;align-items:center;gap:14px;margin:40px 0 14px;font-size:clamp(1.25rem,2.4vw,1.6rem);font-weight:650;letter-spacing:-.02em;color:#fff}
 .h-cat span{display:inline-flex;align-items:center;gap:10px}
-.h-cat span::before{content:"";width:6px;height:1.1em;border-radius:3px;background:linear-gradient(180deg,#ff7a3d,#ff3d6e)}
+.h-cat span::before{content:"";width:6px;height:1.1em;border-radius:3px;background:#ff5b1f}
 .h-cat small{font-size:12px;font-weight:500;letter-spacing:.02em;color:var(--mut);padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
 .h-cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .grille-mod{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
@@ -459,12 +459,12 @@ figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.cred
 .carte-mod:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--c) 50%,transparent)}
 .carte-vis{padding:22px 18px 6px;background:radial-gradient(80% 90% at 50% 100%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%)}
 .carte-txt{padding:6px 16px 16px}.carte-txt h3{margin:0 0 6px;color:#fff;font-size:18px;letter-spacing:-.02em}
-.cat{font-family:"Geist Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--c);margin:0 0 2px}
+.cat{font-family:Archivo,monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--c);margin:0 0 2px}
 .ligne{display:flex;align-items:center;gap:10px;margin:0;font-size:13px;color:var(--mut)}
 .deux{display:grid;grid-template-columns:1fr 1fr;gap:40px}
 .regles{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}
 .regles li{display:flex;gap:14px;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
-.regles span{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,#ff7a3d,#ff3d6e)}
+.regles span{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;background:#ff5b1f}
 .regles b{color:#fff}.regles p{margin:2px 0 0;color:var(--mut);font-size:14.5px}
 .faq details{border-bottom:1px solid var(--line);padding:12px 0}.faq summary{cursor:pointer;color:#fff;font-weight:600;list-style:none}
 .faq summary::-webkit-details-marker{display:none}.faq summary::after{content:"+";float:right;color:var(--dim)}.faq details[open] summary::after{content:"–"}
@@ -477,7 +477,7 @@ figure.ph-cred{flex:none;width:120px;aspect-ratio:16/10;border-radius:10px}.cred
 .hero-vis .car{position:relative;filter:drop-shadow(0 24px 30px rgba(0,0,0,.55))}
 .tuiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 22px}
 .tuiles div{padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
-.tuiles small{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.tuiles small{font-family:Archivo,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .tuiles b{color:#fff;font-size:14.5px;line-height:1.3}
 .grille-art{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;margin-top:34px;align-items:start}
 .contenu h2{font-size:1.45rem;margin:38px 0 14px}.contenu h2:first-child{margin-top:0}
