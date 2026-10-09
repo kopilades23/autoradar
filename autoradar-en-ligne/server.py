@@ -154,6 +154,20 @@ def _q(qs: dict, k: str, default=None):
     return v if v not in ("", None) else default
 
 
+_NUMERIQUES = ("marque", "prix_max", "km_max", "annee_min", "annee_max", "puissance_min", "puissance_max", "page")
+
+
+def _parametres_valides(chemin: str, qs: dict) -> bool:
+    """Refuse proprement (400) les valeurs absurdes au lieu de planter (500)."""
+    for k in _NUMERIQUES:
+        v = _q(qs, k)
+        if v is not None and not (str(v).isdigit() and len(str(v)) <= 9):
+            return False
+    if chemin in ("/api/modeles", "/api/recherche") and _q(qs, "marque") is None:
+        return False
+    return True
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STATIC_DIR), **kwargs)
@@ -187,6 +201,13 @@ class Handler(SimpleHTTPRequestHandler):
     def end_headers(self):
         if not self._officiel() or self.path.startswith(("/api/", "/base.html")):
             self.send_header("X-Robots-Tag", "noindex, nofollow")
+        # en-têtes de sécurité (HSTS seulement sur le vrai domaine, servi en HTTPS)
+        if self._officiel():
+            self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()")
         super().end_headers()
 
     def _texte(self, body: str, ctype: str) -> None:
@@ -272,6 +293,8 @@ class Handler(SimpleHTTPRequestHandler):
             return
         u = urlparse(self.path)
         qs = parse_qs(u.query)
+        if u.path.startswith("/api/") and not _parametres_valides(u.path, qs):   # adresse tapée à la main, mal formée
+            return self._json({"erreur": "parametre", "message": "Paramètre invalide."}, 400)
         try:
             if u.path == "/api/annonces":
                 return self._json(list_annonces())
