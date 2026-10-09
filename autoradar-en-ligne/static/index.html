@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/site.css?v=14149db0" />
+  <link rel="stylesheet" href="/site.css?v=344c33ba" />
   <style>
     :root { color-scheme: dark; }
     html, body { overflow-x: clip; }
@@ -300,6 +300,11 @@
     .badge-ok { color: #bbf7d0; }
     .spec { display: inline-flex; align-items: center; gap: 5px; border-radius: 7px; padding: 3px 8px; font-size: 12px; color: #d4d4d8; background: rgba(255,255,255,.06); white-space: nowrap; }
     .spec svg { width: 13px; height: 13px; opacity: .7; flex: none; }
+    .lieu { display: inline-flex; min-width: 0; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 500; color: #e4e4e7; }
+    .lieu svg { width: 15px; height: 15px; flex: none; color: #ff5b1f; }
+    .vendeur { flex: none; border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; }
+    .vendeur.pro { color: #bae6fd; background: rgba(56,189,248,.14); box-shadow: inset 0 0 0 1px rgba(56,189,248,.3); }
+    .vendeur.part { color: #fde68a; background: rgba(251,191,36,.12); box-shadow: inset 0 0 0 1px rgba(251,191,36,.3); }
     .sites { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: 14px; }
     .site { display: inline-flex; align-items: center; gap: 5px; }
     .site button { font-weight: 600; color: #e4e4e7; transition: color .2s, opacity .2s; }
@@ -439,6 +444,8 @@
           <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les véhicules en panne, accidentés, vendus pour pièces ou « en l'état »"
             class="inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-[13px] text-zinc-300 transition hover:text-white aria-pressed:text-red-200">
             <span class="switch"></span>Masquer les annonces à risque</button>
+          <button id="effacer" type="button" class="ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] text-zinc-400 transition hover:text-white active:scale-95">
+            <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Tout effacer</button>
         </div>
 
         <div id="panneau" class="mt-4 rounded-2xl border border-white/[0.08] bg-[#111114]/90 p-4 sm:p-5">
@@ -462,8 +469,6 @@
               <button id="verifOnly" type="button" aria-pressed="false" title="N'afficher que les annonces dont la description complète a pu être lue et analysée (ce n'est pas une inspection du véhicule)"
                 class="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 aria-pressed:bg-emerald-500/10 aria-pressed:text-emerald-200">
                 <span class="switch"></span>Descriptions lues uniquement</button>
-              <button id="effacer" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95">
-                <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Effacer les filtres</button>
             </div>
           </div>
           <div class="mt-5 flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] pt-4">
@@ -622,7 +627,7 @@
       </div>
       <div class="flex flex-1 flex-col px-4 pb-4 pt-3.5">
         <h3 class="truncate text-[15.5px] font-semibold text-white" data-title></h3>
-        <p class="mt-0.5 truncate text-[13px] text-zinc-500 empty:hidden" data-sous></p>
+        <div class="mt-1.5 flex min-w-0 items-center gap-2 empty:hidden" data-sous></div>
         <div class="mt-3 flex flex-wrap gap-1.5 empty:hidden" data-specs></div>
         <p class="mt-2.5 hidden text-xs text-red-300/90" data-merguez-motifs></p>
         <div class="mt-2.5 flex flex-wrap gap-1.5 empty:hidden" data-options></div>
@@ -1167,7 +1172,9 @@
       const spec = (k, t) => t ? `<span class="spec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>${String(t).replace(/</g, "&lt;")}</span>` : "";
       $("[data-specs]", node).innerHTML = spec("an", a.annee) + spec("km", a.kilometrage != null ? `${fmt.format(a.kilometrage)} km` : null)
         + spec("carbu", a.carburant) + spec("boite", a.boite && a.boite.replace(/^Boîte\s+/i, "")) + spec("ch", a.puissance_ch && `${a.puissance_ch} ch`);
-      $("[data-sous]", node).textContent = [a.ville, a.type_vendeur].filter(Boolean).join(" · ");
+      const vend = (a.type_vendeur || "").toLowerCase();
+      $("[data-sous]", node).innerHTML = (a.ville ? `<span class="lieu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span class="truncate">${String(a.ville).replace(/</g, "&lt;")}</span></span>` : "")
+        + (vend ? `<span class="vendeur ${vend.startsWith("pro") ? "pro" : "part"}">${vend.startsWith("pro") ? "Pro" : "Particulier"}</span>` : "");
       if (a.verifiee && !a.merguez) $("[data-verif]", node).classList.remove("hidden");
       if (a.date) {
         const j = ageJours(a.date), el = $("[data-date]", node);
