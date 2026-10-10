@@ -345,8 +345,20 @@
       .rapides::-webkit-scrollbar { display: none; }
       .rapides > *, .rapides .q { flex: none; }
       .rapides #effacer { margin-left: 0; }
-      .vitrine-m .vc { flex-basis: min(212px, 58vw); }
-      .vitrine-m .vc .bd { padding: 10px 11px 11px; }
+      /* exemples en miniature, au-dessus de la recherche */
+      .vitrine-m-titre { margin: .9rem 0 .45rem !important; font-size: 12px !important; }
+      .vitrine-m { gap: 8px !important; padding-bottom: 4px !important; }
+      .vitrine-m .vc { flex-basis: 148px !important; border-radius: 14px; box-shadow: none !important; }
+      .vitrine-m .vc .bd { padding: 7px 9px 8px; }
+      .vitrine-m .vc .t { font-size: 12px; }
+      .vitrine-m .vc .bd > div:not(.px) { display: none; }
+      .vitrine-m .vc .px { margin-top: 5px; padding-top: 5px; }
+      .vitrine-m .vc .px b { font-size: 14px; }
+      .vitrine-m .vc .px small { display: none; }
+      .vitrine-m .vc .badge { font-size: 9.5px; padding: 2px 6px; border-radius: 6px; }
+      .vitrine-m .vc .im > div { gap: 4px !important; left: 6px !important; top: 6px !important; }
+      .vitrine-m .vc .ecarte { font-size: 9.5px; padding: 3px 8px; }
+      #form { margin-top: .9rem !important; }
     }
     @media (max-width: 1023px) {
       .vitrine { display: none; }
@@ -397,7 +409,7 @@
       </a>
       <nav class="flex items-center gap-1 whitespace-nowrap text-[13px] text-zinc-400">
         <a href="/guide/" class="rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">Guide<span class="hidden sm:inline"> d'achat</span></a>
-        <a href="/faq.html" class="hidden rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white md:inline">Aide &amp; FAQ</a>
+        <a href="/faq.html" class="rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">Aide<span class="hidden md:inline"> &amp; FAQ</span></a>
         <a href="#favoris" id="lienFavoris" aria-label="Mes favoris" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition hover:bg-white/[0.06] hover:text-white">
           <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>
           <span class="hidden sm:inline">Favoris</span><span id="nbFavoris" class="compteur hidden min-w-5 rounded-full bg-[#ff3d6e] px-1.5 text-center text-[11px] font-semibold leading-5 text-white"></span></a>
@@ -435,6 +447,28 @@
           </div>
         </div>
       </div>
+
+      <p class="vitrine-m-titre">Exemple de résultats</p>
+        <div class="vitrine-m" aria-hidden="true">
+          <div class="vc g" style="--d:500ms">
+            <div class="im"><img src="/guide/photo/480/yaris-4.webp" alt="" width="252" height="189" decoding="async" loading="lazy">
+              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">AutoScout24</span><span class="badge badge-ok">✓ Description lue</span></div></div>
+            <div class="bd"><p class="t">Toyota Yaris Hybride 116</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2021</span><span class="spec">29 000 km</span><span class="spec">Hybride</span></div>
+              <div class="px"><b>17 450 €</b><small>Bordeaux (33)</small></div></div>
+          </div>
+          <div class="vc d ko" style="--d:650ms">
+            <div class="im"><img src="/guide/photo/480/polo-6.webp" alt="" width="252" height="189" decoding="async" loading="lazy">
+              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">Leboncoin</span></div><span class="ecarte">Moteur HS — écartée</span></div>
+            <div class="bd"><p class="t">Volkswagen Polo 1.0 TSI 95</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2019</span><span class="spec">64 000 km</span><span class="spec">Essence</span></div>
+              <div class="px"><b>4 500 €</b><small>Marseille (13)</small></div></div>
+          </div>
+          <div class="vc m" style="--d:350ms">
+            <div class="im"><img src="/guide/photo/480/golf-7.webp" alt="" width="252" height="189" decoding="async" loading="lazy">
+              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">L'argus</span><span class="badge badge-ok">✓ Description lue</span></div></div>
+            <div class="bd"><p class="t">Volkswagen Golf 7 1.5 TSI</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2018</span><span class="spec">78 000 km</span><span class="spec">Essence</span></div>
+              <div class="px"><b>16 490 €</b><small>Lille (59)</small></div></div>
+          </div>
+        </div>
 
       <form id="form" class="reveal relative z-20 mt-5 sm:mt-10" style="--d:600ms" autocomplete="off">
         <div class="barre">
@@ -510,27 +544,6 @@
           <div id="optChips" class="mt-4 grid gap-3 border-t border-white/[0.06] pt-4 lg:grid-cols-[auto_1fr] lg:gap-x-5"></div>
         </div>
       </form>
-      <p class="vitrine-m-titre">Exemple de résultats</p>
-        <div class="vitrine-m" aria-hidden="true">
-          <div class="vc g" style="--d:500ms">
-            <div class="im"><img src="/guide/photo/480/yaris-4.webp" alt="" width="252" height="189" decoding="async" loading="lazy">
-              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">AutoScout24</span><span class="badge badge-ok">✓ Description lue</span></div></div>
-            <div class="bd"><p class="t">Toyota Yaris Hybride 116</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2021</span><span class="spec">29 000 km</span><span class="spec">Hybride</span></div>
-              <div class="px"><b>17 450 €</b><small>Bordeaux (33)</small></div></div>
-          </div>
-          <div class="vc d ko" style="--d:650ms">
-            <div class="im"><img src="/guide/photo/480/polo-6.webp" alt="" width="252" height="189" decoding="async" loading="lazy">
-              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">Leboncoin</span></div><span class="ecarte">Moteur HS — écartée</span></div>
-            <div class="bd"><p class="t">Volkswagen Polo 1.0 TSI 95</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2019</span><span class="spec">64 000 km</span><span class="spec">Essence</span></div>
-              <div class="px"><b>4 500 €</b><small>Marseille (13)</small></div></div>
-          </div>
-          <div class="vc m" style="--d:350ms">
-            <div class="im"><img src="/guide/photo/480/golf-7.webp" alt="" width="252" height="189" decoding="async" loading="lazy">
-              <div class="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5"><span class="badge">L'argus</span><span class="badge badge-ok">✓ Description lue</span></div></div>
-            <div class="bd"><p class="t">Volkswagen Golf 7 1.5 TSI</p><div class="mt-2 flex flex-wrap gap-1"><span class="spec">2018</span><span class="spec">78 000 km</span><span class="spec">Essence</span></div>
-              <div class="px"><b>16 490 €</b><small>Lille (59)</small></div></div>
-          </div>
-        </div>
     </section>
 
     <!-- ================= Résultats ================= -->
