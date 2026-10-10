@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/site.css?v=ebfe95b8" />
+  <link rel="stylesheet" href="/site.css?v=13c6181b" />
   <style>
     :root { color-scheme: dark; }
     html, body { overflow-x: clip; }
@@ -325,9 +325,25 @@
     .lueur:hover::after { opacity: 1; }
 
     .vitrine-m, .vitrine-m-titre { display: none; }
+    /* ---------- Mobile : premier écran compact (titre, recherche, filtres en bande, voitures visibles) ---------- */
+    @media (max-width: 639px) {
+      .titre { font-size: 1.8rem; letter-spacing: -.03em; }
+      .wm { font-size: 13.5px; white-space: nowrap; }
+      .barre { border-radius: 16px; }
+      .seg { padding: .45rem .75rem !important; }
+      .seg > span { font-size: 11px; }
+      .champ, .seg .dd-btn { font-size: 14.5px; }
+      .barre .btn-go { height: 46px !important; }
+      .rapides { flex-wrap: nowrap; overflow-x: auto; margin: 12px -16px 0; padding: 0 16px 4px; scrollbar-width: none; scroll-padding-inline: 16px; }
+      .rapides::-webkit-scrollbar { display: none; }
+      .rapides > *, .rapides .q { flex: none; }
+      .rapides #effacer { margin-left: 0; }
+      .vitrine-m .vc { flex-basis: min(212px, 58vw); }
+      .vitrine-m .vc .bd { padding: 10px 11px 11px; }
+    }
     @media (max-width: 1023px) {
       .vitrine { display: none; }
-      .vitrine-m-titre { display: block; margin: 1.6rem 0 .6rem; font-size: 13px; color: #8b8b94; }
+      .vitrine-m-titre { display: block; margin: 1.1rem 0 .55rem; font-size: 13px; color: #8b8b94; }
       .vitrine-m { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; margin: 0 -16px; padding: 2px 16px 12px;
         scrollbar-width: none; -webkit-overflow-scrolling: touch; }
       .vitrine-m::-webkit-scrollbar { display: none; }
@@ -384,12 +400,12 @@
     </header>
 
     <!-- ================= Hero + formulaire ================= -->
-    <section id="recherche" class="relative pt-12 pb-8 sm:pt-16">
+    <section id="recherche" class="relative pt-5 pb-8 sm:pt-16">
       <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_480px]">
         <div>
-          <p class="accroche reveal" style="--d:60ms">Tous les sites d'annonces réunis,<span> triés selon vos équipements.</span></p>
-          <h1 id="headline" class="titre mt-6">Toutes les voitures d'occasion. Une recherche.</h1>
-          <p class="reveal mt-6 max-w-xl text-[17px] leading-relaxed text-zinc-400" style="--d:450ms">Une seule recherche sur les grands sites d'annonces. Les véhicules en panne ou accidentés sont repérés et écartés pour vous.</p>
+          <p class="accroche reveal hidden sm:block" style="--d:60ms">Tous les sites d'annonces réunis,<span> triés selon vos équipements.</span></p>
+          <h1 id="headline" class="titre sm:mt-6">Toutes les voitures d'occasion. Une recherche.</h1>
+          <p class="reveal mt-3 max-w-xl text-[15px] leading-relaxed text-zinc-400 sm:mt-6 sm:text-[17px]" style="--d:450ms"><span class="hidden sm:inline">Une seule recherche sur les grands sites d'annonces. Les véhicules en panne ou accidentés sont repérés et écartés pour vous.</span><span class="sm:hidden">Tous les sites d'annonces en une recherche, sans les véhicules en panne ou accidentés.</span></p>
         </div>
         <div class="vitrine" aria-hidden="true">
           <div class="vc g" style="--d:500ms">
@@ -413,7 +429,7 @@
         </div>
       </div>
 
-      <form id="form" class="reveal relative z-20 mt-10" style="--d:600ms" autocomplete="off">
+      <form id="form" class="reveal relative z-20 mt-5 sm:mt-10" style="--d:600ms" autocomplete="off">
         <div class="barre">
           <div class="seg"><span id="lbl-marque">Marque</span>
             <select id="marque" class="sr-only" tabindex="-1" aria-hidden="true"><option value="">Toutes les marques</option></select>
@@ -443,8 +459,8 @@
         </div>
         <p id="aideMarque" class="mt-2 hidden text-sm text-amber-200/90">Choisissez une marque, ou au moins un critère (budget, kilométrage, équipement…).</p>
 
-        <div class="mt-4 flex flex-wrap items-center gap-2">
-          <span class="mr-1 text-[12.5px] text-zinc-500">Filtres rapides</span>
+        <div class="rapides mt-4 flex flex-wrap items-center gap-2">
+          <span class="mr-1 hidden text-[12.5px] text-zinc-500 sm:inline">Filtres rapides</span>
           <div id="quickChips" class="contents"></div>
           <button type="button" id="plusFiltres" class="q tous" aria-expanded="false" aria-controls="panneau">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
