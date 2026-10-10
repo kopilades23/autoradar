@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/site.css?v=13c6181b" />
+  <link rel="stylesheet" href="/site.css?v=168c9acd" />
   <style>
     :root { color-scheme: dark; }
     html, body { overflow-x: clip; }
@@ -327,8 +327,15 @@
     .vitrine-m, .vitrine-m-titre { display: none; }
     /* ---------- Mobile : premier écran compact (titre, recherche, filtres en bande, voitures visibles) ---------- */
     @media (max-width: 639px) {
-      .titre { font-size: 1.8rem; letter-spacing: -.03em; }
-      .wm { font-size: 13.5px; white-space: nowrap; }
+      .titre { font-size: 1.5rem; letter-spacing: -.025em; }
+      header.sticky { top: 8px !important; margin-top: 8px !important; padding: 6px 8px 6px 8px !important; border-radius: 14px !important; }
+      header.sticky .logo-mark { width: 30px; height: 30px; border-radius: 9px; }
+      header.sticky nav { font-size: 12.5px; }
+      header.sticky nav a { padding: 4px 8px; }
+      /* filtres : un seul bouton « Plus de filtres » ; les filtres rapides apparaissent à l'ouverture */
+      .rapides .q:not(.tous), #form:not(.filtres-ouverts) #hideMerguez { display: none; }   /* tous les équipements sont dans le panneau */
+      #form.filtres-ouverts .rapides { flex-wrap: wrap; overflow: visible; }
+      .wm { font-size: 12.5px; white-space: nowrap; }
       .barre { border-radius: 16px; }
       .seg { padding: .45rem .75rem !important; }
       .seg > span { font-size: 11px; }
@@ -464,7 +471,7 @@
           <div id="quickChips" class="contents"></div>
           <button type="button" id="plusFiltres" class="q tous" aria-expanded="false" aria-controls="panneau">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-            Tous les filtres<span id="nbFiltres" class="hidden rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"></span></button>
+            <span class="hidden sm:inline">Tous les filtres</span><span class="sm:hidden">Plus de filtres</span><span id="nbFiltres" class="hidden rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"></span></button>
           <span class="mx-1 hidden h-5 w-px bg-white/10 sm:block"></span>
           <button id="hideMerguez" type="button" aria-pressed="true" title="Masquer les véhicules en panne, accidentés, vendus pour pièces ou « en l'état »"
             class="inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-[13px] text-zinc-300 transition hover:text-white aria-pressed:text-red-200">
@@ -778,7 +785,8 @@
     }
 
     function renderChips() {
-      $("#optChips").innerHTML = Object.entries(GROUPES).map(([g, liste]) => `
+      const groupes = Object.entries(GROUPES).sort(([a], [b]) => (b.startsWith("Mécanique") ? 1 : 0) - (a.startsWith("Mécanique") ? 1 : 0));
+      $("#optChips").innerHTML = groupes.map(([g, liste]) => `
         <span class="pt-1.5 font-mono text-[10px] uppercase tracking-widest text-zinc-500">${g}${g === GROUPE_AUDIO ? `<span class="block normal-case tracking-normal text-zinc-600">au moins une marque</span>` : ""}</span>
         <div class="flex flex-wrap items-center gap-1.5">${g === GROUPE_AUDIO ? (() => {
           const tout = liste.every(o => state.opts.has(o));
@@ -796,7 +804,7 @@
       $("#srcChips").innerHTML = Object.entries(CHIPS).map(([k, s]) => {
         const on = state.sources.has(k);
         return `<button type="button" data-src="${k}" aria-pressed="${on}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition active:scale-95 ${on ? "bg-white/10 text-white" : "bg-white/[0.03] text-zinc-500 line-through"}">
-          <span class="size-1.5 rounded-full" style="background:${s.dot}"></span>${s.nom}</button>`;
+          ${s.nom}</button>`;
       }).join("");
       $("#hideMerguez").setAttribute("aria-pressed", String(state.hideMerguez));
       $("#verifOnly").setAttribute("aria-pressed", String(state.verifOnly));
