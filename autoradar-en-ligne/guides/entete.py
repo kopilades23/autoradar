@@ -61,6 +61,7 @@ html{scroll-padding-top:96px}
 .lbo-nav a.lbo-btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.1)}
 @media (min-width:640px){.lbo-cont{padding:0 32px}.lbo-entete{padding:10px 16px}.lbo-sous{display:block}.lbo-sm{display:inline}.lbo-nav a.lbo-btn{display:inline-block}}
 @media (min-width:768px){.lbo-md{display:inline}}
+@media (max-width:639px){.lbo-cont{top:8px}.lbo-entete{margin-top:8px;padding:6px 8px;border-radius:14px}.lbo-brand{gap:10px}.logo-mark{width:30px;height:30px;border-radius:9px}.lbo-nom{font-size:12.5px;white-space:nowrap}.lbo-nav{font-size:12.5px}.lbo-nav a{padding:4px 8px}}
 .logo-mark{position:relative;width:38px;height:38px;border-radius:12px;overflow:hidden;flex:none;
   background:#ff5b1f;box-shadow:0 10px 30px -12px rgba(255,91,31,.9),inset 0 1px 0 rgba(255,255,255,.3)}
 .logo-mark svg{position:absolute;inset:0;width:100%;height:100%}
