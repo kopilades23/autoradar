@@ -115,7 +115,8 @@ def page(chemin: str, titre: str, description: str, corps: str, jsonld: list, im
   <meta property="og:description" content="{e(description)}" />
   <meta property="og:url" content="{url}" />
   <meta property="og:image" content="{DOMAINE}{image}" />
-  <link rel="icon" href="/icone-192.png" />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/icone-180.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
